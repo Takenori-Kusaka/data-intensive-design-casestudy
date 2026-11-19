@@ -171,6 +171,17 @@ def sec_overview(d, env):
     mem = env.get('topic_a_container_memory_seen', {})
     if mem:
         L.append('コンテナのメモリ（docker stats で見た最大の値）：' + '、'.join(f'{k} {v}' for k, v in sorted(mem.items())) + '。\n')
+    ml = read_jsonl(os.path.join(RESULTS, 'a', 'memlog.jsonl'))
+    fr = [r['windows_free_gb'] for r in ml if r.get('windows_free_gb') is not None]
+    vm = [r['vmmem_wsl_working_set_gb'] for r in ml if r.get('vmmem_wsl_working_set_gb') is not None]
+    if ml:
+        cache = [r['wsl_buff_cache_mb'] for r in ml]
+        used = [r['wsl_used_mb'] for r in ml]
+        L.append(f'実行中のメモリの記録（memlog.jsonl、{len(ml)} 行、約 60 秒おき）：Windows の空きは最小 '
+                 f'{min(fr) if fr else "未検証"} GB（最初 {fr[0] if fr else "未検証"} GB、最後 {fr[-1] if fr else "未検証"} GB）、'
+                 f'vmmemWSL の作業セットは最大 {max(vm) if vm else "未検証"} GB（最初 {vm[0] if vm else "未検証"} GB、最後 {vm[-1] if vm else "未検証"} GB）。'
+                 f'WSL の中の used は {min(used)}〜{max(used)} MB、buff/cache は {min(cache)}〜{max(cache)} MB'
+                 f'（最初 {cache[0]} MB、最後 {cache[-1]} MB）。\n')
     return L
 
 
@@ -413,13 +424,13 @@ def sec_wal(d):
             st = a['connector_state']
             mb = a['missing_by_phase']
             rows.append([r['trial'], 'はい' if r['slot_invalid_before_restart'] else 'いいえ', st['task'],
-                         (st['trace'] or 'なし')[:420],
+                         (st['trace'] or 'なし')[:420], '；'.join(st.get('log_excerpt') or []) or 'なし',
                          a['metrics']['index']['missing_committed'],
                          '、'.join(f'{k}：{v["missing"]}/{v["committed"]}' for k, v in sorted(mb.items())),
                          a['metrics']['final']['mismatch'], a['would_detect_by_reconcile'],
                          a['metrics']['index']['dup_effect_extra'] + a['metrics']['notify']['dup_effect_extra']])
         L.append('Kafka Connect を戻した後：\n')
-        L.append(table(['試行', '戻す前にスロットは無効か', 'コネクタのタスクの状態', 'タスクの失敗の内容（先頭）', '正にあって索引に届かない',
+        L.append(table(['試行', '戻す前にスロットは無効か', 'コネクタのタスクの状態（REST）', 'タスクの失敗の内容（先頭）', 'Kafka Connect のログ（スロット・WAL に触れた警告とエラーの先頭）', '正にあって索引に届かない',
                         '内訳（届かない／コミット済み）', '最終状態の食い違い（注文）', '照合が見つける差（注文）', '状態に 2 回効いた'], rows))
         if rs[0].get('after_catchup'):
             L.append('追いついた後（位置の確認応答と CHECKPOINT の後）：' + '；'.join(

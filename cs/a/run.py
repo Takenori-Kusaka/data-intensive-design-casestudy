@@ -18,7 +18,7 @@ import time
 from ..common import dockerutil as D
 from ..common import memcheck
 from ..common.record import RESULTS, Results, update_env
-from . import aggregate, audit, cases, config as C, infra, wal
+from . import aggregate, audit, cases, config as C, infra, memlog, wal
 
 STEPS = ['audit', 'main', 'wal', 'kafka', 'summary']
 FAULT_CONC = 4
@@ -120,6 +120,7 @@ def main(argv):
             os.remove(f)
     t0 = time.monotonic()
     log(f'steps={steps} memory={memcheck.ensure("start")}')
+    ml = memlog.MemLog().start()        # one line about every 60 s in results/a/memlog.jsonl
     D.cleanup(C.PREFIX)                 # leftovers of an interrupted run (dic-a-* only)
     mem_peak, versions = {}, {}
 
@@ -147,6 +148,7 @@ def main(argv):
             log(f'{step}: {len(todo)} of {len(specs)} runs to do')
             for i, s in enumerate(todo, 1):
                 memcheck.ensure(cases.run_id_of(s))
+                ml.label = cases.run_id_of(s)
                 row = cases.run_one(s, log=log)
                 res.append(row)
                 note(row)
@@ -162,6 +164,7 @@ def main(argv):
             log(f'wal: {len(todo)} runs to do')
             for s in todo:
                 memcheck.ensure(f'wal {s["cond"]}')
+                ml.label = f'wal:{s["broker"]}:{s["cond"]}:t{s["trial"]}'
                 row = wal.run_one(s, log=log)
                 res.append(row)
                 note(row)
@@ -175,6 +178,8 @@ def main(argv):
         raise SystemExit(3)
     finally:
         infra.down()
+        ml.label = 'end'
+        ml.stop()
         log(f'cleanup: leftovers={D.cleanup(C.PREFIX)}')
     record_env(mem_peak, versions)
     if 'summary' in steps:

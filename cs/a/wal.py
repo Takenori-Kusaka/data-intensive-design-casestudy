@@ -23,8 +23,8 @@ from . import cases, config as C, infra
 from . import workload as W
 
 CONDITIONS = {
-    'default': {'pg_args': ['-c', 'max_slot_wal_keep_size=-1'], 'filler_mb': 32, 'sleep_s': 0, 'steps': 12},
-    'cap': {'pg_args': ['-c', 'max_slot_wal_keep_size=64MB'], 'filler_mb': 32, 'sleep_s': 0, 'steps': 12},
+    'default': {'pg_args': ['-c', 'max_slot_wal_keep_size=-1'], 'filler_mb': 32, 'sleep_s': 0, 'steps': 8},
+    'cap': {'pg_args': ['-c', 'max_slot_wal_keep_size=64MB'], 'filler_mb': 32, 'sleep_s': 0, 'steps': 8},
     'idle': {'pg_args': ['-c', 'idle_replication_slot_timeout=20s'], 'filler_mb': 4, 'sleep_s': 4, 'steps': 8},
 }
 P1_OPS, STEP_OPS, P3_OPS, CONC = 400, 100, 100, 4
@@ -49,8 +49,8 @@ def sample(label, slot=C.SLOT, stop_lsn=None):
            'safe_wal_size_mb': None if r[4] is None else round(r[4] / 2**20, 1),
            'invalidation_reason': r[5], 'inactive': r[6], 'pg_wal_dir_mb': round(r[7] / 2**20, 1), 'lsn': r[8]}
     if stop_lsn:
-        out['wal_since_stop_mb'] = round(infra.q('pg', 'select pg_wal_lsn_diff(%s::pg_lsn, %s::pg_lsn)',
-                                                 (r[8], stop_lsn))[0][0] / 2**20, 1)
+        out['wal_since_stop_mb'] = round(float(infra.q('pg', 'select pg_wal_lsn_diff(%s::pg_lsn, %s::pg_lsn)',
+                                                       (r[8], stop_lsn))[0][0]) / 2**20, 1)
     return out
 
 
@@ -62,6 +62,20 @@ def gen_wal(mb):
         while c.execute('select pg_wal_lsn_diff(pg_current_wal_lsn(), %s::pg_lsn)', (start,)).fetchone()[0] < mb * 2**20:
             c.execute("insert into filler (pad) select repeat(md5(g::text || random()::text), 30) "
                       "from generate_series(1, 4000) g")
+
+
+def connect_log_excerpt(n=3):
+    """First WARN/ERROR lines of the Kafka Connect log that mention the replication slot."""
+    r = D.docker('logs', '--since', '10m', C.CONNECT, check=False)
+    out = []
+    for ln in (r.stdout + r.stderr).splitlines():
+        if (' ERROR ' in ln or ' WARN ' in ln) and ('slot' in ln.lower() or 'wal' in ln.lower()):
+            ln = ' '.join(ln.split())[:400]
+            if ln[30:] not in [x[30:] for x in out]:
+                out.append(ln)
+        if len(out) >= n:
+            break
+    return out
 
 
 def missing_by_phase():
@@ -128,7 +142,7 @@ def run_one(spec, log=print):
         t_restart = time.monotonic()
         # the task either keeps running and catches up, or fails
         state = None
-        while time.monotonic() - t_restart < 120:
+        while time.monotonic() - t_restart < 45:
             for p in procs:
                 p.tick()
             state = stack.connector_state()
@@ -140,6 +154,7 @@ def run_one(spec, log=print):
         catchup_s = round(time.monotonic() - t_restart, 1)
         s2 = cases.settle(stack, 'be', committed_n(), procs, quiet_s=10.0, max_s=60)
         state = stack.connector_state()
+        state['log_excerpt'] = connect_log_excerpt()
         m_a, extra_a, (orders, index) = cases.collect(stack, rundirs, dict(expected))
         row = {
             'run_id': run_id, 'exp': 'wal', 'broker': spec['broker'], 'cond': cond, 'trial': trial, 'seed': seed,

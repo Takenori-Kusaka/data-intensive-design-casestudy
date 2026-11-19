@@ -46,7 +46,10 @@ MSYS_NO_PATHCONV=1 wsl -d Ubuntu-24.04 -- bash /mnt/<ドライブ>/<リポジト
 | `judges.py`・`audit.py` | 判定器と、誤りを仕込んだ列での監査 |
 | `aggregate.py` | `results/a/summary.md` を結果のファイルから作る |
 | `run.py`・`run.sh` | 題材 A を最初から最後まで流す |
-| `dev_*.py`・`dev_many.sh`・`py.sh` | 開発用（1 回だけ流して結果を表示する。結果のファイルには書かない） |
+| `memlog.py` | 通しの実行のあいだ、約 60 秒おきに Windows の空きメモリ、vmmemWSL の作業セット、WSL の中の used と buff/cache を `results/a/memlog.jsonl` に追記する |
+| `py.sh` | リポジトリのモジュールを実験用の venv で動かす（`bash cs/a/py.sh cs.a.<モジュール> [引数]`） |
+| `dev_one.py`・`dev_many.sh` | 構成とケースを 1 つ選んで 1 回だけ流し、結果を表示する（結果のファイルには書かない。作りを変えたときの確認用） |
+| `dev_wal.py` | CDC の落とし穴を 1 条件だけ流して表示する（同上） |
 
 compose のファイルは置いていない。題材 D と同じく、実験の途中でコンテナを止める・強制終了する・起動し直す操作が多いので、`docker run` を Python（`cs/common/dockerutil.py`）から呼んでいる。
 
