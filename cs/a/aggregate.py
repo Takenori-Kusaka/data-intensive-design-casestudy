@@ -503,7 +503,8 @@ def sec_guide(d):
         nn = n4 + n16
         rows.append(['二重書き込みの不整合は 2 つの型で起きる',
                      '型 2：並行した更新が逆順に届く。4 回の書き込みはすべて成功し、エラーは 1 件もない。「題材 A で、障害を入れない並行更新だけで食い違う件数を実測する」',
-                     verdict(tot(nn, 'index.reorder_pairs') > 0 and tot(nn, 'request_failures') == 0, '実測（一致）'),
+                     verdict(tot(nn, 'index.reorder_pairs') > 0 and tot(nn, 'request_failures') == 0,
+                             '実測（一致）' if tot(nn, 'final.mismatch') > 0 else '実測（順序の入れ替わりは一致。最終状態の食い違いは、この条件では 0）'),
                      f'N・障害なし：並行度 4 で順序の入れ替わり {occ(n4, "index.reorder_pairs")}・最終状態の食い違い {occ(n4, "final.mismatch")}、'
                      f'並行度 16 で {occ(n16, "index.reorder_pairs")}・{occ(n16, "final.mismatch")}、'
                      f'並行度 1 で {tot(n1, "index.reorder_pairs") if n1 else "未検証"}・{tot(n1, "final.mismatch") if n1 else "未検証"}。'
@@ -650,7 +651,7 @@ def sec_guide(d):
     if n16:
         rows.append(['移行中の二重書き込みには、照合が欠かせない（Part 15）',
                      '同じ行への 2 つの更新が、2 つの保存先に違う順で届く。「題材 A で二重書き込みの食い違いを実測する」',
-                     '実測（一致）',
+                     '実測（一致）' if tot(n16, 'final.mismatch') > 0 else '実測（順序の入れ替わりは起きた。最終状態の食い違いは、この条件では 0）',
                      f'上の 1 行目と同じ結果。N・障害なし・並行度 16：最終状態の食い違い {occ(n16, "final.mismatch")}'])
     L.append(table(['スライドの題', 'ガイドの記述', '判定', '実測'], rows))
     return L
