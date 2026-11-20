@@ -935,7 +935,10 @@ def findings(d):
     lw = sel(d.retain, product='ch', method='lightweight_delete')
     if rt:
         after = lambda rs, i: mb(median(r['steps'][i]['bytes_after'] for r in rs))  # noqa: E731
-        b.append(f'**DELETE は容量を減らさない**（容量は試行の中央値。C-3 の表と同じ取り方）。PostgreSQL は DELETE の後も VACUUM の後も {after(rt, 0)}・{after(rt, 1)}'
+        ad = sel(d.retain, product='ch', method='alter_delete')
+        b.append(f'**PostgreSQL の DELETE、ClickHouse の軽量な削除、DuckDB の表の DELETE は、直後の容量を減らさなかった**（容量は試行の中央値。C-3 の表と同じ取り方）。'
+                 + (f'ClickHouse の ALTER TABLE … DELETE（ミューテーション）は別で、直後に {mb(median(r["bytes_before"] for r in ad))} → {after(ad, 0)} になった。' if ad else '')
+                 + f'PostgreSQL は DELETE の後も VACUUM の後も {after(rt, 0)}・{after(rt, 1)}'
                  f'（前は {mb(median(r["bytes_before"] for r in rt))}）で、'
                  f'VACUUM FULL（{rng(r["steps"][2]["ms"] for r in rt)}。表を排他ロックして書き直す）で {after(rt, 2)} になった。'
                  + (f'ClickHouse の軽量な削除も、直後は {after(lw, 0)} のままで、OPTIMIZE FINAL の後に {after(lw, 1)}。' if lw else '')

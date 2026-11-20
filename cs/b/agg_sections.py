@@ -38,6 +38,21 @@ def mode_label(r, mode):
     return MODE_JA[mode] if f'（{eff}）' in MODE_JA[mode] else f'{MODE_JA[mode]}（レジストリの表示：{eff}）'
 
 
+def store_groups(d):
+    """Size of the new store against the old one while both exist, per kind of new consumer.
+    Only the runs stopped by the reconciliation recorded both sizes at the same moment. The kinds
+    differ a lot (a faulty consumer drops part of the data), so no value is given across them."""
+    out = []
+    for var in B4.VARIANT_JA:
+        rs = [r['store_bytes'] for r in d.b4 if r['variant'] == var and r['outcome'] == 'aborted_by_reconciliation'
+              and 'idx_old' in r['store_bytes'] and 'idx_new' in r['store_bytes']]
+        if rs:
+            x = sorted((b['idx_new'] + b.get('agg_new', 0)) / b['idx_old'] for b in rs)
+            kib = sorted((b['idx_new'] + b.get('agg_new', 0)) / 1024 for b in rs)
+            out.append((B4.VARIANT_JA[var], len(rs), f'{x[0]:.2f}〜{x[-1]:.2f} 倍', f'{kib[0]:.0f}〜{kib[-1]:.0f} KiB'))
+    return out
+
+
 def occ(vals):
     """'sum（trials with at least one / trials）'; a plain 0 when nothing happened."""
     vals = list(vals)
@@ -224,7 +239,7 @@ def b3_section(d):
                      fails + (f'（{"、".join(errs)}）' if errs else ''), med([r['lock_waits']['max_waiting_sessions'] for r in rs], 0)])
     out.append(table(head, rows))
     out.append(f'### 長いトランザクションの後ろに並んだ DDL（各 {B3.TRIALS_QUEUE} 試行）\n')
-    out.append(f'表を 1 回読んだだけのトランザクションを {B3.HOLD_S:.0f} 秒開いたままにし、0.5 秒後に `ALTER TABLE … ADD COLUMN`（単独なら数 ms の操作）を実行した。'
+    out.append(f'表は {B3.ROWS_QUEUE:,} 行。表を 1 回読んだだけのトランザクションを {B3.HOLD_S:.0f} 秒開いたままにし、0.5 秒後に `ALTER TABLE … ADD COLUMN`（単独なら数 ms の操作）を実行した。'
                'アプリの要求は 3 秒で時間切れになる。\n')
     head = ['条件', 'DDL が終わるまで（秒）', 'DDL の試行回数', '書き込みが止まった時間（ms）', '読み取りが止まった時間（ms）',
             '失敗した要求（書き込み／読み取り）', 'ロック待ちのセッションの最大数']
@@ -327,8 +342,10 @@ def b4_section(d):
         out.append(table(['新しい受け手', '実行', '状態の食い違い（注文）', '適用回数の食い違い（注文）', '余分に適用した回数', '足りない回数', '集計の食い違い（状態）'], rows))
         both = [r['store_bytes'] for r in ab if 'idx_old' in r['store_bytes'] and 'idx_new' in r['store_bytes']]
         if both:
-            out.append(f'保存域（新旧を並べている間。照合で止めた {len(both)} 実行の終わりの値）：旧の索引 {med([b["idx_old"] / 1024 for b in both], 0)} KiB、'
-                       f'新の索引と集計表 {med([(b["idx_new"] + b.get("agg_new", 0)) / 1024 for b in both], 0)} KiB。\n')
+            out.append(f'保存域（新旧を並べている間。照合で止めた {len(both)} 実行の終わりの値）：旧の索引 {med([b["idx_old"] / 1024 for b in both], 0)} KiB。'
+                       '新の索引と集計表は、新しい受け手の種類で大きさが分かれるので、種類ごとの範囲で書く：'
+                       + '、'.join(f'{ja}の {n} 実行は {kib}（旧の {x}）' for ja, n, x, kib in store_groups(d))
+                       + '。種類をまたいだ中央値は、どの実行の値でもないので書かない。欠陥なしで切り替えた実行は、新旧の大きさを同じ時点で記録していない。\n')
     return out
 
 

@@ -155,7 +155,7 @@ def comparison(d):
         verdict = ('条件つき（エラーも誤った値も無く登録も通るが、受け手が必ずあると見なしていたフィールドを消すと、既定値で黙って埋まった）'
                    if no_err and miss else v3(no_err))
         return verdict, (f'追加：{_rejs(a)}、{_t(a, "old_reads_new")}。任意のフィールドの削除：{_rejs(b)}、{_t(b, "old_reads_new")}。'
-                         f'受け手が使っているフィールド（status）の削除：{_rejs(c)}、旧い受け手が新しいデータを読むと {_t(c, "old_reads_new")}')
+                         f'{A.change_ja("protobuf", "del_required").split(" ", 1)[1]}（消したのは、受け手が使っている status）：{_rejs(c)}、旧い受け手が新しいデータを読むと {_t(c, "old_reads_new")}')
     safe(rows, T1, 'Protocol Buffers：新しい番号での追加は安全。削除も安全（番号は reserved に）', pb_add_del)
 
     def pb_rename_type():
@@ -414,10 +414,11 @@ def comparison(d):
     def swap_cost():
         be = d.b4of('be', 'clean')
         ab = [r['store_bytes'] for r in d.b4 if r['outcome'] == 'aborted_by_reconciliation' and 'idx_old' in r['store_bytes'] and 'idx_new' in r['store_bytes']]
-        ratio = med([(b['idx_new'] + b.get('agg_new', 0)) / b['idx_old'] for b in ab], 2)
         return '実測', (f'作り直しの時間 {med([r["rebuild_s"] for r in be], 2)} 秒（イベント {be[0]["n_preload"]:,} 件＋流れている分）、切り替えの全体 {med([r["swap_s"] for r in be], 1)} 秒。'
                         f'切り替えた {len(be)} 試行の新のストアは正解と一致（食い違い {sum(r["final"]["new"]["state_mismatch"] + r["final"]["new"]["count_mismatch"] for r in be)}）。'
-                        f'並べている間の保存域は、新が旧の {ratio} 倍（新は列と集計表が多い。合計は旧 1 つ分の約 1＋{ratio} 倍）')
+                        f'並べている間の保存域（照合で止めた {len(ab)} 実行で、新旧を同じ時点で測った。新は列と集計表が多い）は、新が旧の、'
+                        + '、'.join(f'{ja}の {n} 実行で {x}' for ja, n, x, _kib in A.store_groups(d))
+                        + '。受け手の種類で 2 つの群に分かれ、間の値の実行は無いので、全体の中央値は書かない')
     safe(rows, T9, '払うもの：出力の保存域が一時的に 2 倍。「題材 B で実測する：導出ストアの差し替え、作り直しの一致率と所要時間」', swap_cost)
 
     T10 = 'マテリアライズドビューは、製品で意味が違う'
@@ -611,7 +612,7 @@ def normal_ops(d):
         f'（lock_timeout なしは {med([r["ddl"]["seconds"] for r in d.b3of("queue", "long_txn")], 2)} 秒で、1 回で成功）。その間に失敗した要求は {sum(r["write"]["failed"] + r["read"]["failed"] for r in d.b3of("queue", "long_txn_timeout"))}'))
     add('B-4 並べて切り替える：欠陥の無い切り替えが照合で止められた数', lambda: (
         f'{sum(1 for r in d.b4of("be", "clean") + d.b4of("be", "crash") if r["outcome"] != "switched")}/{len(d.b4of("be", "clean") + d.b4of("be", "crash"))} 試行'
-        f'（欠陥なし {len(d.b4of("be", "clean"))} 試行＋受け手が 1 回落ちた {len(d.b4of("be", "crash"))} 試行。照合のやり直しは最大 {max(r["reconciliation"]["rounds"] for r in d.b4of("be", "clean") + d.b4of("be", "crash"))} 回）。'
+        f'（欠陥なし {len(d.b4of("be", "clean"))} 試行＋受け手が 1 回落ちた {len(d.b4of("be", "crash"))} 試行。照合の回数は、1 回目の照合を含めて最大 {max(r["reconciliation"]["rounds"] for r in d.b4of("be", "clean") + d.b4of("be", "crash"))} 回）。'
         f'厳密な一致（1 つのスナップショットで新旧が完全に同じ）を条件にしていたら通らない：一致したスナップショットは、{_snaps(d)}。'
         f'切り替えの途中に前より古い版を読んだ読み取り：欠陥なし {occ(A._reads(r, "regress") for r in d.b4of("be", "clean"))}、受け手が 1 回落ちた場合 {occ(A._reads(r, "regress") for r in d.b4of("be", "crash"))}'))
     add('B-5 遅れの監視：既定の保持での誤った警報', lambda: (
@@ -638,7 +639,13 @@ def notes(d):
           and sum(r['traffic'][k][c] for k in ('old_reads_new', 'new_reads_old') for c in ('wrong', 'missing')) > 0]
     add(lambda: (f'Protocol Buffers では、最も厳しい FULL_TRANSITIVE でも登録が通り、エラーも出ないのに、受け手の値が誤る・欠ける変更が {len(pb)} 件あった：'
                  + '、'.join(A.change_ja(r['format'], r['change']).split(' ', 1)[1] for r in pb)
-                 + '。Avro と JSON Schema の同じ種類の変更は、検査で拒否されるか、受け手がエラーで止まった'))
+                 + '。このうち Avro と JSON Schema にも同じ変更があるもの（' + ('、'.join(
+                     A.change_ja('avro', r['change']).split(' ', 1)[1] for r in pb
+                     if _b1(d, 'avro', r['change']) and _b1(d, 'json', r['change'])) or 'なし')
+                 + '）は、Avro と JSON Schema では、FULL_TRANSITIVE で拒否されるか、受け手がエラーで止まった：'
+                 + '、'.join(f'{A.FMT_JA[f]} {sum(1 for r in pb if _b1(d, f, r["change"]) and (not _b1(d, f, r["change"])["registry"]["FULL_TRANSITIVE"]["v2"]["accepted"] or sum(_b1(d, f, r["change"])["traffic"][k]["error"] for k in ("old_reads_new", "new_reads_old")) > 0))}'
+                             f'/{sum(1 for r in pb if _b1(d, f, r["change"]))} 件' for f in ('avro', 'json'))
+                 + '。同じ変更が Avro と JSON Schema に無いもの（番号の再利用など）は、比べていない'))
     add(lambda: ('Avro の別名（aliases）つきの名前の変更は、読む側のライブラリ（fastavro）では旧いデータを読めたが、Redpanda のレジストリは BACKWARD で拒否した（'
                  + _rejs(_b1(d, 'avro', 'rename')) + '）。レジストリが別名を互換性の判定に使っていないように見える。原因は調べていない'))
     add(lambda: ('JSON Schema で additionalProperties を書かないスキーマ（未知のプロパティを通す）に任意プロパティを足す変更は、Redpanda では ' + _rejs(_b1(d, 'json', 'add_optional'))

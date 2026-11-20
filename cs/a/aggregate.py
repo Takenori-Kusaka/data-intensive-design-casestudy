@@ -787,7 +787,7 @@ def sec_guide(d):
     if b1 and be1:
         bm, bem = med(b1, 'lag_ms', 'p50_ms'), med(be1, 'lag_ms', 'p50_ms')
         rows.append(['アウトボックスの運び方は 2 つ：ポーリングと CDC',
-                     '遅れ：ポーリングは間隔しだい。CDC は書き込みの直後に流せる',
+                     '遅れ：ポーリングは間隔しだい。CDC は書き込みの直後に流せる（中継が健全である間）',
                      verdict(bem <= bm, '一致', '**条件つきで食い違い**'),
                      f'並行度 1 の遅れ p50／p95（ms）：N {lat(nn1, "lag_ms")}、B {lat(b1, "lag_ms")}（間隔 {C.RELAY_POLL_MS} ms）、'
                      f'BE {lat(be1, "lag_ms")}（Debezium の poll.interval.ms は指定なし。文書の既定は {POLL_DEFAULT_MS} ms）。'
