@@ -41,7 +41,8 @@ def overview(d):
     sv = env.get('topic_b_server_versions') or {}
     tb = env.get('topic_b') or {}
     out.append('サーバーが返した版：' + ('、'.join(f'{k} {v}' for k, v in sorted(sv.items())) or NA) + '。クライアント：'
-               + ('、'.join(f'{k} {v}' for k, v in sorted(tb.items()) if k != 'run_date') or NA) + '。\n')
+               + ('、'.join(f'{k} {v}' for k, v in sorted(tb.items()) if not k.startswith('run_date')) or NA)
+               + f'。結果のファイルに記録した日付（UTC）：{tb.get("run_date", NA)}〜{tb.get("run_date_last", NA)}。\n')
     mem = env.get('topic_b_container_memory_seen') or {}
     if mem:
         out.append('コンテナのメモリ（docker stats で見た最大の値）：' + '、'.join(f'{k} {v}' for k, v in sorted(mem.items())) + '。\n')
@@ -76,6 +77,24 @@ def safe(rows, title, claim, fn):
     except (KeyError, IndexError, TypeError, StopIteration, ZeroDivisionError):
         verdict, measured = NA, '結果のファイルに該当の実行が無い'
     rows.append([title, claim, verdict, measured])
+
+
+def _snaps(d):
+    """Snapshots in which old and new were exactly equal, per variant; the denominator is the number of snapshots taken."""
+    def one(v):
+        rs = d.b4of('be', v)
+        return (sum(r['reconciliation']['exact_equal_snapshots'] for r in rs), sum(r['reconciliation']['snapshots'] for r in rs), len(rs))
+    a, b = one('clean'), one('crash')
+    return (f'欠陥なしの {a[2]} 試行で {a[0]}/{a[1]} 個、受け手が 1 回落ちた {b[2]} 試行で {b[0]}/{b[1]} 個'
+            f'（合わせて {a[0] + b[0]}/{a[1] + b[1]} 個。分母は、照合で取ったスナップショットの数）')
+
+
+def _v1(r):
+    """What the newest reader got from the v1 records when re-reading from the start."""
+    v1 = r['rebuild_by_writer'][f'{r["reader"]}_reads_v1']
+    tot = r['rebuild_total']
+    return (f'{A.FMT_JA[r["format"]]} v1 のデータ {v1["n"]} 件のうち エラー {v1["error"]}・誤った値 {v1["wrong"]}'
+            f'（読み直した全 {tot["n"]} 件では エラー {tot["error"]}・誤った値 {tot["wrong"]}）')
 
 
 def v3(all_ok, none_ok=False, yes='一致', part='一部だけ再現', no='食い違い'):
@@ -173,7 +192,7 @@ def comparison(d):
 
     def writer_first():
         bad = [r for r in d.b1 if r['registry']['BACKWARD']['v2']['accepted'] and r['traffic']['old_reads_new']['n'] != r['traffic']['old_reads_new']['ok']]
-        names = '、'.join(f'{A.FMT_JA[r["format"]]} {S.CHANGE_JA[r["change"]].split(" ", 1)[1]}' for r in bad)
+        names = '、'.join(f'{A.FMT_JA[r["format"]]} {A.change_ja(r["format"], r["change"]).split(" ", 1)[1]}' for r in bad)
         return v3(len(bad) > 0), f'BACKWARD で登録が通った変更のうち、旧い受け手が新しいデータを正しく読めなかったもの {len(bad)} 件：{names}'
     safe(rows, T2, 'BACKWARD のまま書き手を先に出すと、古い読み手が読める保証は無い', writer_first)
 
@@ -227,7 +246,7 @@ def comparison(d):
         bf = sum(r['write']['failed'] + r['read']['failed'] + r['read']['wrong'] for r in be)
         bm = sum(r['final']['value_mismatch'] + r['final']['lost_acked_write'] + r['final']['null_new_columns'] for r in be)
         return v3(nf > 0 and bf == 0 and bm == 0), (
-            f'1 つのトランザクションで変える N：失敗した要求 {occ(r["write"]["failed"] + r["read"]["failed"] for r in n)}、書き込みが止まった時間 {med([r["write"]["max_gap_ms"] for r in n], 0)} ms。'
+            f'1 つのトランザクションで変える N：失敗した要求 {occ(r["write"]["failed"] + r["read"]["failed"] for r in n)}（書き込みと読み取りの合計。内訳は B-3 の表）、書き込みが止まった時間 {med([r["write"]["max_gap_ms"] for r in n], 0)} ms。'
             f'expand/contract の BE：失敗した要求と誤った読み取り {bf}（{len(be)} 試行）、最終状態の食い違い {bm}、書き込みが止まった時間 {med([r["write"]["max_gap_ms"] for r in be], 0)} ms、'
             f'所要時間は N {med([r["migration_s"] for r in n], 1)} 秒に対し BE {med([r["migration_s"] for r in be], 1)} 秒')
     safe(rows, T5, '新旧の両方を支える期間を置けば、どの版のアプリも動ける。「各段階の失敗の数は題材 B で測る」', expand)
@@ -358,7 +377,7 @@ def comparison(d):
         bad = [r for r in d.b2 if r['sequence'] == 'hole' and r['mode'] == 'DEFAULT']
         return v3(all(r['rebuild_total']['n'] != r['rebuild_total']['ok'] for r in bad)), (
             '既定のモードで v3 まで登録できた列で、v3 の受け手が先頭から読み直すと：'
-            + '、'.join(f'{A.FMT_JA[r["format"]]} エラー {r["rebuild_total"]["error"]}・誤った値 {r["rebuild_total"]["wrong"]}（{r["rebuild_total"]["n"]} 件中）' for r in bad)
+            + '、'.join(_v1(r) for r in bad)
             + '。Avro と JSON Schema は読めずに止まる型、Protocol Buffers は誤って読む型')
     safe(rows, T8, '④ スキーマに互換がある：崩れると、古いイベントを今のコードが読めず、再生が止まるか、誤って読む', schema_pre)
     rows.append([T8, '⑤ 処理が決定的：崩れると、流すたびに結果が変わる', NA, '題材 B の受け手は決定的な処理だけで、now()・乱数・処理時間の窓を使う処理は作っていない。同じ入力を 2 回流した差分も取っていない'])
@@ -453,7 +472,7 @@ def comparison(d):
                         + f'取りこぼしは、止めなかった受け手で {sum(r["final"]["fast"]["deleted_left"] for r in rs)} 件')
     safe(rows, T11, '「題材 B で、削除が届くまでの時間と取りこぼしを測る」', del_time)
     rows.append([T11, '集計やモデルには効かない：行の単位では消せない。正から消して、導出を作り直す', NA, '集計表から削除済みの注文の分を引く処理は作っていない。学習済みのモデルは扱っていない'])
-    rows.append(['ログベースのブローカーは、読み直せる（Part 12 の注記）', 'Kafka 4.2 からの share groups（公式文書の記述。未検証）／Flink 2.3 のウォーターマーク（公式文書の記述。未検証）', NA, '題材 B の対象外（share groups と Flink は動かしていない）'])
+    rows.append(['キューは配ると消え、ログは残って読み直せる／窓はイベント時間で切り、遅れて届く分の扱いを決める', 'Kafka 4.2 からの share groups（公式文書の記述。未検証）／Flink 2.3 のウォーターマーク（公式文書の記述。未検証）', NA, '題材 B の対象外（share groups と Flink は動かしていない）'])
 
     T12 = '「PostgreSQL 互換」の幅は製品ごとに違う'
     rows.append([T12, 'Aurora DSQL・Spanner・CockroachDB の既定の分離レベルと使えない機能（公式文書の記述。未検証）', NA, '題材 B では PostgreSQL 18 だけを使った。CockroachDB の分離レベルごとの異常は題材 D の結果を参照。Aurora DSQL と Spanner は動かしていない'])
@@ -483,8 +502,9 @@ def comparison(d):
 
     def one_side():
         n = [r for r in d.b6 if r['config'].startswith('n')]
+        who = 'と、'.join(f'「{A.B6.CONFIG_JA[c]}」の {sum(1 for r in n if r["config"] == c)} 試行' for c in A.B6.CONFIG_JA if any(r['config'] == c for r in n))
         return v3(sum(r['dual_new_failed'] for r in n) > 0), (
-            f'二重書き込みの間に新のインスタンスを 1 回再起動すると、新への書き込みの失敗が {occ(r["dual_new_failed"] for r in n)}。ほかに、新にまだ行が無くて当たらなかった更新が {occ(r["dual_new_missed"] for r in n)}'
+            f'二重書き込みの間に新のインスタンスを 1 回再起動すると、新への書き込みの失敗が {occ(r["dual_new_failed"] for r in n)}（{who}の合計）。ほかに、新にまだ行が無くて当たらなかった更新が {occ(r["dual_new_missed"] for r in n)}'
             '（埋め戻しの前から二重書き込みを始めたため。どちらも要求は成功として応答した）。'
             f'論理レプリケーションの BE は、同じ再起動の後、照合の時点の食い違い {sum(r["steps"]["diff_after_backfill"] for r in d.b6 if r["config"].startswith("be"))}')
     safe(rows, T14, '片方だけ成功する：旧への書き込みは成功し、新は失敗する。新に行が欠ける', one_side)
@@ -521,7 +541,7 @@ def comparison(d):
             f'シーケンスを進めずに切り替えると、主キーの重複で失敗した挿入 {occ(r["write_all"]["errors"].get("UniqueViolation:23505", 0) for r in ns)}。進めた BE は {uv(d.b6of("be", "complete"))}。'
             'スキーマは新旧とも手で作った。DDL が複製されないこと自体は試していない')
     safe(rows, T14, '複製が運ばないものがある：PostgreSQL 18 の論理レプリケーションは、DDL とシーケンスの値を運ばない。切り替えの前にシーケンスを進める', seq)
-    rows.append(['まとめ：入れ替えは、製品を選ぶ日に始まっている／データ主権・EU Data Act', '改正案（Digital Omnibus）の中身は未確認。法の解釈', NA, '法の要求は実測の対象ではない'])
+    rows.append(['乗り換えやすさは、EU では法律の要求でもある', '改正案（Digital Omnibus）の中身は未確認。法の解釈', NA, '法の要求は実測の対象ではない'])
     return rows
 
 
@@ -579,7 +599,7 @@ def normal_ops(d):
     add('B-1 互換性検査：正常な変更（既定値つきの追加・削除）が止められた数', lambda: '、'.join(
         f'{label} {sum(1 for r in normal if not r["registry"][m]["v2"]["accepted"])}/{len(normal)}'
         for label, m in (('既定のまま', 'DEFAULT'), ('BACKWARD_TRANSITIVE', 'BACKWARD_TRANSITIVE'), ('FORWARD', 'FORWARD'), ('FULL_TRANSITIVE', 'FULL_TRANSITIVE')))
-        + '。止められたのは：' + ('、'.join(sorted({f'{A.FMT_JA[r["format"]]} {S.CHANGE_JA[r["change"]].split(" ", 1)[1]}（{"・".join(_rej(r))}）' for r in normal if _rej(r)})) or 'なし'))
+        + '。止められたのは：' + ('、'.join(sorted({f'{A.FMT_JA[r["format"]]} {A.change_ja(r["format"], r["change"]).split(" ", 1)[1]}（{"・".join(_rej(r))}）' for r in normal if _rej(r)})) or 'なし'))
     add('B-2 推移的な検査：任意フィールドを 2 回足す列', lambda: '、'.join(
         f'{A.FMT_JA[r["format"]]} {sum(1 for s in r["steps"] if s["accepted"])}/3 版が登録でき、読み直しは {r["rebuild_total"]["ok"]}/{r["rebuild_total"]["n"]} 件が正しい'
         for r in d.b2 if r['sequence'] == 'benign' and r['mode'] == 'BACKWARD_TRANSITIVE'))
@@ -587,11 +607,12 @@ def normal_ops(d):
         f'失敗した要求 {sum(r["write"]["failed"] + r["read"]["failed"] for r in d.b3of("mig", "be"))}、誤った読み取り {sum(r["read"]["wrong"] for r in d.b3of("mig", "be"))}（{len(d.b3of("mig", "be"))} 試行）。'
         f'所要時間は {med([r["migration_s"] for r in d.b3of("mig", "be")], 1)} 秒（1 つのトランザクションの N は {med([r["migration_s"] for r in d.b3of("mig", "n")], 1)} 秒）、DDL は 3 回に分かれ、アプリは 3 回配り直す'))
     add('B-3 lock_timeout＋再試行：DDL 自身の費用', lambda: (
-        f'長いトランザクションの後ろでは DDL が {med([r["ddl"]["attempts"] for r in d.b3of("queue", "long_txn_timeout")], 0)} 回目まで失敗し、終わるまで {med([r["ddl"]["seconds"] for r in d.b3of("queue", "long_txn_timeout")], 2)} 秒'
+        f'長いトランザクションの後ろでは DDL が {med([r["ddl"]["attempts"] for r in d.b3of("queue", "long_txn_timeout")], 0)} 回目で成功し（その前の {med([r["ddl"]["attempts"] - 1 for r in d.b3of("queue", "long_txn_timeout")], 0)} 回は lock_timeout で失敗）、終わるまで {med([r["ddl"]["seconds"] for r in d.b3of("queue", "long_txn_timeout")], 2)} 秒'
         f'（lock_timeout なしは {med([r["ddl"]["seconds"] for r in d.b3of("queue", "long_txn")], 2)} 秒で、1 回で成功）。その間に失敗した要求は {sum(r["write"]["failed"] + r["read"]["failed"] for r in d.b3of("queue", "long_txn_timeout"))}'))
     add('B-4 並べて切り替える：欠陥の無い切り替えが照合で止められた数', lambda: (
-        f'{sum(1 for r in d.b4of("be", "clean") + d.b4of("be", "crash") if r["outcome"] != "switched")}/{len(d.b4of("be", "clean") + d.b4of("be", "crash"))} 試行（照合のやり直しは最大 {max(r["reconciliation"]["rounds"] for r in d.b4of("be", "clean") + d.b4of("be", "crash"))} 回）。'
-        f'厳密な一致（1 つのスナップショットで新旧が完全に同じ）を条件にしていたら通らない：一致したスナップショットは {sum(r["reconciliation"]["exact_equal_snapshots"] for r in d.b4of("be", "clean"))}/{sum(r["reconciliation"]["snapshots"] for r in d.b4of("be", "clean"))}。'
+        f'{sum(1 for r in d.b4of("be", "clean") + d.b4of("be", "crash") if r["outcome"] != "switched")}/{len(d.b4of("be", "clean") + d.b4of("be", "crash"))} 試行'
+        f'（欠陥なし {len(d.b4of("be", "clean"))} 試行＋受け手が 1 回落ちた {len(d.b4of("be", "crash"))} 試行。照合のやり直しは最大 {max(r["reconciliation"]["rounds"] for r in d.b4of("be", "clean") + d.b4of("be", "crash"))} 回）。'
+        f'厳密な一致（1 つのスナップショットで新旧が完全に同じ）を条件にしていたら通らない：一致したスナップショットは、{_snaps(d)}。'
         f'切り替えの途中に前より古い版を読んだ読み取り：欠陥なし {occ(A._reads(r, "regress") for r in d.b4of("be", "clean"))}、受け手が 1 回落ちた場合 {occ(A._reads(r, "regress") for r in d.b4of("be", "crash"))}'))
     add('B-5 遅れの監視：既定の保持での誤った警報', lambda: (
         f'{sum(1 for r in d.b5 if r["case"] == "tombstone" and r["variant"] == "default" and r["alarm"])}/{sum(1 for r in d.b5 if r["case"] == "tombstone" and r["variant"] == "default")} 実行'))
@@ -616,7 +637,7 @@ def notes(d):
     pb = [r for r in d.b1 if r['format'] == 'protobuf' and r['registry']['FULL_TRANSITIVE']['v2']['accepted']
           and sum(r['traffic'][k][c] for k in ('old_reads_new', 'new_reads_old') for c in ('wrong', 'missing')) > 0]
     add(lambda: (f'Protocol Buffers では、最も厳しい FULL_TRANSITIVE でも登録が通り、エラーも出ないのに、受け手の値が誤る・欠ける変更が {len(pb)} 件あった：'
-                 + '、'.join(S.CHANGE_JA[r['change']].split(' ', 1)[1] for r in pb)
+                 + '、'.join(A.change_ja(r['format'], r['change']).split(' ', 1)[1] for r in pb)
                  + '。Avro と JSON Schema の同じ種類の変更は、検査で拒否されるか、受け手がエラーで止まった'))
     add(lambda: ('Avro の別名（aliases）つきの名前の変更は、読む側のライブラリ（fastavro）では旧いデータを読めたが、Redpanda のレジストリは BACKWARD で拒否した（'
                  + _rejs(_b1(d, 'avro', 'rename')) + '）。レジストリが別名を互換性の判定に使っていないように見える。原因は調べていない'))
@@ -624,7 +645,8 @@ def notes(d):
                  + '。同じ名前のプロパティを消してから別の型で足し直す列（B-2）は、既定のモードで 3 版とも通り、読み直しで落ちた。ほかのレジストリが同じ判定をするかは未検証'))
     add(lambda: (f'Redpanda が表示した delete.retention.ms の既定は {d.b5of("redpanda", "tombstone", "default")[0]["topic_config_reported"].get("delete.retention.ms")}、'
                  f'Apache Kafka は {d.b5of("kafka", "tombstone", "default")[0]["topic_config_reported"].get("delete.retention.ms")}。'
-                 f'既定のままの実行では、どちらも約 {med([r["waited_s"] for r in d.b5 if r["case"] == "tombstone" and r["variant"] == "default"], 0)} 秒待って削除の印は残っていた'
+                 f'既定のままの実行では、どちらも、印が消えるかを約 {med([r["waited_s"] for r in d.b5 if r["case"] == "tombstone" and r["variant"] == "default"], 0)} 秒観測した間、削除の印は残っていた'
+                 '（この観測の時間は、「削除の印」の表の「受け手を止めていた時間」とは別の量）'
                  '（この長さでは、Redpanda の既定で印がいつ消えるか・消えないかは分からない）'))
     add(lambda: (f'列の型を変えた後、読み手の要求が {sum(r["read"]["errors"].get("FeatureNotSupported:0A000", 0) for r in d.b3of("ops", "alter_type") + d.b3of("ops", "alter_type_nowrite"))} 件失敗した'
                  f'（SQLSTATE 0A000。{len(d.b3of("ops", "alter_type") + d.b3of("ops", "alter_type_nowrite"))} 実行の合計、読み手は 2 接続）。'
@@ -632,7 +654,7 @@ def notes(d):
                  f'表を書き換えない varchar(20) → text でも、読み取りが {med([r["read"]["max_gap_ms"] for r in d.b3of("ops", "alter_type_nowrite")], 0)} ms 止まった'
                  f'（書き込みは {med([r["write"]["max_gap_ms"] for r in d.b3of("ops", "alter_type_nowrite")], 0)} ms）。この差の原因は調べていない'))
     add(lambda: (f'流れている更新の下では、新旧のストアが 1 つのスナップショットで完全に一致することはほとんど無かった（欠陥の無い切り替えの照合で、一致したスナップショットは '
-                 f'{sum(r["reconciliation"]["exact_equal_snapshots"] for r in d.b4of("be", "clean") + d.b4of("be", "crash"))}/{sum(r["reconciliation"]["snapshots"] for r in d.b4of("be", "clean") + d.b4of("be", "crash"))}）。'
+                 f'{_snaps(d)}）。'
                  '最初に作った照合（1 回でも完全に一致すれば合格）は、欠陥の無い切り替えも止めた（開発中に観測。結果のファイルには入れていない）。'
                  'そこで、2 回のスナップショットの両方で食い違い、かつ新が動いていない注文だけを数える形に変えた'))
     add(lambda: (f'少しずつ切り替える間、読み手が前より古い版を読むことがあった：欠陥なし {occ(A._reads(r, "regress") for r in d.b4of("be", "clean"))}、受け手が 1 回落ちた場合 {occ(A._reads(r, "regress") for r in d.b4of("be", "crash"))}。'

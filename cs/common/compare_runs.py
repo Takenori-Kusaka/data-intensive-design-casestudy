@@ -125,6 +125,13 @@ def ratio(xs):
     return f'{min(xs):.2f}／{median(xs):.2f}／{max(xs):.2f}'
 
 
+def n_runs_of(defn, name, rows):
+    """The number of runs in a file; rows that only record something (not a run) are counted apart."""
+    is_run = getattr(defn, 'is_run', None)
+    n = sum(1 for r in rows.values() if not is_run or is_run(name, r))
+    return str(n) if n == len(rows) else f'{n}（ほかに記録の行 {len(rows) - n}。ファイルは {len(rows)} 行）'
+
+
 def section_topic(t):
     defn = importlib.import_module(f'cs.{t}.rerun_def')
     files = defn.FILES + [('audit', '判定器の監査')]
@@ -140,7 +147,7 @@ def section_topic(t):
             rows.append([ja, f'{name}.jsonl', f'{len(a)}（合格 {sum(1 for r in a.values() if defn.audit_ok(r))}）',
                          f'{len(b)}（合格 {sum(1 for r in b.values() if defn.audit_ok(r))}）', same])
         else:
-            rows.append([ja, f'{name}.jsonl', len(a), len(b), same])
+            rows.append([ja, f'{name}.jsonl', n_runs_of(defn, name, a), n_runs_of(defn, name, b), same])
     L.append(table(['実験', '結果のファイル', '1 回目の実行の数', '2 回目の実行の数', '実行 ID の集合'], rows))
 
     # ---- deterministic fields
@@ -154,8 +161,11 @@ def section_topic(t):
         for rid, p, x, y in det_changes(defn, name, a, b):
             rows.append([rid, p, x, y])
             n_runs.add(rid)
-    n_all = sum(len(set(a) & set(b)) for a, b in runs.values())
-    L.append(f'比べた実行：{n_all} 個（決定的な欄は 2 回目の行で数えて延べ {n_cmp} 個）。'
+    is_run = getattr(defn, 'is_run', None)
+    n_all = sum(1 for name, (a, b) in runs.items() for rid in set(a) & set(b) if not is_run or is_run(name, b[rid]))
+    n_rec = sum(len(set(a) & set(b)) for a, b in runs.values()) - n_all
+    L.append(f'比べた実行：{n_all} 個（監査を含む。' + (f'ほかに、実行ではない記録の行 {n_rec} 個も比べた。' if n_rec else '')
+             + f'決定的な欄は 2 回目の行で数えて延べ {n_cmp} 個）。'
              f'決定的な欄が 1 つでも変わった実行：{len(n_runs)} 個（変わった欄は延べ {len(rows)} 個）。\n')
     if rows:
         L.append(table(['実行 ID', '欄', '1 回目', '2 回目'], rows))
@@ -205,6 +215,43 @@ def section_topic(t):
     return L, len(n_runs), len(flips)
 
 
+README = os.path.join(os.path.dirname(RESULTS), 'README.md')
+BEGIN, END = '<!-- runs:begin (cs/common/compare_runs.py が書く。手で直さない) -->', '<!-- runs:end -->'
+
+
+def readme_block():
+    """The table of run counts in README.md, counted from the result files of both runs."""
+    rows, tot = [], [0, 0, 0, 0]
+    for t in sorted(TOPICS):
+        defn = importlib.import_module(f'cs.{t}.rerun_def')
+        is_run = getattr(defn, 'is_run', None)
+        n, rec, same = [0, 0], [0, 0], True
+        for name, _ja in defn.FILES:
+            for i, run in enumerate((1, 2)):
+                rs = load(t, name, run)
+                k = sum(1 for r in rs if not is_run or is_run(name, r))
+                n[i] += k
+                rec[i] += len(rs) - k
+            same = same and {r['run_id'] for r in load(t, name, 1)} == {r['run_id'] for r in load(t, name, 2)}
+        au = load(t, 'audit', 2)
+        rows.append([f'{t.upper()}　{defn.TITLE}', '、'.join(f'{name}.jsonl' for name, _ja in defn.FILES),
+                     n[0], n[1], '同じ' if same else '違う', rec[1], f'{sum(1 for r in au if defn.audit_ok(r))}/{len(au)}'])
+        tot = [tot[0] + n[0], tot[1] + n[1], tot[2] + rec[1], tot[3] + len(au)]
+    rows.append(['計', '4 題材', tot[0], tot[1], '同じ' if all(r[4] == '同じ' for r in rows) else '違う題材がある', tot[2], f'{tot[3]} ケース'])
+    return table(['題材', '結果のファイル（results/<題材>/）', '実行の数（1 回目）', '実行の数（2 回目）', '実行 ID の集合',
+                  '実行ではない記録の行（2 回目）', '判定器の監査（2 回目、合格／ケース）'], rows).rstrip('\n')
+
+
+def update_readme():
+    """Rewrite the block between the markers in README.md."""
+    with open(README, encoding='utf-8') as f:
+        text = f.read()
+    i, j = text.index(BEGIN), text.index(END)
+    text = text[:i] + BEGIN + '\n' + readme_block() + '\n' + text[j:]
+    with open(README, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(text)
+
+
 def main():
     L = ['# 2 回の実行の比較\n',
          'このファイルは `cs/common/compare_runs.py` が、`results/<題材>/run1/*.jsonl`（1 回目。git の履歴から取り出したもの）と '
@@ -230,6 +277,7 @@ def main():
     text = '\n'.join(L).rstrip() + '\n'
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
         f.write(text)
+    update_readme()
     return OUT
 
 

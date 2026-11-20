@@ -190,7 +190,11 @@ def sec_overview(d, env):
                  f'{min(fr) if fr else "未検証"} GB（最初 {fr[0] if fr else "未検証"} GB、最後 {fr[-1] if fr else "未検証"} GB）、'
                  f'vmmemWSL の作業セットは最大 {max(vm) if vm else "未検証"} GB（最初 {vm[0] if vm else "未検証"} GB、最後 {vm[-1] if vm else "未検証"} GB）。'
                  f'WSL の中の used は {min(used)}〜{max(used)} MB、buff/cache は {min(cache)}〜{max(cache)} MB'
-                 f'（最初 {cache[0]} MB、最後 {cache[-1]} MB）。\n')
+                 f'（最初 {cache[0]} MB、最後 {cache[-1]} MB）。'
+                 '「最後」は memlog.jsonl の最後の行の値。'
+                 + (f'これとは別に、実行の終わりに 1 回測った Windows の空き（env.json の host_topic_a.memory_at_end）は '
+                    f'{env["host_topic_a"]["memory_at_end"].get("windows_free_gb")} GB。\n'
+                    if (env.get('host_topic_a') or {}).get('memory_at_end') else '\n'))
     return L
 
 
@@ -373,7 +377,8 @@ def sec_ablation(d):
             return (f'スロットが保持した WAL の最大 {mx} MB、pg_wal の最大 {wd_} MB、最後の wal_status＝{"・".join(st)}、'
                     f'Debezium を戻した後に届かないイベント {miss}（{len(rs)} 試行の合計）')
         add('BE − WAL の上限', 'A-L1・A-L2（Debezium を止めたまま書き続ける）', wdesc(wc), wdesc(wd),
-            '上限を外すと正の DB の WAL が増え続ける。上限を付けるとスロットが失われ、イベントが届かなくなる（下の節）')
+            '上限を外すと正の DB の WAL が増え続ける。上限を付けるとスロットが失われ、イベントが届かなくなる（下の節）。'
+            'この行は、ほかの行と向きが違う：入れた側（上限あり）にも異常があり、入れると別の異常に変わる要素である')
     if wc:
         det = sum(r['after_restart']['would_detect_by_reconcile'] for r in wc)
         aft = sum(r['reconcile']['after_repair'] for r in wc)
@@ -448,10 +453,16 @@ def sec_wal(d):
         L.append('Kafka Connect を戻した後：\n')
         L.append(table(['試行', '戻す前にスロットは無効か', 'コネクタのタスクの状態（REST）', 'タスクの失敗の内容（先頭）', 'Kafka Connect のログ（スロット・WAL に触れた警告とエラーの先頭。時刻は除いた）', '正にあって索引に届かない',
                         '内訳（届かない／コミット済み）', '最終状態の食い違い（注文）', '照合が見つける差（注文）', '状態に 2 回効いた'], rows))
+        n_log = sum(1 for r in rs if r['after_restart']['connector_state'].get('log_excerpt'))
+        L.append(f'Kafka Connect のログに、スロット・WAL に触れた警告やエラーがあった試行：{n_log}/{len(rs)}。'
+                 + ('スロットが無効になった条件（A-L2・A-L3）の間で、ログに警告が出るかどうかが違った理由は調べていない。\n'
+                    if any(r['slot_invalid_before_restart'] for r in rs) else '\n'))
         if rs[0].get('after_catchup'):
-            L.append('追いついた後（位置の確認応答と CHECKPOINT の後）：' + '；'.join(
+            L.append('追いついた後（Kafka Connect を戻して全件が届き、位置の確認応答と CHECKPOINT を済ませた直後）：' + '；'.join(
                 f'試行 {r["trial"]}：スロットが保持する WAL {r["after_catchup"]["retained_by_slot_mb"]} MB、'
-                f'pg_wal {r["after_catchup"]["pg_wal_dir_mb"]} MB、観測 {r["after_restart"]["seconds_observed"]} 秒' for r in rs) + '。\n')
+                f'pg_wal {r["after_catchup"]["pg_wal_dir_mb"]} MB、観測 {r["after_restart"]["seconds_observed"]} 秒' for r in rs)
+                     + '。この文は、追いついた直後の時点でスロットが保持する WAL と pg_wal の大きさを示す。'
+                     'その後に減るかどうか、いつ減るかは観測していない（未検証）。\n')
         if rs[0].get('recovery'):
             rows = []
             for r in rs:
@@ -486,6 +497,7 @@ def _split_items(d, keys):
         if not a or not b:
             continue
         for path, name in (('index.missing_committed', '正にあって索引に届かない'), ('index.missing_acked', '応答済みなのに索引に届かない'),
+                           ('log.dup_extra', 'ブローカーのログ内の重複'), ('index.dup_delivered_extra', '届いた重複（索引）'),
                            ('notify.dup_effect_extra', '通知が 2 回効いた'), ('index.reorder_pairs', '順序の入れ替わり'),
                            ('final.mismatch', '最終状態の食い違い')):
             if (tot(a, path) == 0) != (tot(b, path) == 0):
@@ -514,10 +526,15 @@ def sec_kafka(d, runs):
     L.append(table(['ケース', 'ブローカー'] + HEAD, rows))
     per = {run: dict(_split_items(x, keys)) for run, x in sorted(runs.items())}
     L.append('「起きた／起きなかった」（試行の合計が 0 か 1 以上か）が 2 つのブローカーで分かれた項目を、2 回の実行のそれぞれで数えた。'
+             '比べた項目は 7 つ：正にあって索引に届かない、応答済みなのに索引に届かない、ブローカーのログ内の重複、届いた重複（索引）、'
+             '通知が 2 回効いた、順序の入れ替わり、最終状態の食い違い。'
              + '；'.join(f'{run} 回目：' + ('、'.join(f'{k}＝{v}' for k, v in sorted(items.items())) or 'なし') for run, items in per.items()) + '。\n')
     common = sorted(set.intersection(*(set(v) for v in per.values()))) if per else []
-    L.append('2 回とも分かれた項目：' + ('、'.join(common) if common else 'なし') + '。'
-             '片方の回だけで分かれた項目は、どちらのブローカーでも試行によって 0 にも 1 以上にもなる数（並行の競合に頼る数）で、'
+    L.append('2 回とも分かれた項目：' + ('、'.join(f'{k}（' + '、'.join(f'{run} 回目 {per[run][k]}' for run in sorted(per)) + '）' for k in common)
+                               if common else 'なし') + '。'
+             + ('2 回とも分かれた項目の原因は調べていない。ブローカーの設定は製品の既定に近い形で、同じ条件に揃えたものではないので、'
+                'この差は製品の優劣を示さない。' if common else '')
+             + '片方の回だけで分かれた項目は、どちらのブローカーでも試行によって 0 にも 1 以上にもなる数（並行の競合に頼る数）で、'
              'ブローカーの違いによるものとは言えない。件数そのものも、並行の競合と再送の範囲に左右されるので、試行ごとに揺れる。\n')
     return L
 
@@ -661,7 +678,9 @@ def sec_guide(d):
                      verdict(all(r['slot_invalid_before_restart'] for r in wc) and miss > 0, '実測（一致）'),
                      f'上限 64MB：スロットは wal_status＝{"・".join(sorted({r["samples"][-1]["wal_status"] for r in wc}))}、無効化の理由＝{"・".join(reasons)} になり、'
                      f'pg_wal は最大 {max(max(s["pg_wal_dir_mb"] for s in r["samples"]) for r in wc)} MB で止まった。'
-                     f'Debezium を戻すとタスクは {"・".join(states)}。止めている間と、その後に書いたイベント {miss} 件が届かなかった（{len(wc)} 試行の合計）。'
+                     f'Debezium を戻すとタスクは {"・".join(states)}。止めている間に書いたイベントが、試行ごとに '
+                     f'{"、".join(str(r["after_restart"]["missing_by_phase"]["steps"]["missing"]) for r in wc)} 件届かなかった'
+                     f'（{len(wc)} 試行の合計 {miss} 件。止める前に書いた分は {sum(r["after_restart"]["missing_by_phase"]["p1"]["missing"] for r in wc)} 件）。'
                      f'スロットを作り直し snapshot.mode=initial で取り直した後に届かないイベントは {rec_miss} 件'])
     if wi:
         reasons = sorted({r['samples'][-1].get('invalidation_reason') or 'なし' for r in wi})
@@ -685,7 +704,7 @@ def sec_guide(d):
                      f'Redpanda の全 {len(det)} 実行で、正と索引の差を照合が見つけた数は {sum(r["reconcile"]["detected"] for r in det)} 注文、'
                      f'直した後に残った差は {sum(r["reconcile"]["after_repair"] for r in det)}'])
     if n16:
-        rows.append(['移行中の二重書き込みには、照合が欠かせない（Part 15）',
+        rows.append(['移行中の二重書き込みは Part 6 の問題を持ち込む',
                      '同じ行への 2 つの更新が、2 つの保存先に違う順で届く。「題材 A で二重書き込みの食い違いを実測する」',
                      '実測（一致）' if tot(n16, 'final.mismatch') > 0 else '実測（順序の入れ替わりは起きた。最終状態の食い違いは、この条件では 0）',
                      f'上の 1 行目と同じ結果。N・障害なし・並行度 16：最終状態の食い違い {occ(n16, "final.mismatch")}'])
@@ -734,6 +753,7 @@ def sec_notes(d):
         'ブローカーや DB のホストごとの停止（電源断に当たる障害）、ディスクが実際に埋まるまでの WAL の増加',
         'Debezium のフェイルオーバー用のスロット（slot.failover）、プライマリの切り替えをまたぐ CDC',
         'CDC の落とし穴（A-L1〜L3）の Apache Kafka での照合（Redpanda だけで流した）',
+        'Debezium の poll.interval.ms を変えた CDC（既定の 500 ms だけで流した。間隔を縮めたときの遅れは測っていない）',
         'アウトボックスの行を送信後に消す運用での、スロット喪失後の取り直し（この実験では行を消していない）',
         'クラウドのマネージド製品（マネージドの Kafka・CDC）',
     ]]

@@ -19,6 +19,25 @@ def table(header, rows):
     return '\n'.join(out) + '\n'
 
 
+# The same change is written differently in each format: name it per format.
+CHANGE_FMT = {
+    ('avro', 'rename'): '名前の変更（別名つき）', ('protobuf', 'rename'): '名前の変更（同じ番号のまま）', ('json', 'rename'): '名前の変更（別名の仕組みは使っていない）',
+    ('avro', 'widen'): '型を広げる（int → long）', ('protobuf', 'widen'): '型を広げる（int32 → int64）', ('json', 'widen'): '型を広げる（integer → number）',
+    ('avro', 'narrow'): '型を狭める（long → int）', ('protobuf', 'narrow'): '型を狭める（int64 → int32）', ('json', 'narrow'): '型を狭める（number → integer）',
+}
+
+
+def change_ja(fmt, key):
+    """'c05 名前の変更（…）' with the wording of the format."""
+    base = S.CHANGE_JA[key]
+    return base.split(' ', 1)[0] + ' ' + CHANGE_FMT[(fmt, key)] if (fmt, key) in CHANGE_FMT else base
+
+
+def mode_label(r, mode):
+    eff = r['effective_mode'].get('compatibilityLevel')
+    return MODE_JA[mode] if f'（{eff}）' in MODE_JA[mode] else f'{MODE_JA[mode]}（レジストリの表示：{eff}）'
+
+
 def occ(vals):
     """'sum（trials with at least one / trials）'; a plain 0 when nothing happened."""
     vals = list(vals)
@@ -109,7 +128,7 @@ def b1_section(d):
             if r is None:
                 continue
             acc = lambda m: '通る' if b1_accept(r, m) else '**拒否**'     # noqa: E731
-            rows.append([FMT_JA[fmt], S.CHANGE_JA[key], '正常な変更' if intent == 'normal' else '非互換の変更', acc('NONE'), acc('DEFAULT'),
+            rows.append([FMT_JA[fmt], change_ja(fmt, key), '正常な変更' if intent == 'normal' else '非互換の変更', acc('NONE'), acc('DEFAULT'),
                          *[acc(m) for m in modes], _tr(r['traffic']['old_reads_new']), _tr(r['traffic']['new_reads_old'])])
     out.append(f'### 登録の結果と、検査なしで配ったときの受け手（各 {n // 2} 件）\n')
     out.append(table(head, rows))
@@ -119,7 +138,8 @@ def b1_section(d):
     out.append('### 構成ごとの集計（変更の数）\n')
     out.append('構成は互換性モード。「止められた」は v2 の登録が拒否された変更。拒否されたら新しい書き手は配れないので、その変更による受け手の故障は起きない。'
                '「通って壊れた」は、登録が通り、かつ混在のどちらかの向きで、エラー・誤った値・欠けた値が 1 件以上出た変更。\n')
-    head = ['形式', '構成', '変更の数', '止められた', '正常な変更が止められた', '通って壊れた：受け手がエラー', '通って壊れた：黙って誤った値・欠けた値', '通って無事']
+    head = ['形式', '構成', '変更の数', '止められた', '正常な変更が止められた', '通って壊れた：受け手がエラー', '通って壊れた：黙って誤った値・欠けた値', '通って無事',
+            '通って無事のうち、設計上は非互換とした変更']
     rows = []
     for fmt in S.FORMATS:
         rs = [x for x in d.b1 if x['format'] == fmt]
@@ -131,8 +151,12 @@ def b1_section(d):
             silent = [x for x in passed if x not in err and sum(x['traffic'][k][c] for k in ('old_reads_new', 'new_reads_old')
                                                                  for c in ('wrong', 'missing')) > 0]
             rows.append([FMT_JA[fmt], label, len(rs), len(blocked), sum(1 for x in blocked if x['intent'] == 'normal'),
-                         len(err), len(silent), len(passed) - len(err) - len(silent)])
+                         len(err), len(silent), len(passed) - len(err) - len(silent),
+                         sum(1 for x in passed if x not in err and x not in silent and x['intent'] != 'normal')])
     out.append(table(head, rows))
+    out.append('「設計上の扱い」（正常な変更／非互換の変更）は、実験の前にガイドの表に合わせて決めた区別で、3 形式に同じものを当てた。'
+               '形式によっては、設計上は非互換とした変更が、検査を通り、受け手も無事なことがある（右端の列）。'
+               '変更の名前は形式ごとの中身に合わせて書いた（同じ ID の変更は、3 形式で同じ狙いの変更）。\n')
     return out
 
 
@@ -157,7 +181,7 @@ def b2_section(d):
                 st = {s['version']: ('通る' if s['accepted'] else '**拒否**') for s in r['steps']}
                 v1 = r['rebuild_by_writer'].get(f'{r["reader"]}_reads_v1')
                 tot, tail = r['rebuild_total'], r['tail_read']
-                rows.append([FMT_JA[fmt], seq_ja, f'{MODE_JA[mode]}（{r["effective_mode"].get("compatibilityLevel")}）', st['v2'], st['v3'],
+                rows.append([FMT_JA[fmt], seq_ja, mode_label(r, mode), st['v2'], st['v3'],
                              r['reader'], _tr(v1) if v1 else None, f'{tot["ok"]}/{tot["n"]}', f'{tail["ok"]}/{tail["n"]}'])
     out.append(table(head, rows))
     return out
@@ -367,7 +391,7 @@ def b5_section(d):
     out.append('注文 500 件を読み終えた受け手を止め、100 件の注文を削除（値が null のレコード）してから、待って、受け手を再開した。'
                '同じ実行の中で、止めなかった受け手、削除の処理を持たない受け手、最後に先頭から作り直した受け手も比べた。'
                '数は、削除したのに導出ストアに残った注文（全試行の合計）。監視（E-B3）は、受け手が遅れていた時間が、製品が表示した delete.retention.ms 以上なら警報。\n')
-    head = ['製品', 'delete.retention.ms（表示）', '試行', '削除の印がログから消えた', '消えるまで（秒）', '止めていた時間（秒）', '監視の警報',
+    head = ['製品', 'delete.retention.ms（表示）', '試行', '削除の印がログから消えた', '消えるまで（秒）', '受け手を止めていた時間（秒）', '監視の警報',
             '残った：止めて再開した受け手', '残った：止めなかった受け手', '残った：削除の処理が無い受け手', '残った：先頭から作り直し',
             '削除が届くまで p50／p95（ms、止めなかった受け手）']
     rows = []

@@ -18,6 +18,11 @@ TIME = re.compile(r'^steps\[\d+\]\.ms$|^after_fix\.returned_after_fix_s$|^during
                   r'|^first_write_waited_s$|^stall_observed_s$')
 
 
+def is_run(name, r):
+    """d1.jsonl also holds one row per product with the isolation levels the server displayed."""
+    return not (name == 'd1' and r.get('exp') == 'd1_probe')
+
+
 def audit_ok(r):
     return bool(r['pass'])
 

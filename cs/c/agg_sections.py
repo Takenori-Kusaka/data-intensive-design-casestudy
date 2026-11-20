@@ -680,7 +680,8 @@ def comparison(d):
         stop = [r for r in nk if drift_primary(r) == 'stop']
         add(s, '止める：誤ったデータが下流へ行かない。失うのは鮮度（上流の変更で下流が止まる）', '一致' if stop and all(clean_damage(r) > 0 for r in stop) else '一部だけ再現',
             f'取り込みがエラーで止まった {len(stop)} 実行のすべてで、揺れた {C2.DRIFT_ROWS - C2.DRIFT_FROM:,} 行は入らず、'
-            f'揺れていない行も入らなかった（被害は {one(clean_damage(r) for r in stop)} 行）')
+            f'揺れていない {C2.DRIFT_FROM:,} 行（全 {C2.DRIFT_ROWS:,} 行から、揺れた {C2.DRIFT_ROWS - C2.DRIFT_FROM:,} 行を除いた分）も入らなかった'
+            f'（揺れていない行のうち、入らなかった・読めなかった行は {one(clean_damage(r) for r in stop)} 行）')
         beq = [r for r in nk if r['kind'] == 'BE' and r['counts']['drifted']['quarantined']]
         add(s, '保留して所有者に確認：正しい分は進み、問題が記録に残る。保留を見る人と手順が要る',
             '一致' if beq and all(clean_damage(r) == 0 for r in beq) else '一部だけ再現',
@@ -701,7 +702,9 @@ def comparison(d):
             f'エラーなしで違う値 {sum(1 for r in ps if r["query"]["ok"] and not r["query"]["equal"])}。'
             f'変換できない値を NULL にする寛容な集計は、{sum(1 for r in ps if r["query_tolerant"] and r["query_tolerant"]["ok"] and not r["query_tolerant"]["equal"])} 実行でエラーなしに違う値を返した')
         add(s, '「項目が揺れたときの失敗の出方を、題材 C で実測する」', '実測',
-            f'3 製品 × {sum(len(v) for v in C2.PIPELINES.values())} の取り込みの作り × 8 ケース（{len(d.drift)} 実行）。揺れのある {len(nk)} 実行の内訳：'
+            f'3 製品を合わせて {sum(len(v) for v in C2.PIPELINES.values())} 通りの取り込みの作り × {len(C2.CASES)} ケース（揺れなしを含む）＝'
+            f'{sum(len(v) for v in C2.PIPELINES.values()) * len(C2.CASES)} の組のうち、対象外の '
+            f'{sum(len(v) for v in C2.PIPELINES.values()) * len(C2.CASES) - len(d.drift)} 組（C-2 の表の「対象外」）を除く {len(d.drift)} 実行。揺れのある {len(nk)} 実行の内訳：'
             + '、'.join(f'{PRIMARY_JA[k]} {sum(1 for r in nk if drift_primary(r) == k)}' for k in PRIMARY_JA))
 
     s = '再実行しても同じ結果になるタスクが作り直しの前提'
@@ -777,7 +780,7 @@ def comparison(d):
     add('障害と機能不全を分け、耐える障害を先に決める', '「障害を注入して確かめる（Toxiproxy と Pumba。結果はケーススタディ）」', '実測（題材 C では別の入れ方）',
         '題材 C は Toxiproxy と Pumba を使っていない。障害は C-6 だけで、下流の 503 応答、docker kill、docker pause を、要求の件数を合図に入れた')
     add('負荷は、読み書きの比とファンアウトで表す', 'Krikorian「Timelines at Scale」の講演の数値は未確認', NA, '文献の確認で、題材 C の実測の対象ではない')
-    add('共通基盤（認証・AI・セキュリティ）の各スライド', '認証・AI・セキュリティ基盤は実機にしていない（未検証）', NA, '題材 C でも組んでいない（設計のとおり）')
+    add('まとめ：基盤も、正と導出・契約・止まり方で設計する', '認証・AI・セキュリティ基盤は実機にしていない（未検証）', NA, '題材 C でも組んでいない（設計のとおり）')
     add('このガイドの限界と、ケーススタディで確かめること', '題材 C は、行指向、列指向、ファイルで、容量と時間を比べる。数値は 1 台の Docker 環境の中での相対比較', '実測',
         f'C-1〜C-6 の {len(d.runs)} 実行。数値はこの 1 台（8 コア、WSL2）の中の相対比較')
 
@@ -931,11 +934,12 @@ def findings(d):
     td = sel(d.retain, product='duck', method='table_delete')
     lw = sel(d.retain, product='ch', method='lightweight_delete')
     if rt:
-        s = rt[0]['steps']
-        b.append(f'**DELETE は容量を減らさない**。PostgreSQL は DELETE の後も VACUUM の後も {mb(s[0]["bytes_after"])}・{mb(s[1]["bytes_after"])}（前は {mb(rt[0]["bytes_before"])}）で、'
-                 f'VACUUM FULL（{rng(r["steps"][2]["ms"] for r in rt)}。表を排他ロックして書き直す）で {mb(s[2]["bytes_after"])} になった。'
-                 + (f'ClickHouse の軽量な削除も、直後は {mb(lw[0]["steps"][0]["bytes_after"])} のままで、OPTIMIZE FINAL の後に {mb(lw[0]["steps"][1]["bytes_after"])}。' if lw else '')
-                 + (f'DuckDB の表は、DELETE と CHECKPOINT の後、ファイルが {mb(td[0]["bytes_before"])} → {mb(td[0]["bytes_final"])} と大きくなった' if td else ''))
+        after = lambda rs, i: mb(median(r['steps'][i]['bytes_after'] for r in rs))  # noqa: E731
+        b.append(f'**DELETE は容量を減らさない**（容量は試行の中央値。C-3 の表と同じ取り方）。PostgreSQL は DELETE の後も VACUUM の後も {after(rt, 0)}・{after(rt, 1)}'
+                 f'（前は {mb(median(r["bytes_before"] for r in rt))}）で、'
+                 f'VACUUM FULL（{rng(r["steps"][2]["ms"] for r in rt)}。表を排他ロックして書き直す）で {after(rt, 2)} になった。'
+                 + (f'ClickHouse の軽量な削除も、直後は {after(lw, 0)} のままで、OPTIMIZE FINAL の後に {after(lw, 1)}。' if lw else '')
+                 + (f'DuckDB の表は、DELETE と CHECKPOINT の後、ファイルが {mb(median(r["bytes_before"] for r in td))} → {mb(median(r["bytes_final"] for r in td))} と大きくなった' if td else ''))
     cr = [r for r in d.retain if r['product'] == 'ch']
     if cr:
         b.append(f'**ClickHouse は、落とした後も古いパーツをしばらくディスクに残す**：有効なパーツの容量は減ったが、使わなくなったパーツが {mb(min(r["inactive_bytes"] for r in cr))}〜{mb(max(r["inactive_bytes"] for r in cr))} 残っていた'

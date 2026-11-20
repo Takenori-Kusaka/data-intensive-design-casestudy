@@ -52,7 +52,12 @@ def overview(d):
     rows = [[ja, f'{k}.jsonl', len(getattr(d, k))] for k, ja in names]
     rows.append(['判定器の監査', 'audit.jsonl', f'{len(d.audit)}（合格 {sum(1 for r in d.audit if r["ok"])}）'])
     out.append(table(['実験', '結果のファイル', '実行の数（行）'], rows))
-    frees = [r['windows_free_gb_before'] for r in d.runs if r.get('windows_free_gb_before') is not None]
+    free_by_run = {run: [r['windows_free_gb_before'] for r in x.runs if r.get('windows_free_gb_before') is not None]
+                   for run, x in sorted(d.both.items())}
+    if free_by_run.get(2):
+        update_env('topic_c_windows_free_gb_min', {
+            'value': min(free_by_run[2]), 'run1_value': min(free_by_run[1]) if free_by_run.get(1) else None,
+            'source': 'min of windows_free_gb_before in results/c/*.jsonl (value: second run, run1_value: first run)'})
     out.append('1 回の実行ごとに、`dic-c-` のコンテナとボリュームを消して作り直した。同時に動かしたサーバーのコンテナは 1 つ'
                '（C-6 だけ Collector 2 つと Redpanda）。乱数の種は 20261120（C-4 は＋試行番号）。'
                '数の書き方：「中央値（最小〜最大）」は試行の間の幅。問い合わせの時間は、1 回の実行の中で暖機 1 回のあと '
@@ -65,7 +70,8 @@ def overview(d):
     sv = env.get('topic_c_server_versions') or {}
     tc = {k: v for k, v in (env.get('topic_c') or {}).items() if k not in ('limits',)}
     out.append('サーバーとエンジンが返した版：' + ('、'.join(f'{k} {v}' for k, v in sorted(sv.items())) or NA)
-               + '。クライアントと実行日（UTC）：' + ('、'.join(f'{k} {v}' for k, v in sorted(tc.items())) or NA)
+               + '。クライアント：' + ('、'.join(f'{k} {v}' for k, v in sorted(tc.items()) if not k.startswith('run_date')) or NA)
+               + f'。結果のファイルに記録した日付（UTC）：{tc.get("run_date", NA)}〜{tc.get("run_date_last", NA)}'
                + '。DuckDB は Python のパッケージ（プロセスの中で動く）。\n')
     peak = {}
     for r in d.runs:
@@ -76,7 +82,9 @@ def overview(d):
         update_env('topic_c_container_memory_seen', peak)
         out.append('コンテナのメモリ（各実行の終わりに docker stats で見た値の最大）：'
                    + '、'.join(f'{k} {v}' for k, v in sorted(peak.items())) + '。'
-                   + (f'実行の直前に測った Windows の空きメモリの最小は {min(frees)} GB（{len(frees)} 回の測定）。\n' if frees else '\n'))
+                   + '実行の直前に測った Windows の空きメモリ（各実行の windows_free_gb_before）の最小は、'
+                   + '、'.join(f'{run} 回目 {min(v)} GB（{len(v)} 回の測定）' for run, v in sorted(free_by_run.items()) if v)
+                   + '。env.json の topic_c_windows_free_gb_min も、この値（結果のファイルから数えた最小）に揃えてある。\n')
     out.append('### 設定（既定のままか、変えたか）\n')
     pg = next((r['settings'] for r in d.c1 if r['product'] == 'pg'), {})
     ch = next((r['settings'] for r in d.c1 if r['product'] == 'ch'), {})

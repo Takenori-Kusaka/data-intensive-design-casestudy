@@ -12,6 +12,8 @@ from .d1_hermitage import TEST_IDS, TEST_JA
 from .d3_defenses import INV_JA, INV_STRATEGIES, WS_JA, WS_STRATEGIES
 
 OUT = os.path.join(RESULTS, 'd', 'summary.md')
+# rr_naive retries on 40001, but snapshot isolation does not raise it for write skew: say what the strategy is
+WS_JA = dict(WS_JA, rr_naive='Repeatable Read（スナップショット分離。40001 が返れば再試行する作り）')
 P = {'pg': 'PostgreSQL', 'mysql': 'MySQL', 'crdb': 'CockroachDB'}
 LV = C.LEVEL_JA
 FIVE = [('G1a', 'ダーティリード'), ('P4', 'ロストアップデート'), ('GS', 'リードスキュー'),
@@ -38,7 +40,9 @@ RO_WRITE_VARIANT = {'PMP': 'PMPW2', 'GS': 'GSW'}
 # Columns whose value is a count that depends on a concurrent race or on the instant of a kill:
 # where the two runs differ, both values are written (see cs/common/tworuns.py).
 COUNTS = re.compile('ロストアップデート|売り越し|失われた応答済み|^試行ごと$|失った試行|起きた試行|違反したエリア|正常な要求の失敗'
-                    '|応答なしで残った行|エラーで終わった要求|在庫が負|引き当て／正しい件数|通った申請|失敗した要求|読めなかった|応答済みに対する割合')
+                    '|応答なしで残った行|エラーで終わった要求|在庫が負|引き当て／正しい件数|通った申請|失敗した要求|読めなかった|応答済みに対する割合|再試行|エラーコード|^応答済み（合計）$')
+# Columns of the ablation table: prose built from counts, written for both runs where they differ.
+PROSE = re.compile('D-4）$|^在庫の引き当て|^配達員の休憩|D-7）$|^費用・正常な操作')
 
 
 def load(name, run=2):
@@ -251,7 +255,10 @@ def sec_d3(rows):
         r0 = inv[0]
         L.append(f'### 在庫の引き当て（品切れあり）\n\n1 回 {r0["n_ops"]} 件の要求。各品目の在庫より要求が多く、'
                  f'正しくは {r0["expected_served"]} 件が引き当てられ、残りは品切れで断られる。'
-                 '「正常な要求の失敗」＝引き当てられるはずだったのに引き当てられなかった件数。「売り越し」＝在庫を超えて引き当てた件数。\n')
+                 '「正常な要求の失敗」＝引き当てられるはずだったのに引き当てられなかった件数。「売り越し」＝在庫を超えて引き当てた件数。'
+                 '「エラーコード×回数」は、DB が返したエラーの SQLSTATE と回数。23514 は CHECK 制約の違反で、'
+                 '「アトミックな更新＋CHECK 制約」では、品切れの要求がこのエラーで断られた回数である（正しい拒否で、正常な要求の失敗ではない）。'
+                 '40001 は直列化の失敗、app:version はバージョン列の不一致（アプリケーションが数えたもの）。\n')
     g = defaultdict(list)
     for r in inv:
         g[(r['strategy'], r['concurrency'])].append(r)
@@ -298,7 +305,9 @@ def sec_d4(rows):
     L = ['## D-4 同期と非同期の複製：昇格で失われた応答済みコミット\n']
     L.append('PostgreSQL 18 のプライマリ＋スタンバイ 1 台（ストリーミングレプリケーション）。レプリケーションの経路は Toxiproxy を通し、'
              '件数を合図に切った。コミットは 1 行の INSERT で、エラーなく返ったものを「応答済み」とした。'
-             '昇格は `pg_promote()`。失われた件数＝応答済みなのに、昇格後のスタンバイ（または再起動後のプライマリ）に無い行の数。\n')
+             '昇格は `pg_promote()`。失われた件数＝応答済みなのに、昇格後のスタンバイ（または再起動後のプライマリ）に無い行の数。'
+             '「応答なしで残った行」＝クライアントに成功の応答が返らなかった（強制終了で接続が切れた）のに、昇格後のスタンバイ（または再起動後のプライマリ）にある行の数。'
+             '応答が無いことは、書かれていないことを意味しない。\n')
     desc = {
         'cut': '経路を切ってから強制終了（書き手 1。200 件の応答とスタンバイへの反映を確かめた後に経路を切り、さらに 200 件の応答か 5 秒の無応答まで書いて、プライマリを SIGKILL、スタンバイを昇格）',
         'kill': '経路を切らずに強制終了（書き手 4。応答済みが 1000 件に達した時点でプライマリを SIGKILL、スタンバイを昇格）',
@@ -399,7 +408,11 @@ def sec_d5(rows):
         L.append("'ANY 1 (dic_s1, dic_s2)' で 1 台だけ止めた間の書き込み：" + '、'.join(
             f'試行 {r["trial"]}＝{r["one_standby_down"]["acked"]} 件すべて応答（p50 {r["one_standby_down"]["p50_ms"]} ms、止める前の p50 {r["baseline"]["p50_ms"]} ms）'
             for r in sorted(a, key=lambda r: r['trial'])) + '。\n')
+    n_one, n_any = sum(1 for r in st if r['kind'] != 'any1of2'), sum(1 for r in st if r['kind'] == 'any1of2')
     L.append(f'実行の数：遅さ {len(lat)} 行（{len({r["trial"] for r in lat})} 試行）、停止 {len(st)} 回。'
+             f'停止 {len(st)} 回の内訳は、同期スタンバイを 1 台だけ名指しした構成が {n_one} 回'
+             f'（抜け出し方 {len({r["kind"] for r in st if r["kind"] != "any1of2"})} 通り × {len({r["trial"] for r in st})} 試行。照合の表の「{n_one} 試行」はこれ）と、'
+             f"'ANY 1 (dic_s1, dic_s2)' の構成が {n_any} 回。"
              '「時間内に返らなかった」は、その観測の時間の間は返らなかったという意味で、永久に待つことを確かめたものではない。\n')
     return '\n'.join(L)
 
@@ -844,9 +857,17 @@ def main():
     L.append('このファイルは `cs/d/aggregate.py` が `results/d/*.jsonl`（2 回目の実行）と `results/d/run1/*.jsonl`（1 回目の実行）から作る。'
              '表の数は結果のファイルから数えたもので、手では書いていない。'
              '性能の数字は同じ環境の中での相対比較で、ほかの環境には一般化できない。\n')
+    L.append('問い：どの設定が、どの異常を許し、何を失うか。同じ名前の設定で、製品ごとに結果が違うか。'
+             '構成は **N**（素朴な作り：分離レベルは製品の既定のまま、読んで書き戻す、synchronous_standby_names は空、遮断せずに昇格）、'
+             '**B**（共通の基準 B5：応答済みの書き込みを失わない複製の設定。synchronous_commit = on と同期スタンバイの名指し）、'
+             '**BE**（基準＋題材 D の重点：E-D1 必要な箇所だけ Serializable にして再試行、E-D2 明示的なロック／バージョン列、'
+             'E-D3 昇格の前に旧プライマリを遮断）。D-1〜D-7 は、この要素を 1 つずつ変えた実験で、N・B・BE を通しで流した実行ではない'
+             '（要素を外したときの対応は「除去実験」の表）。\n')
     L.append(tworuns.LEGEND.format(t='d'))
     L.append('## 実行の概要\n')
-    rows = [['D-1 分離レベルごとの異常', 'd1.jsonl', sum(1 for r in d1rows if r['exp'] == 'd1')],
+    n_probe = sum(1 for r in d1rows if r['exp'] != 'd1')
+    rows = [['D-1 分離レベルごとの異常', 'd1.jsonl',
+             f"{sum(1 for r in d1rows if r['exp'] == 'd1')}（ほかに、サーバーが表示した水準を記録した行が {n_probe}。ファイルは {len(d1rows)} 行）"],
             ['D-2 並行の負荷での発生率', 'd2.jsonl', len(d2)], ['D-3 防ぎ方の費用', 'd3.jsonl', len(d3)],
             ['D-4 同期と非同期の複製', 'd4.jsonl', len(d4)],
             ['D-5 損失ゼロの設定の費用', 'd5.jsonl', len(d5)], ['D-6 古い読み取り', 'd6.jsonl', len(d6)],
@@ -869,7 +890,7 @@ def main():
                  'D-1〜D-3 のコンテナのメモリ（docker stats で見た値）：'
                  + ('、'.join(f'{k} {v}' for k, v in sorted(env.get('topic_d_container_memory_seen', {}).items())) or '未取得')
                  + '。D-4〜D-7（PostgreSQL 2〜3 台と Toxiproxy）のメモリは記録していない。\n')
-    L += tworuns.merge(sections(1), sections(2), COUNTS, 'topic D')
+    L += tworuns.merge(sections(1), sections(2), COUNTS, 'topic D', PROSE)
     L.append('## 判定器の監査\n')
     g = defaultdict(list)
     for a in audit:

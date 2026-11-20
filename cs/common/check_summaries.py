@@ -20,6 +20,53 @@ def cells(line):
     return [c.strip() for c in re.split(r'(?<!\\)\|', line.strip())[1:-1]]
 
 
+def check_readme():
+    """The run counts in README.md must be the ones counted from the result files."""
+    from . import compare_runs as R
+    text = open(R.README, encoding='utf-8').read()
+    if R.BEGIN not in text or R.END not in text:
+        print('README.md: the block of run counts is missing')
+        return 1
+    block = text[text.index(R.BEGIN) + len(R.BEGIN):text.index(R.END)].strip('\n')
+    if block != R.readme_block():
+        print('README.md: the run counts differ from the result files (run cs/common/remake_summaries.sh)')
+        return 1
+    print('README.md: run counts match the result files')
+    return 0
+
+
+def check_titles():
+    """Slide titles in the comparison tables must be titles of the guide's deck, word for word.
+    The guide is looked for in $DIC_GUIDE or next to this repository; skipped when it is not there."""
+    guide = os.environ.get('DIC_GUIDE') or os.path.join(os.path.dirname(os.path.dirname(RESULTS)), 'data-intensive-design-guide')
+    deck = os.path.join(guide, 'deck')
+    if not os.path.isdir(deck):
+        print('slide titles: the guide repository is not available, not checked')
+        return 0
+    titles = set()
+    for f in sorted(os.listdir(deck)):
+        if re.fullmatch(r'p\d+b?\.js', f):
+            titles.update(re.findall(r"L\.content\('((?:[^'\\]|\\.)*)'", open(os.path.join(deck, f), encoding='utf-8').read()))
+    bad = n = 0
+    for t in 'abcd':
+        lines = open(os.path.join(RESULTS, t, 'summary.md'), encoding='utf-8').read().split('\n')
+        i = next(k for k, line in enumerate(lines) if line.startswith('## ガイドの記述との照合'))
+        for line in lines[i + 1:]:
+            if line.startswith('## '):
+                break
+            if line.startswith('| ') and not line.startswith('| ---'):
+                c = cells(line)
+                if c[0] == 'スライドの題':
+                    continue
+                n += 1
+                for part in c[0].split('／'):
+                    if part not in titles:
+                        print(f'{t}/summary.md: not a slide title of the guide: {part}')
+                        bad += 1
+    print(f'slide titles: {n} rows of the comparison tables checked against the guide deck')
+    return bad
+
+
 def main():
     bad = 0
     for path in FILES:
@@ -57,6 +104,8 @@ def main():
                 verdicts['実行によって変わった' if '実行によって変わった' in v else ('一致を含む' if '一致' in v else 'そのほか')] += 1
         print(f'{name}: {n_rows} table rows, {n_cells} cells'
               + (f'; verdicts: {dict(sorted(verdicts.items()))}' if verdicts else ''))
+    bad += check_readme()
+    bad += check_titles()
     print('OK' if not bad else f'{bad} problem(s)')
     return 1 if bad else 0
 
