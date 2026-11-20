@@ -720,7 +720,7 @@ TAIL = """
 
 def sections(d):
     """Everything whose numbers come from the result files, rendered from one run."""
-    out = ['## ガイドの記述との照合\n']
+    out = ['## ガイドの記述との照合\n\n「ガイドの記述」の欄は、実測の結果を反映する前のガイド（コミット ad5dd6b）の文で、何と照合したかの記録である。「スライドの題」の欄は、いまのガイドの題に合わせてある。\n']
     out.append('ガイド `data-intensive-design-guide` の Part 7（deck/p07.js）、Part 12（deck/p12.js）、Part 15（deck/p15.js）の記述と、スライドが「題材 B で実測する」「未確認」「未検証」と書いた点を、'
                '下の結果と比べた。判定は結果のファイルの数から付けた。「一部だけ再現」は、記述のうち再現した点としなかった点が混じることを表し、中身は実測の列に書いた。\n')
     out.append(table(['スライドの題', 'ガイドの記述', '判定', '実測'], comparison(d)))

@@ -729,7 +729,7 @@ def sec_kafka(d, runs):
 
 def sec_guide(d):
     """Compare the statements of the guide (deck/p06.js, p11.js, p15.js) with the results."""
-    L = ['## ガイドの記述との照合\n']
+    L = ['## ガイドの記述との照合\n\n「ガイドの記述」の欄は、実測の結果を反映する前のガイド（コミット ad5dd6b）の文で、何と照合したかの記録である。「スライドの題」の欄は、いまのガイドの題に合わせてある。\n']
     L.append('ガイド `data-intensive-design-guide` の Part 6（deck/p06.js）、Part 11（deck/p11.js）、Part 15（deck/p15.js）の記述と、'
              'スライドが「題材 A で実測する」と書いた点を、上の結果と比べた。判定は結果のファイルから機械的に付けた。\n')
     rows = []
