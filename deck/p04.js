@@ -63,10 +63,10 @@ module.exports = (L) => {
     L.card(s, { x: 0.6, y: 1.95, w: 3.9, h: 3.3, icon: 'MdStorage', color: C.accent1, title: 'PostgreSQL 18.7', titleSize: 15,
       body: ['P4（ロストアップデート）：待ちの後、エラー 40001 で防いだ', '書き込みを挟む手順（MAVW・GSW）：エラー 40001 で防いだ', 'G2I（ライトスキュー）：起きた'], bodySize: 12.5 });
     L.card(s, { x: 4.7, y: 1.95, w: 3.9, h: 3.3, icon: 'MdWarning', color: C.accent3, title: 'MySQL 8.4.13（既定の水準）', titleSize: 15,
-      body: ['P4：起きた（待ちの後）。エラーは返らない', '読み取りだけ（GS・GSD・PMP・P3）：防いだ', '自分の書き込みを挟むと、MAVW・GSW・P3W・PMPW2 が起きた', 'MAVW：1 回の SELECT に、更新の前後の値が混ざった'], bodySize: 12.5 });
+      body: ['P4：起きた（待ちの後）。エラーは返らない', '読むだけ（GS・GSD・PMP・P3）：防いだ', '自分の書き込みを挟むと、MAVW・GSW・P3W・PMPW2 が起きた', 'MAVW：1 回の SELECT に、更新の前後の値が混ざった'], bodySize: 12.5 });
     L.card(s, { x: 8.8, y: 1.95, w: 3.9, h: 3.3, icon: 'MdRule', color: C.accent2, title: 'CockroachDB v26.4.0', titleSize: 15,
       body: ['既定の設定：REPEATABLE READ を指定しても、表示は serializable', 'クラスタ設定を有効にすると、表示は repeatable read', '有効にした後：P4 は 40001 で防いだ。G2I は起きた'], bodySize: 12.5 });
-    L.note(s, 'leader', '水準は名前で確かめない。サーバーが表示した水準と、その版で防いだ異常で確かめる。CockroachDB の Repeatable Read は設定しだい', { x: 0.6, y: 5.45, w: 12.1, h: 1.05, size: 13 });
+    L.note(s, 'leader', '水準は名前で確かめない。サーバーが表示した水準と、その版で防いだ異常で確かめる。CockroachDB の Repeatable Read は設定しだい', { x: 0.6, y: 5.45, w: 12.1, h: 1.05, size: 12.5 });
   }
 
   {
@@ -286,7 +286,7 @@ module.exports = (L) => {
       lead: '題材 D から設計レビューに持ち帰る 6 つの問いと、その根拠になった実測',
       stages: [5, 6], tag: TAG,
       notes: '設計レビューに持ち帰る問いを 6 つ並べました。1 つ目は、読んで書き戻す処理が無いか、既定の水準は何かです。PostgreSQL の Read Committed と MySQL の既定の Repeatable Read で、ロストアップデートがエラーなしに起きました。2 つ目は、強い水準を使う箇所に再試行があるかです。3 つ目は、不変条件が複数の行にまたがらないかです。ライトスキューは Repeatable Read でも起きました。4 つ目は、synchronous_standby_names が空でないかです。空なら、on と書いても、経路が切れた後の応答済みコミットを失いました。5 つ目は、同期先が止まったときに、書き込みが止まることを受け入れるかです。6 つ目は、昇格の前に旧プライマリを遮断する取り決めがあるかです。数は、この環境、この手順での結果です。次の Part 5 で、4 つの題材をまとめます。',
-      refs: { spec: 'results/d/summary.md 各節（D-2〜D-7、除去実験）', inst: 'ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「設計レビューで問うこと：正しさの水準」' },
+      refs: { spec: 'results/d/summary.md 各節（D-2〜D-7、除去実験）', inst: 'ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「同：正しさの水準」' },
     });
     L.table(s, [['設計レビューで問うこと', 'この実測が示したこと'],
       ['読んで書き戻す処理は無いか。その製品の既定の水準は何か', 'PostgreSQL の Read Committed と MySQL の既定の Repeatable Read で、\nロストアップデートがエラーなしに起きた'],
