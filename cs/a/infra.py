@@ -248,8 +248,8 @@ class Stack:
         return D.wait_ready(C.CONNECT, lambda: http('GET', self.connect_url('/connectors'), timeout=3)[0] == 200,
                             timeout=timeout, interval=1.0)
 
-    def connector_config(self, key_field='aggregateid', snapshot_mode='no_data', slot=C.SLOT):
-        return {
+    def connector_config(self, key_field='aggregateid', snapshot_mode='no_data', slot=C.SLOT, poll_interval_ms=None):
+        cfg = {
             'connector.class': 'io.debezium.connector.postgresql.PostgresConnector',
             'tasks.max': '1',
             'plugin.name': 'pgoutput',                    # default is decoderbufs
@@ -277,6 +277,9 @@ class Stack:
             'transforms.outbox.route.by.field': 'aggregatetype',
             'transforms.outbox.route.topic.replacement': C.TOPIC,
         }
+        if poll_interval_ms is not None:      # A-P1 only; when absent the connector default (500) applies
+            cfg['poll.interval.ms'] = str(poll_interval_ms)
+        return cfg
 
     def register_connector(self, name=C.CONNECTOR, timeout=120, **kw):
         cfg = self.connector_config(**kw)
@@ -287,6 +290,13 @@ class Stack:
         D.wait_ready(C.PG, lambda: q('pg', 'select active from pg_replication_slots where slot_name = %s',
                                      (cfg['slot.name'],))[0][0] is True, timeout=60)
         return cfg
+
+    def connector_config_registered(self, name=C.CONNECTOR):
+        """The configuration as Kafka Connect holds it (read back over REST), without the password."""
+        st, body = http('GET', self.connect_url(f'/connectors/{name}/config'), timeout=10)
+        if st != 200 or not isinstance(body, dict):
+            raise D.CmdError(f'connector config read-back failed: {st} {body}')
+        return {k: v for k, v in body.items() if 'password' not in k}
 
     def connector_state(self, name=C.CONNECTOR):
         try:

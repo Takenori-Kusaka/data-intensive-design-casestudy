@@ -2,7 +2,7 @@
 
 A run is described by a spec (dict):
 
-  exp          result file name (main / kafka)
+  exp          result file name (main / kafka / poll)
   broker       redpanda | kafka
   config       n | b | be
   variant      '' | noidem (consumer does not deduplicate) | wm (watermark relay)
@@ -10,6 +10,8 @@ A run is described by a spec (dict):
   case         normal | longtxn | writer_kill | broker_cut | broker_pause | broker_kill
                | consumer_kill | consumer_late | relay_kill
   concurrency, trial, seed, n_ops, n_orders
+  poll         only in exp=poll (A-P1): for BE the connector's poll.interval.ms
+               ('default' = not set, or a number of ms); for B 'relay<ms>'
 """
 import glob
 import json
@@ -235,6 +237,9 @@ def reconcile(orders, index):
 
 def run_id_of(spec):
     v = f'-{spec["variant"]}' if spec.get('variant') else ''
+    if spec['exp'] == 'poll':
+        tag = spec['poll'] if spec['config'] == 'b' else f'pi{spec["poll"]}'
+        return f'poll:{spec["broker"]}:{spec["config"]}{v}:{tag}:c{spec["concurrency"]}:t{spec["trial"]}'
     return f'{spec["exp"]}:{spec["broker"]}:{spec["config"]}{v}:{spec["case"]}:c{spec["concurrency"]}:t{spec["trial"]}'
 
 
@@ -249,9 +254,14 @@ def run_one(spec, log=print):
     procs, row = [], None
     try:
         stack.up(n_orders=n_orders)
-        connector = None
+        connector, registered = None, None
         if config == 'be':
-            connector = stack.register_connector(key_field='event_id' if variant == 'nokey' else 'aggregateid')
+            kw = {}
+            if spec.get('poll') not in (None, 'default'):
+                kw['poll_interval_ms'] = int(spec['poll'])
+            connector = stack.register_connector(key_field='event_id' if variant == 'nokey' else 'aggregateid', **kw)
+            if spec['exp'] == 'poll':
+                registered = stack.connector_config_registered()
         consumers, relay = [], None
         cplan = CONSUMER_CRASH_AFTER if case == 'consumer_kill' else ()
         if case != 'consumer_late':
@@ -341,6 +351,9 @@ def run_one(spec, log=print):
                          'relay_poll_ms': C.RELAY_POLL_MS,
                          'connect_offset_flush_ms': C.CONNECT_OFFSET_FLUSH_MS if config == 'be' else None},
         }
+        if spec['exp'] == 'poll':
+            row['poll'] = spec['poll']
+            row['connector_config_registered'] = registered
         shutil.rmtree(rundir, ignore_errors=True)
         return row
     finally:

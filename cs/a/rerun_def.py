@@ -4,6 +4,8 @@ import re
 
 TITLE = '基盤をまたぐデータ統合'
 FILES = [('main', '構成 × ケース（Redpanda）'), ('wal', 'CDC の落とし穴（WAL）'), ('kafka', 'Apache Kafka での照合')]
+# Additional experiments that were run once: no first run, so they are not compared; README.md lists them apart.
+ONCE = [('poll', '追加実験 A-P1：CDC の読み取り間隔')]
 DET_NOTE = ('並行の競合や時間に頼る数として外した欄：並行度 4・16 の実行（main・kafka）と、CDC の落とし穴（wal。書き手は並行度 4）の、'
             '判定器が数えた件数すべて（metrics、照合が見つけた数、失敗の内訳、効果の回数、落ち着いた理由）。'
             '強制終了や切断は件数を合図に入れるが、その瞬間に処理中だった要求の数は並行の進み方で変わるので、ここに入れた。'

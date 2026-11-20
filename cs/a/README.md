@@ -22,9 +22,11 @@ MSYS_NO_PATHCONV=1 wsl -d Ubuntu-24.04 -- bash /mnt/<ドライブ>/<リポジト
 MSYS_NO_PATHCONV=1 wsl -d Ubuntu-24.04 -- bash /mnt/<ドライブ>/<リポジトリ>/cs/a/run.sh            # 全部
 MSYS_NO_PATHCONV=1 wsl -d Ubuntu-24.04 -- bash /mnt/<ドライブ>/<リポジトリ>/cs/a/run.sh wal summary # 一部だけ
 MSYS_NO_PATHCONV=1 wsl -d Ubuntu-24.04 -- bash /mnt/<ドライブ>/<リポジトリ>/cs/a/run.sh --list     # 実行の一覧
+MSYS_NO_PATHCONV=1 wsl -d Ubuntu-24.04 -- bash /mnt/<ドライブ>/<リポジトリ>/cs/a/run.sh poll       # 追加実験 A-P1（名指ししたときだけ流れる）
 ```
 
 - 手順は `audit`（判定器の監査）→ `main`（Redpanda で構成 × ケース）→ `wal`（CDC の落とし穴）→ `kafka`（Apache Kafka での照合）→ `summary`
+- 追加実験 `poll`（A-P1：CDC の遅れと、コネクタの読み取り間隔）は、引数なしの「全部」には入らない。`run.sh poll` と名指ししたときだけ流れ、`results/a/poll.jsonl` だけに書く（本実験の結果のファイル、`memlog.jsonl`、`results/env.json` は変えない。`--fresh` とは一緒に使えない）。`--budget=<秒>` を付けると、その秒数に収まらない実行を始めずに止まる（続きは同じコマンドで流す）。`run.sh poll --list` で実行 ID の一覧
 - 結果は 1 回の実行を 1 行として `results/a/*.jsonl` に追記する。完了済みの実行は飛ばすので、途中で止めても続きから流せる。最初からやり直すときは `--fresh`
 - 1 回の実行ごとに、コンテナとボリュームを消して作り直す。作るコンテナ・ボリューム・ネットワークの名前はすべて `dic-a-` で始まる。それ以外には触れない。終わると消し、残りが無いことを表示する
 - ホストに公開するポートは 127.0.0.1 の 25532（正の PostgreSQL）・25533（導出の PostgreSQL）・25574（Toxiproxy の API）・25583（Kafka Connect の REST）・25592（ブローカー。Toxiproxy 経由）
@@ -45,7 +47,7 @@ MSYS_NO_PATHCONV=1 wsl -d Ubuntu-24.04 -- bash /mnt/<ドライブ>/<リポジト
 | `wal.py` | CDC の落とし穴（Debezium を止めたまま書き続ける） |
 | `judges.py`・`audit.py` | 判定器と、誤りを仕込んだ列での監査 |
 | `aggregate.py` | `results/a/summary.md` を結果のファイルから作る |
-| `run.py`・`run.sh` | 題材 A を最初から最後まで流す |
+| `run.py`・`run.sh` | 題材 A を最初から最後まで流す（追加実験 A-P1 は `poll` と名指ししたときだけ） |
 | `memlog.py` | 通しの実行のあいだ、約 60 秒おきに Windows の空きメモリ、vmmemWSL の作業セット、WSL の中の used と buff/cache を `results/a/memlog.jsonl` に追記する |
 | `py.sh` | リポジトリのモジュールを実験用の venv で動かす（`bash cs/a/py.sh cs.a.<モジュール> [引数]`） |
 | `dev_one.py`・`dev_many.sh` | 構成とケースを 1 つ選んで 1 回だけ流し、結果を表示する（結果のファイルには書かない。作りを変えたときの確認用） |
@@ -92,6 +94,7 @@ Apache Kafka は既定のまま（メッセージごとの fsync はしない）
 | `table.include.list` | `public.outbox` | 取り込むのはアウトボックスの表だけ |
 | `snapshot.mode` | `no_data` | スロットを作った時点から流す。スロット喪失後の復旧だけ `initial` |
 | `heartbeat.interval.ms` | `1000` | 既定は 0（送らない） |
+| `poll.interval.ms` | 本実験では指定しない。追加実験 A-P1 だけ、指定なし・`100`・`50`・`10` | 既定は 500。下の「追加実験 A-P1」 |
 | `topic.creation.default.replication.factor`・`.partitions` | `1`・`1` | ブローカーのトピックの自動作成を切ったので、ハートビート用のトピックを Kafka Connect に作らせる。無いと、コネクタは RUNNING のまま発行が止まった |
 | `transforms.outbox.type` | `io.debezium.transforms.outbox.EventRouter` | Outbox Event Router |
 | `transforms.outbox.table.field.event.id` | `event_id` | イベント ID の列（既定は `id`） |
@@ -101,6 +104,16 @@ Apache Kafka は既定のまま（メッセージごとの fsync はしない）
 | `key.converter`・`value.converter` | `StringConverter` | キーも値も文字列のまま送る |
 | Kafka Connect の `OFFSET_FLUSH_INTERVAL_MS` | `10000` | 既定は 60000。再送の範囲がこの間隔で決まる |
 | Kafka Connect の `HEAP_OPTS` | `-Xms256M -Xmx512M` | メモリを抑える |
+
+### 追加実験 A-P1：コネクタの読み取り間隔（`poll.interval.ms`）
+
+本実験の A-N1 で、障害なし・並行度 1 の遅れは BE のほうが B より長かった。BE の遅れがコネクタの読み取り間隔で変わるかを確かめるために、`poll.interval.ms` だけを変えて流す（`run.py` の `plan_poll()`、`infra.py` の `connector_config(poll_interval_ms=...)`）。
+
+- 設定の名前・既定値・意味は、Debezium 3.7 の PostgreSQL コネクタの文書で確かめた（<https://debezium.io/documentation/reference/3.7/connectors/postgresql.html#postgresql-property-poll-interval-ms>。「Advanced Debezium PostgreSQL connector configuration properties」の表。確認日 2026-11-20）。`poll.interval.ms`：既定 500。正の整数で、コネクタが反復ごとに新しい変更イベントの出現を待つミリ秒数。5000 より大きい値を入れても、実際の待ち時間は 5000 ms で頭打ちになる
+- 条件：BE で `poll.interval.ms` を、指定なし（＝本実験と同じ登録内容）・100・50・10 の 4 通り。比較のために B（ポーリングの間隔 50 ms）も同じセッションで流す。障害なし・並行度 1、負荷は A-N1 と同じ生成器と種、各 5 試行。条件は試行ごとにひと回りさせ（試行 1 で 5 条件、次に試行 2…）、最初に流す条件も試行ごとに 1 つずつずらす
+- **変えるのは `poll.interval.ms` の 1 つだけ。** 同じ表にある `poll.dispatch.interval.ms`（既定 0）、`max.batch.size`（既定 2048）、`max.queue.size`（既定 8192）と、Kafka Connect のプロデューサーの設定（linger など）は指定していない（製品の既定のまま）
+- 実行 ID は `poll:redpanda:be:pi<default|100|50|10>:c1:t<n>` と `poll:redpanda:b:relay50:c1:t<n>`。各行に、登録の後に Kafka Connect の REST（`GET /connectors/<名前>/config`）で読み返した設定（`connector_config_registered`。パスワードは除く）、流した順（`order`）、実行の直前の空きメモリ（`memory_before`）を記録する。指定しなかった設定は読み返しに現れない
+- この追加実験は 1 回だけ流した（2026-11-20）。2 回の比較（`results/RERUN.md`）の対象ではなく、summary では「A-P1」の節に、1 回だけの結果として書く。流したときは 3 つに区切り、区切りの間に 2 回、WSL のページキャッシュを捨てた（空きメモリを保つため。直後の実行は `poll:redpanda:be:pi50:c1:t3` と `poll:redpanda:be:pi50:c1:t4`）
 
 ### クライアント
 

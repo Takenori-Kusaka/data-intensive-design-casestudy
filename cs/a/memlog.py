@@ -48,6 +48,14 @@ def snapshot(label=''):
             'windows_free_gb': free, 'vmmem_wsl_working_set_gb': vm, **_wsl()}
 
 
+class NoLog:
+    """Stands in for MemLog when nothing is to be written (additional steps)."""
+    label = ''
+
+    def stop(self):
+        pass
+
+
 class MemLog:
     def __init__(self, interval=60):
         self.interval, self.label = interval, ''

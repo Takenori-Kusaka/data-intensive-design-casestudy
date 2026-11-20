@@ -221,9 +221,13 @@ BEGIN, END = '<!-- runs:begin (cs/common/compare_runs.py が書く。手で直�
 
 def readme_block():
     """The table of run counts in README.md, counted from the result files of both runs."""
-    rows, tot = [], [0, 0, 0, 0]
+    rows, tot, once = [], [0, 0, 0, 0], []
     for t in sorted(TOPICS):
         defn = importlib.import_module(f'cs.{t}.rerun_def')
+        for name, ja in getattr(defn, 'ONCE', []):
+            rs = load(t, name, 2)
+            if rs:
+                once.append(f'題材 {t.upper()} の {name}.jsonl（{ja}）{len(rs)} 実行')
         is_run = getattr(defn, 'is_run', None)
         n, rec, same = [0, 0], [0, 0], True
         for name, _ja in defn.FILES:
@@ -238,8 +242,12 @@ def readme_block():
                      n[0], n[1], '同じ' if same else '違う', rec[1], f'{sum(1 for r in au if defn.audit_ok(r))}/{len(au)}'])
         tot = [tot[0] + n[0], tot[1] + n[1], tot[2] + rec[1], tot[3] + len(au)]
     rows.append(['計', '4 題材', tot[0], tot[1], '同じ' if all(r[4] == '同じ' for r in rows) else '違う題材がある', tot[2], f'{tot[3]} ケース'])
-    return table(['題材', '結果のファイル（results/<題材>/）', '実行の数（1 回目）', '実行の数（2 回目）', '実行 ID の集合',
-                  '実行ではない記録の行（2 回目）', '判定器の監査（2 回目、合格／ケース）'], rows).rstrip('\n')
+    out = table(['題材', '結果のファイル（results/<題材>/）', '実行の数（1 回目）', '実行の数（2 回目）', '実行 ID の集合',
+                 '実行ではない記録の行（2 回目）', '判定器の監査（2 回目、合格／ケース）'], rows).rstrip('\n')
+    if once:
+        out += ('\n\n表の外：1 回だけ流した追加実験（1 回目に当たる実行が無く、2 回の比較と上の計には入れていない）：'
+                + '、'.join(once) + '。')
+    return out
 
 
 def update_readme():

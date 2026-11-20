@@ -44,6 +44,95 @@ COUNTS = re.compile('^応答済み$|失敗した要求|失敗の内訳|正にあ
 STAMP = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[,.]\d+\s+')
 
 
+# A-P1 (additional experiment, run once): results/a/poll.jsonl. It has no first run, so it is
+# rendered from the same file in both renderings and passes through tworuns.merge unchanged.
+POLL_CONDS = ['default', '100', '50', '10']
+POLL_DEFAULT_MS = 500     # default of poll.interval.ms in the Debezium 3.7 documentation (see cs/a/README.md)
+POLL_MARK = '⟦A-P1⟧'      # replaced after the merge of the two runs (see main)
+
+
+def _poll_ja(cond):
+    return f'指定なし（文書の既定は {POLL_DEFAULT_MS} ms）' if cond == 'default' else f'{cond} ms'
+
+
+def _r1(x):
+    return round(x, 1)
+
+
+class Poll:
+    """Numbers of A-P1 per condition: p50 / p95 of the lag of each trial."""
+
+    def __init__(self, rows):
+        self.rows = rows
+        self.be = {c: sorted([r for r in rows if r['config'] == 'be' and r['poll'] == c], key=lambda r: r['trial'])
+                   for c in POLL_CONDS}
+        self.be = {c: rs for c, rs in self.be.items() if rs}
+        self.b = sorted([r for r in rows if r['config'] == 'b'], key=lambda r: r['trial'])
+        self.conds = [c for c in POLL_CONDS if c in self.be]
+
+    def ok(self):
+        return bool(self.be) and bool(self.b)
+
+    @staticmethod
+    def vals(rs, sub='p50_ms'):
+        return [r['lag_ms'][sub] for r in rs]
+
+    @classmethod
+    def mid(cls, rs, sub='p50_ms'):
+        return _r1(median(cls.vals(rs, sub)))
+
+    @classmethod
+    def span(cls, rs, sub='p50_ms'):
+        v = cls.vals(rs, sub)
+        return f'{_r1(min(v))}〜{_r1(max(v))}'
+
+    @classmethod
+    def cmp(cls, a, b):
+        """'lt' when every trial of a is below every trial of b, 'gt' the other way round, else 'overlap'."""
+        va, vb = cls.vals(a), cls.vals(b)
+        return 'lt' if max(va) < min(vb) else 'gt' if min(va) > max(vb) else 'overlap'
+
+    def steps(self):
+        """[(wider, narrower, cmp of narrower against wider)] for neighbouring intervals."""
+        return [(a, b, self.cmp(self.be[b], self.be[a])) for a, b in zip(self.conds, self.conds[1:])]
+
+    def vs_b(self):
+        return [(c, self.cmp(self.be[c], self.b)) for c in self.conds]
+
+    def shrink_text(self):
+        st = self.steps()
+        if not st:
+            return '間隔を変えた条件が 1 つしか無く、縮めた効果は言えない'
+        if all(s == 'lt' for _a, _b, s in st):
+            return f'間隔を縮めるたびに、遅れの p50 は縮んだ（隣り合う条件の {len(st)} 組すべてで、試行の範囲が重ならない）'
+        word = {'lt': '縮んだ', 'gt': '伸びた', 'overlap': '差は言えない（試行の範囲が重なる）'}
+        return '間隔を縮めたときの遅れの p50：' + '、'.join(f'{_poll_ja(a)} → {_poll_ja(b)} は{word[s]}' for a, b, s in st)
+
+    def flip_text(self):
+        vb = self.vs_b()
+        lt = [c for c, s in vb if s == 'lt']
+        ov = [c for c, s in vb if s == 'overlap']
+        gt = [c for c, s in vb if s == 'gt']
+        if len(gt) == len(vb):
+            return 'どの条件でも BE のほうが長く（試行の範囲は重ならない）、B との大小は入れ替わらなかった'
+        out = []
+        if gt:
+            out.append('、'.join(_poll_ja(c) for c in gt) + ' では BE のほうが長い')
+        if ov:
+            out.append('、'.join(_poll_ja(c) for c in ov) + ' では試行の範囲が重なり、差は言えない')
+        if lt:
+            out.append('、'.join(_poll_ja(c) for c in lt) + ' では BE のほうが短く、B との大小が入れ替わった')
+        return '；'.join(out)
+
+    def cell_text(self):
+        """The sentences for the comparison table."""
+        nd = [c for c in self.conds if c != 'default']
+        return (f'【追加実験 A-P1・1 回だけ】poll.interval.ms を {"・".join(nd)} ms にした BE の遅れの p50（{len(self.b)} 試行の中央値）は '
+                f'{"・".join(str(self.mid(self.be[c])) for c in nd)} ms'
+                + (f'、指定なしは {self.mid(self.be["default"])} ms' if 'default' in self.be else '')
+                + f'、同じセッションの B は {self.mid(self.b)} ms。{self.shrink_text()}。B（間隔 {C.RELAY_POLL_MS} ms）と比べると、{self.flip_text()}')
+
+
 def table(header, rows):
     out = ['| ' + ' | '.join(header) + ' |', '| ' + ' | '.join('---' for _ in header) + ' |']
     for r in rows:
@@ -94,6 +183,8 @@ class Data:
         self.kafka = read_jsonl(os.path.join(base, 'kafka.jsonl'))
         self.wal = read_jsonl(os.path.join(base, 'wal.jsonl'))
         self.audit = read_jsonl(os.path.join(base, 'audit.jsonl'))
+        # the additional experiment was run once: the same file for both renderings
+        self.poll = Poll(read_jsonl(os.path.join(RESULTS, 'a', 'poll.jsonl')))
         self.by = defaultdict(list)
         for r in self.main + self.kafka:
             self.by[(r['broker'], r['config'], r['variant'], r['case'], r['concurrency'])].append(r)
@@ -136,7 +227,8 @@ def sec_overview(d, env):
         ['CDC の落とし穴（WAL）', 'wal.jsonl', len(d.wal)],
         ['Apache Kafka での照合', 'kafka.jsonl', len(d.kafka)],
         ['判定器の監査', 'audit.jsonl', f'{len(d.audit)}（合格 {n_ok}）'],
-    ]))
+    ] + ([['追加実験 A-P1：CDC の読み取り間隔（1 回だけ流した。2 回の比較は無い）', 'poll.jsonl', len(d.poll.rows)]]
+         if d.poll.rows else [])))
     L.append('1 回の実行ごとに、コンテナとボリュームを消して作り直した。1 回の実行は、注文 '
              f'{C.N_ORDERS} 件に対する {C.N_OPS} 件の状態の更新（書き手ごとの列は種から決まる。種は {C.SEED0}＋試行番号）。'
              '書き手は最大 2 つの注文サービスのプロセスに分かれ、並行度 16 では 8 スレッド × 2 プロセスになる。\n')
@@ -144,7 +236,8 @@ def sec_overview(d, env):
     L.append(table(['ID', 'ケース', '狙い', 'ガイドの Part'], [[i, n, a, p] for i, _k, n, a, p in CASES] + [
         ['A-V1', '変種：最後に読んだ連番より大きい行だけ読むポーリング', 'A-N1・A-N2 の条件で、読み飛ばしによる欠落が出るか', '6'],
         ['A-L1〜L3', 'CDC の落とし穴（Debezium を止めたまま書き続ける）', 'スロットが保持する WAL の増え方。上限・時間切れを付けたとき、スロットとイベントに何が起きるか', '6'],
-    ]))
+    ] + ([['A-P1', '追加実験：CDC の遅れと、コネクタの読み取り間隔（障害なし・並行度 1）',
+           'Debezium の poll.interval.ms を縮めると、BE の遅れは縮むか。B との大小は入れ替わるか', '6']] if d.poll.rows else [])))
     L.append('### 言葉の決め\n')
     L.append(table(['言葉', '数え方'], [
         ['応答済み', '注文サービスが呼び出し元に成功を返した要求。N は「DB のコミット」と「ブローカーの確認応答」の両方が済んだとき、B・BE は DB のコミットが済んだときに成功を返す'],
@@ -228,8 +321,102 @@ def sec_normal(d):
         L.append(table(['並行度', '試行', '種', '応答済み', '順序の入れ替わり（組）', '入れ替わった注文', '最終状態の食い違い（注文）',
                         'うち表示の状態も違う', '照合が見つけた数'], per))
     L.append('遅れは、受け手が書き手に追いつける並行度 1 の行で比べる（並行度 16 では書き手のほうが速く、遅れは受け手の処理待ちを含む）。'
-             f'B はポーリングの間隔 {C.RELAY_POLL_MS} ms、BE は Debezium の poll.interval.ms が既定（500 ms）のまま。'
-             'N の応答時間には、ブローカーの確認応答を待つ時間が入る。\n')
+             f'B はポーリングの間隔 {C.RELAY_POLL_MS} ms。BE は Debezium の poll.interval.ms を指定していない（文書の既定は {POLL_DEFAULT_MS} ms）。'
+             + ('BE の遅れがこの間隔で変わるかは、追加実験 A-P1（次の節）で確かめた。' if d.poll.ok() else
+                'この節の実行に、間隔を変えたものは無い。BE の遅れがこの間隔によるものかは確かめていない（未検証）。')
+             + 'N の応答時間には、ブローカーの確認応答を待つ時間が入る。\n')
+    return L
+
+
+def sec_poll(d):
+    """A-P1: the lag of BE against the connector's poll.interval.ms. Run once."""
+    P = d.poll
+    if not P.ok():
+        return []
+    L = ['## A-P1 追加実験：CDC の遅れと、コネクタの読み取り間隔\n']
+    seeds = sorted({r['seed'] for r in P.rows})
+    L.append(f'**この実験は 1 回だけ流した（2 回の比較は無い）。** 結果は `results/a/poll.jsonl` の {len(P.rows)} 実行で、'
+             '本実験（main.jsonl など）とは別のセッションで流した。'
+             f'障害なし・並行度 1、負荷は A-N1 と同じ生成器と種（{seeds[0]}〜{seeds[-1]}。注文 {C.N_ORDERS} 件・更新 {C.N_OPS} 件）。'
+             'BE のコネクタの poll.interval.ms だけを変え、比較のために B も同じセッションで流した。'
+             '条件は試行ごとにひと回りさせ（試行 1 で全条件、次に試行 2…）、最初に流す条件も試行ごとにずらした。'
+             '判定器は本実験と同じ。\n')
+    # registered configuration, read back over REST
+    others = [{k: v for k, v in (r.get('connector_config_registered') or {}).items() if k != 'poll.interval.ms'}
+              for rs in P.be.values() for r in rs]
+    same_others = all(o == others[0] for o in others)
+    base = [r for r in d.rows('be', '', 'normal', 1) if r.get('connector_config')]
+    diff = set()
+    for rs in P.be.values():
+        for r in rs:
+            for b in base:
+                diff |= {k for k in set(r['connector_config']) | set(b['connector_config'])
+                         if r['connector_config'].get(k) != b['connector_config'].get(k)}
+    L.append('コネクタを登録した後、Kafka Connect の REST（GET /connectors/<名前>/config）で設定を読み返して記録した。'
+             + (f'poll.interval.ms 以外の設定（{len(others[0])} 項目）は、BE の全 {len(others)} 実行で同じ値だった。' if same_others
+                else '**poll.interval.ms 以外の設定にも、実行によって違う値があった。**')
+             + ('' if not base else
+                '本実験の A-N1 の BE（並行度 1）が送った設定との違いは、'
+                + ('poll.interval.ms だけ。' if diff <= {'poll.interval.ms'} else f'{"、".join(sorted(diff))}。'))
+             + f'指定しなかった設定は読み返しに現れないので、「指定なし」の条件の {POLL_DEFAULT_MS} ms は実測した値ではなく、文書の既定値である。\n')
+
+    def reg(rs):
+        v = sorted({(r.get('connector_config_registered') or {}).get('poll.interval.ms', '無し（指定していない）') for r in rs})
+        return '・'.join(v)
+
+    def row(label, rs, registered, interval):
+        m = P.mid(rs)
+        return [label, len(rs), registered, m, P.span(rs), P.mid(rs, 'p95_ms'), P.span(rs, 'p95_ms'),
+                '該当なし' if interval is None else f'{m / interval:.2f}', lat(rs, 'response_ms'), tot(rs, 'acked'),
+                tot(rs, 'request_failures'), pair(rs, 'index.missing_committed', 'notify.missing_committed'),
+                tot(rs, 'log.dup_extra'), pair(rs, 'index.dup_delivered_extra', 'notify.dup_delivered_extra'),
+                pair(rs, 'index.dup_effect_extra', 'notify.dup_effect_extra'), tot(rs, 'index.reorder_pairs'),
+                tot(rs, 'index.regress_pairs'), tot(rs, 'final.mismatch')]
+
+    rows = [row(f'BE・poll.interval.ms {_poll_ja(c)}', P.be[c], reg(P.be[c]), POLL_DEFAULT_MS if c == 'default' else int(c))
+            for c in P.conds]
+    rows.append(row(f'B・ポーリングの間隔 {C.RELAY_POLL_MS} ms', P.b, '該当なし（コネクタを使わない）', None))
+    L.append(table(['条件', '試行', '登録された poll.interval.ms（REST の読み返し）', '遅れ p50：試行の中央値（ms）', '遅れ p50：試行の範囲（ms）',
+                    '遅れ p95：試行の中央値（ms）', '遅れ p95：試行の範囲（ms）', '遅れ p50 ÷ 間隔', '応答 p50／p95（ms）', '応答済み',
+                    '失敗した要求', '正にあって届かない（索引／通知）', 'ブローカーのログ内の重複', '届いた重複（索引／通知）',
+                    '状態に 2 回効いた（索引／通知）', '順序の入れ替わり（組）', '古いイベントの再適用（組）', '最終状態の食い違い（注文）'], rows))
+    L.append('試行ごとの遅れ p50／p95（ms）。「順」は、その試行の中で流した順番：\n')
+    trials = sorted({r['trial'] for r in P.rows})
+
+    def one(rs, t):
+        r = next((x for x in rs if x['trial'] == t), None)
+        if r is None:
+            return '未検証'
+        k = sorted(x['order'] for x in P.rows if x['trial'] == t).index(r['order']) + 1
+        return f'{_r1(r["lag_ms"]["p50_ms"])}／{_r1(r["lag_ms"]["p95_ms"])}（順 {k}）'
+
+    L.append(table(['試行', '種'] + [f'BE・{_poll_ja(c)}' for c in P.conds] + [f'B・{C.RELAY_POLL_MS} ms'],
+                   [[t, next(r['seed'] for r in P.rows if r['trial'] == t)] + [one(P.be[c], t) for c in P.conds] + [one(P.b, t)]
+                    for t in trials]))
+    lo = P.conds[-1]
+    paired = sum(1 for t in trials for a in P.be[lo] for b in P.b
+                 if a['trial'] == t and b['trial'] == t and a['lag_ms']['p50_ms'] > b['lag_ms']['p50_ms'])
+    word = {'gt': 'BE のほうが長い（範囲は重ならない）', 'lt': 'BE のほうが短い（範囲は重ならない）', 'overlap': '差は言えない（範囲が重なる）'}
+    L.append('読み取り（数字から作った文。大小は、試行ごとの p50 の範囲が重ならないときだけ言う）：\n')
+    items = [
+        f'{P.shrink_text()}。p50 の中央値は、' + ' → '.join(f'{_poll_ja(c)}：{P.mid(P.be[c])} ms' for c in P.conds),
+        f'いちばん短くした {_poll_ja(lo)} で、p50 の中央値は {P.mid(P.be[lo])} ms（範囲 {P.span(P.be[lo])}）、p95 の中央値は {P.mid(P.be[lo], "p95_ms")} ms'
+        + (f'。指定なしの p50 の {P.mid(P.be[lo]) / P.mid(P.be["default"]) * 100:.1f}% に当たる' if 'default' in P.be and lo != 'default' else ''),
+        f'B（ポーリングの間隔 {C.RELAY_POLL_MS} ms）の p50 の中央値は {P.mid(P.b)} ms（範囲 {P.span(P.b)}）。BE との比較：'
+        + '、'.join(f'{_poll_ja(c)}：{word[s]}' for c, s in P.vs_b()) + f'。{P.flip_text()}'
+        + f'。同じ試行どうしで比べると、{_poll_ja(lo)} の BE の p50 が B より長かった試行は {paired}/{len(trials)}',
+        f'全 {len(P.rows)} 実行の合計：失敗した要求 {tot(P.rows, "request_failures")}、'
+        f'正にあって届かない 索引 {tot(P.rows, "index.missing_committed")}／通知 {tot(P.rows, "notify.missing_committed")}、'
+        f'ブローカーのログ内の重複 {tot(P.rows, "log.dup_extra")}、届いた重複 索引 {tot(P.rows, "index.dup_delivered_extra")}／通知 {tot(P.rows, "notify.dup_delivered_extra")}、'
+        f'順序の入れ替わり {tot(P.rows, "index.reorder_pairs")} 組、最終状態の食い違い {tot(P.rows, "final.mismatch")} 注文',
+        ('変えた設定は poll.interval.ms の 1 つだけ。遅れがこの間隔からどう決まるか（p50 が間隔そのものより長い理由）、'
+         f'{lo} ms より縮めたときの遅れ、間隔を縮めたときの CPU の使用、遅れに効きうるほかの設定'
+         '（poll.dispatch.interval.ms、max.batch.size、Kafka Connect のプロデューサーの linger.ms など）、並行度 4・16 での効き方は調べていない')
+        if lo != 'default' else '間隔を変えた条件が無い',
+        '遅れは同じホストの時計で測った相対比較で、絶対値は一般化できない。試行は条件ごとに数回、1 回だけの実行なので、'
+        'ここでの大小は「この環境・このセッションで範囲が重ならなかった」という意味で読む',
+    ]
+    L += [f'- {x}\n' for x in items]
     return L
 
 
@@ -395,7 +582,8 @@ def sec_ablation(d):
             '二重書き込みのままでも、照合を足せば索引の差は見つけて直せる。通知の欠落と重複は直せない')
     L.append(table(['外した要素', 'ケース', '入れた構成', '外した構成', '読み取り'], rows))
     # give-up: Kafka transactions
-    idem = d.where(lambda r: r['config'] in ('b', 'be') and r['idempotent_consumer'] and r['variant'] != 'wm')
+    # B and BE as designed: the variant (wm) and the ablations (noidem, nokey) are not counted
+    idem = d.where(lambda r: r['config'] in ('b', 'be') and r['variant'] == '')
     if idem:
         L.append('### 見送り：Kafka のトランザクション（「厳密に 1 回」）\n')
         L.append(f'Kafka のトランザクションは使わず、受け手の冪等性（イベント ID を、効果と同じトランザクションで処理済みの表に入れる）だけにした。'
@@ -602,8 +790,10 @@ def sec_guide(d):
                      '遅れ：ポーリングは間隔しだい。CDC は書き込みの直後に流せる',
                      verdict(bem <= bm, '一致', '**条件つきで食い違い**'),
                      f'並行度 1 の遅れ p50／p95（ms）：N {lat(nn1, "lag_ms")}、B {lat(b1, "lag_ms")}（間隔 {C.RELAY_POLL_MS} ms）、'
-                     f'BE {lat(be1, "lag_ms")}（Debezium の poll.interval.ms は既定の 500 ms）。'
-                     'この設定では CDC のほうが遅れた。CDC の遅れも、コネクタの読み出しの間隔しだいだった'])
+                     f'BE {lat(be1, "lag_ms")}（Debezium の poll.interval.ms は指定なし。文書の既定は {POLL_DEFAULT_MS} ms）。'
+                     + ('この設定では CDC のほうが遅れた。' if bem > bm else 'この設定では CDC は遅れなかった。')
+                     + (POLL_MARK if d.poll.ok() else
+                        '間隔を変えた実行は無く、CDC の遅れがコネクタの読み取り間隔によるものかは確かめていない（未検証）')])
     rk_b, rk_be = d.rows('b', '', 'relay_kill', 4), d.rows('be', '', 'relay_kill', 4)
     ck = d.rows('b', '', 'consumer_kill', 4) + d.rows('be', '', 'consumer_kill', 4) + d.rows('n', '', 'consumer_kill', 4)
     if rk_b or rk_be:
@@ -625,13 +815,13 @@ def sec_guide(d):
                      f'通知が 2 回効いた {tot(noid, "notify.dup_effect_extra")} 回。'
                      f'冪等キーあり（B・BE の受け手・運び手の強制終了。{len(idem)} 実行）：届いた重複 {tot(idem, "notify.dup_delivered_extra")} 回、'
                      f'通知が 2 回効いた {tot(idem, "notify.dup_effect_extra")} 回、索引が 2 回効いた {tot(idem, "index.dup_effect_extra")} 回'])
-    allidem = d.where(lambda r: r['config'] in ('b', 'be') and r['idempotent_consumer'] and r['variant'] != 'wm')
+    allidem = d.where(lambda r: r['config'] in ('b', 'be') and r['variant'] == '')
     if allidem:
         rows.append(['「厳密に 1 回」は、その枠組みの中だけの保証',
                      'DB に書く受け手は冪等にするか、オフセットを出力と同じ場所に保存する（Kafka のトランザクションだけでは足りない）',
                      verdict(tot(allidem, 'index.dup_effect_extra') + tot(allidem, 'notify.dup_effect_extra') == 0,
                              '実測（受け手の冪等性だけで、状態に効く重複は 0）'),
-                     f'Kafka のトランザクションを使わず、B・BE の全 {len(allidem)} 実行で、状態に 2 回効いた数は索引 {tot(allidem, "index.dup_effect_extra")}／'
+                     f'Kafka のトランザクションを使わず、B・BE（変種と除去を除く）の全 {len(allidem)} 実行で、状態に 2 回効いた数は索引 {tot(allidem, "index.dup_effect_extra")}／'
                      f'通知 {tot(allidem, "notify.dup_effect_extra")}（届いた重複は {tot(allidem, "index.dup_delivered_extra")}／{tot(allidem, "notify.dup_delivered_extra")}）。'
                      'Kafka のトランザクションを使った構成は流していない（未検証）'])
     nk = d.rows('be', 'nokey', 'normal', 16) + d.rows('be', 'nokey', 'consumer_late', 4)
@@ -753,7 +943,12 @@ def sec_notes(d):
         'ブローカーや DB のホストごとの停止（電源断に当たる障害）、ディスクが実際に埋まるまでの WAL の増加',
         'Debezium のフェイルオーバー用のスロット（slot.failover）、プライマリの切り替えをまたぐ CDC',
         'CDC の落とし穴（A-L1〜L3）の Apache Kafka での照合（Redpanda だけで流した）',
-        'Debezium の poll.interval.ms を変えた CDC（既定の 500 ms だけで流した。間隔を縮めたときの遅れは測っていない）',
+        (f'Debezium の poll.interval.ms を {d.poll.conds[-1]} ms より縮めた CDC、遅れに効きうるほかの設定'
+         '（poll.dispatch.interval.ms、max.batch.size、Kafka Connect のプロデューサーの linger.ms など）を変えた CDC、'
+         f'並行度 4・16 での間隔の効き方（追加実験 A-P1 は、並行度 1 で poll.interval.ms だけを {len(d.poll.conds)} 通りに変え、1 回だけ流した）'
+         if d.poll.ok() and d.poll.conds[-1] != 'default' else
+         f'Debezium の poll.interval.ms を変えた CDC（指定なし＝文書の既定の {POLL_DEFAULT_MS} ms だけで流した。'
+         '間隔を縮めたときの遅れは測っておらず、BE の遅れがこの間隔によるものかは確かめていない）'),
         'アウトボックスの行を送信後に消す運用での、スロット喪失後の取り直し（この実験では行を消していない）',
         'クラウドのマネージド製品（マネージドの Kafka・CDC）',
     ]]
@@ -762,7 +957,7 @@ def sec_notes(d):
 
 def sections(d, runs):
     out = []
-    for sec in (sec_guide(d), sec_normal(d), sec_variant(d), sec_faults(d), sec_ablation(d), sec_wal(d), sec_kafka(d, runs), sec_notes(d)):
+    for sec in (sec_guide(d), sec_normal(d), sec_poll(d), sec_variant(d), sec_faults(d), sec_ablation(d), sec_wal(d), sec_kafka(d, runs), sec_notes(d)):
         out += sec
     return out
 
@@ -776,7 +971,7 @@ def main():
         with open(p, encoding='utf-8') as f:
             env = json.load(f)
     L = ['# 題材 A：基盤をまたぐデータ統合（結果）\n',
-         'このファイルは `cs/a/aggregate.py` が `results/a/*.jsonl`（2 回目の実行）と `results/a/run1/*.jsonl`（1 回目の実行）から作る。'
+         'このファイルは `cs/a/aggregate.py` が `results/a/*.jsonl`（2 回目の実行と、あれば追加実験）と `results/a/run1/*.jsonl`（1 回目の実行）から作る。'
          '表の数は結果のファイルから数えたもので、手では書いていない。'
          '性能の数字は同じ環境の中での相対比較で、ほかの環境には一般化できない。\n',
          '問い：注文の状態の変化を、検索の索引と通知へ、失わず・重複させず・順序を崩さずに届けられるか。'
@@ -787,7 +982,19 @@ def main():
          '0 件は「この試行では起きなかった」という意味で読む。\n']
     L += sec_overview(d, env)
     L.append('実行の概要（実行の数、版、メモリ）は 2 回目のもの。1 回目も同じ実行 ID の集合で、監査の合格数も同じだった（`results/RERUN.md`）。\n')
-    L += tworuns.merge(sections(runs[1], runs), sections(runs[2], runs), COUNTS, 'topic A')
+    if d.poll.rows:
+        L.append('追加実験 A-P1（`results/a/poll.jsonl`）は 1 回だけ流した。1 回目に当たる実行は無く、2 回の併記の対象ではない'
+                 '（`results/RERUN.md` にも入っていない）。A-P1 の数は、どこに書いてあっても、その 1 回のもの。\n')
+    merged = tworuns.merge(sections(runs[1], runs), sections(runs[2], runs), COUNTS, 'topic A')
+    if d.poll.ok():     # A-P1 belongs to neither run: written once, after the two runs' texts of that cell
+        def put(block):
+            if POLL_MARK not in block:
+                return block
+            return '\n'.join(re.sub(r' \|$', lambda _m: f' {d.poll.cell_text()} |',
+                                    ln.replace(' ' + POLL_MARK, '').replace(POLL_MARK, ''))
+                             if POLL_MARK in ln else ln for ln in block.split('\n'))
+        merged = [put(b) for b in merged]
+    L += merged
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(L).rstrip() + '\n')

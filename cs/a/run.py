@@ -6,7 +6,13 @@
     bash cs/a/run.sh --fresh           # delete results/a/*.jsonl first
     bash cs/a/run.sh --list            # print the planned run ids and exit
 
+    bash cs/a/run.sh poll              # additional experiment A-P1 (never part of "everything")
+    bash cs/a/run.sh poll --budget=480 # do not start a run that would not finish within 480 s
+
 Steps: audit, main (Redpanda), wal, kafka (Apache Kafka cross-check), summary.
+The additional step poll (A-P1: the connector's poll.interval.ms) runs only when it is
+named; it writes results/a/poll.jsonl and leaves the other result files, memlog.jsonl
+and env.json as they are.
 Only containers / volumes / networks named dic-a-* are created and removed.
 """
 import datetime
@@ -21,6 +27,9 @@ from ..common.record import RESULTS, Results, update_env
 from . import aggregate, audit, cases, config as C, infra, memlog, wal
 
 STEPS = ['audit', 'main', 'wal', 'kafka', 'summary']
+EXTRA_STEPS = ['poll']         # only when named on the command line
+POLL_CONDS = [('be', 'default'), ('be', '100'), ('be', '50'), ('be', '10'), ('b', f'relay{C.RELAY_POLL_MS}')]
+POLL_TRIALS = 5
 FAULT_CONC = 4
 
 
@@ -64,6 +73,17 @@ def plan_kafka():
     return [_spec('kafka', 'kafka', cfg, var, case, conc, t) for cfg, var, case, conc, n in p for t in range(1, n + 1)]
 
 
+def plan_poll():
+    """A-P1: no fault, concurrency 1, the workload of A-N1 (same generator and seeds). Trial by
+    trial, so that no condition sits in one stretch of time; the first condition also rotates."""
+    out = []
+    for t in range(1, POLL_TRIALS + 1):
+        k = (t - 1) % len(POLL_CONDS)
+        for pos, (cfg, poll) in enumerate(POLL_CONDS[k:] + POLL_CONDS[:k], 1):
+            out.append({**_spec('poll', 'redpanda', cfg, '', 'normal', 1, t), 'poll': poll, 'order': (t - 1) * len(POLL_CONDS) + pos})
+    return out
+
+
 def plan_wal():
     return [{'broker': 'redpanda', 'cond': cond, 'trial': t, 'seed': C.SEED0 + 500 + t}
             for cond in ('default', 'cap', 'idle') for t in (1, 2)]
@@ -105,22 +125,31 @@ def _mib(s):
 def main(argv):
     args = [a for a in argv if not a.startswith('--')]
     match = next((a.split('=', 1)[1] for a in argv if a.startswith('--match=')), None)
+    budget = next((float(a.split('=', 1)[1]) for a in argv if a.startswith('--budget=')), None)
     steps = args or STEPS
-    unknown = [s for s in steps if s not in STEPS]
+    unknown = [s for s in steps if s not in STEPS + EXTRA_STEPS]
     if unknown:
-        raise SystemExit(f'unknown steps {unknown}; choose from {STEPS}')
+        raise SystemExit(f'unknown steps {unknown}; choose from {STEPS + EXTRA_STEPS}')
     if '--list' in argv:
+        if 'poll' in steps:
+            for s in plan_poll():
+                print(cases.run_id_of(s))
+            return
         for s in plan_main() + plan_kafka():
             print(cases.run_id_of(s))
         for s in plan_wal():
             print(f'wal:{s["broker"]}:{s["cond"]}:t{s["trial"]}')
         return
+    main_steps = [s for s in steps if s in STEPS]
     if '--fresh' in argv:
+        if not main_steps:
+            raise SystemExit('--fresh deletes the results of the main experiment; it is not used with the additional steps alone')
         for f in glob.glob(os.path.join(RESULTS, 'a', '*.jsonl')):
             os.remove(f)
     t0 = time.monotonic()
     log(f'steps={steps} memory={memcheck.ensure("start")}')
-    ml = memlog.MemLog().start()        # one line about every 60 s in results/a/memlog.jsonl
+    # one line about every 60 s in results/a/memlog.jsonl (the main experiment only)
+    ml = memlog.MemLog().start() if main_steps else memlog.NoLog()
     D.cleanup(C.PREFIX)                 # leftovers of an interrupted run (dic-a-* only)
     mem_peak, versions = {}, {}
 
@@ -157,6 +186,28 @@ def main(argv):
                     f'missing={m["index"]["missing_committed"]} dup_effect={m["notify"]["dup_effect_extra"]} '
                     f'reorder={m["index"]["reorder_pairs"]} final_mismatch={m["final"]["mismatch"]} '
                     f'({row["seconds"]}s)')
+        if 'poll' in steps:
+            res = Results('a/poll.jsonl')
+            specs = plan_poll()
+            todo = [s for s in specs if not res.has(cases.run_id_of(s)) and (not match or match in cases.run_id_of(s))]
+            log(f'poll: {len(todo)} of {len(specs)} runs to do')
+            longest = 0.0
+            for i, s in enumerate(todo, 1):
+                if budget is not None and time.monotonic() - t0 + max(longest, 60.0) * 1.3 > budget:
+                    log(f'poll: stopping before {cases.run_id_of(s)} (budget {budget} s); run again to continue')
+                    break
+                mem = memcheck.ensure(cases.run_id_of(s))
+                t1 = time.monotonic()
+                row = cases.run_one(s, log=log)
+                longest = max(longest, time.monotonic() - t1)
+                row['order'] = s['order']
+                row['memory_before'] = mem
+                res.append(row)
+                m = row['metrics']
+                log(f'poll {i}/{len(todo)} {row["run_id"]}: lag p50={row["lag_ms"]["p50_ms"]} p95={row["lag_ms"]["p95_ms"]} '
+                    f'missing={m["index"]["missing_committed"]} dup={m["index"]["dup_delivered_extra"]} '
+                    f'reorder={m["index"]["reorder_pairs"]} final_mismatch={m["final"]["mismatch"]} '
+                    f'free={mem["windows_free_gb"]}GB ({row["seconds"]}s)')
         if 'wal' in steps:
             res = Results('a/wal.jsonl')
             todo = [s for s in plan_wal() if not res.has(f'wal:{s["broker"]}:{s["cond"]}:t{s["trial"]}')
@@ -181,7 +232,8 @@ def main(argv):
         ml.label = 'end'
         ml.stop()
         log(f'cleanup: leftovers={D.cleanup(C.PREFIX)}')
-    record_env(mem_peak, versions)
+    if main_steps:                      # env.json describes the main experiment
+        record_env(mem_peak, versions)
     if 'summary' in steps:
         aggregate.main()
         log('summary written')
