@@ -41,10 +41,22 @@ def yes(b):
     return 'はい' if b else 'いいえ'
 
 
+def _order(name):
+    """A fixed order of the rows, independent of the order in which the runs were recorded."""
+    changes = [c[1] for c in S.CHANGES]
+    seqs = [q[0] for q in S.SEQUENCES]
+    if name == 'b1':
+        return lambda r: (S.FORMATS.index(r['format']), changes.index(r['change']))
+    if name == 'b2':
+        return lambda r: (S.FORMATS.index(r['format']), seqs.index(r['sequence']), B12.B2_MODES.index(r['mode']))
+    return lambda r: r['run_id']
+
+
 class Data:
-    def __init__(self):
+    def __init__(self, run=2):
+        base = os.path.join(RESULTS, 'b', *([] if run == 2 else ['run1']))
         for name in ('b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'audit'):
-            setattr(self, name, read_jsonl(os.path.join(RESULTS, 'b', f'{name}.jsonl')))
+            setattr(self, name, sorted(read_jsonl(os.path.join(base, f'{name}.jsonl')), key=_order(name)))
 
     def b3of(self, exp, case):
         return [r for r in self.b3 if r['exp'] == exp and r['case'] == case]

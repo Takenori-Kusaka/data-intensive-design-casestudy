@@ -3,20 +3,31 @@ from the result files; nothing is typed by hand. The verdicts of the comparison 
 guide are derived from the same numbers (agg_sections.py holds the per-experiment tables)."""
 import json
 import os
+import re
 
+from ..common import tworuns
 from ..common.record import RESULTS, read_jsonl, update_env
-from . import agg_sections as A, config as C
+from . import agg_sections as A, c2_schema as C2, config as C
 from .agg_sections import NA, table
 
 OUT = os.path.join(RESULTS, 'c', 'summary.md')
+# Columns that hold counts (not timings): where the two runs differ, both are written.
+COUNTS = re.compile('受け付け|断った|届かなかった|重複|不一致|^失敗$|落ちた行|^NULL$|0 で埋まる|値が変わる|保留|被害|実行のエラー'
+                    '|流し直した後の表|3 日目|^数$|実行計画など|^試行$|^実行$')
 
 
 class Data:
-    def __init__(self):
+    def __init__(self, run=2):
+        base = os.path.join(RESULTS, 'c', *([] if run == 2 else ['run1']))
         for k in ('c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'audit'):
-            setattr(self, k, read_jsonl(os.path.join(RESULTS, 'c', f'{k}.jsonl')))
+            # stable sort: the first trial comes first, whatever the order of recording
+            setattr(self, k, sorted(read_jsonl(os.path.join(base, f'{k}.jsonl')), key=lambda r: r.get('trial') or 0))
         self.perf = [r for r in self.c2 if r['part'] == 'perf']
-        self.drift = [r for r in self.c2 if r['part'] == 'drift']
+        cases = list(C2.CASES)
+        # a fixed order for the schema-drift runs (the order of recording differs between the two runs)
+        self.drift = sorted((r for r in self.c2 if r['part'] == 'drift'),
+                            key=lambda r: (A.PRODUCTS.index(r['product']), C2.PIPELINES[r['product']].index(r['pipeline']), cases.index(r['case'])))
+        self.both = {run: self}
         self.compress = [r for r in self.c3 if r['part'] == 'compress']
         self.retain = [r for r in self.c3 if r['part'] == 'retain']
         self.runs = self.c1 + self.c2 + self.c3 + self.c4 + self.c5 + self.c6
@@ -105,29 +116,32 @@ def audit_section(d):
     return out
 
 
+def sections(d):
+    out = []
+    for sec in (A.comparison, A.c1_section, A.c2_section, A.c3_section, A.c4_section, A.c5_section, A.c6_section,
+                A.ablation, A.normal_ops, audit_section, A.findings, A.closing):
+        out += sec(d)
+    return out
+
+
 def main():
-    d = Data()
+    d1, d = Data(1), Data(2)
+    d1.both = d.both = {1: d1, 2: d}
     out = ['# 題材 C：共通基盤の費用と性能（結果）\n',
-           'このファイルは `cs/c/aggregate.py` が `results/c/*.jsonl` から作る。表の数は結果のファイルから数えたもので、手では書いていない。'
+           'このファイルは `cs/c/aggregate.py` が `results/c/*.jsonl`（2 回目の実行）と `results/c/run1/*.jsonl`（1 回目の実行）から作る。'
+           '表の数は結果のファイルから数えたもので、手では書いていない。'
            '性能の数字は、同じ機械・同じデータの中での相対比較で、ほかの環境には一般化できない。製品どうしの優劣は断定せず、'
            'どの問い合わせの形で、どちらに差が出たかを書く。\n',
            '問い：ログ基盤・分析基盤で、どの持ち方が何を払うか。題材は、架空の宅配注文サービスの注文イベントのログ（1 行が 1 イベント、23 列）。'
            '構成は **N**（素朴な作り：行指向の表に、製品の既定のまま型つきで取り込み、INSERT で流し直し、DELETE で古い行を消す）、'
            '**B**（共通の基準：再実行しても同じ結果になる取り込み）、**BE**（基準＋題材 C の重点：E-C1 列指向と圧縮、'
-           'E-C2 取り込み時に型を決める列と後から読む列を分けて検査する、E-C3 保持期間をパーティションの単位で落とす）。\n']
+           'E-C2 取り込み時に型を決める列と後から読む列を分けて検査する、E-C3 保持期間をパーティションの単位で落とす）。\n',
+           tworuns.LEGEND.format(t='c'),
+           'この題材は時間の比較が多い。時間の大小を言う判定は、2 回とも同じ判定になった行だけがそのまま残り、片方の回だけの判定は'
+           '「実行によって変わった」と書いてある。C-6 の件数は、障害を件数の合図で入れているが、Collector と Kafka の内部の進み方に頼る数があり、試行で変わった。\n']
     out += overview(d)
-    out += A.comparison(d)
-    out += A.c1_section(d)
-    out += A.c2_section(d)
-    out += A.c3_section(d)
-    out += A.c4_section(d)
-    out += A.c5_section(d)
-    out += A.c6_section(d)
-    out += A.ablation(d)
-    out += A.normal_ops(d)
-    out += audit_section(d)
-    out += A.findings(d)
-    out += A.closing(d)
+    out.append('実行の概要（実行の数、版、メモリ）は 2 回目のもの。1 回目も同じ実行 ID の集合で、監査の合格数も同じだった（`results/RERUN.md`）。\n')
+    out += tworuns.merge(sections(d1), sections(d), COUNTS, 'topic C')
     text = '\n'.join(out).rstrip() + '\n'
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
         f.write(text)

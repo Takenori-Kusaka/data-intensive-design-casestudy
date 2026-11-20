@@ -2,9 +2,11 @@
 tables is counted from the result files; nothing is typed by hand."""
 import json
 import os
+import re
 from collections import defaultdict
 from statistics import median
 
+from ..common import tworuns
 from ..common.record import RESULTS, read_jsonl
 from . import cases, config as C, wal as WAL
 
@@ -36,10 +38,16 @@ WAL_JA = {'default': 'A-L1 上限なし（既定 max_slot_wal_keep_size=-1）', 
           'idle': 'A-L3 未使用スロットの時間切れ（idle_replication_slot_timeout=20s）'}
 
 
+# Columns that hold counts depending on a concurrent race: where the two runs differ, both are written.
+COUNTS = re.compile('^応答済み$|失敗した要求|失敗の内訳|正にあって|ブローカーのログ内の重複|届いた重複|状態に 2 回効いた|順序の入れ替わり'
+                    '|古いイベントの再適用|最終状態の食い違い|照合|応答済みなのに|入れ替わった注文|うち|応答なし・失敗なのに|内訳（届かない')
+STAMP = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[,.]\d+\s+')
+
+
 def table(header, rows):
     out = ['| ' + ' | '.join(header) + ' |', '| ' + ' | '.join('---' for _ in header) + ' |']
     for r in rows:
-        out.append('| ' + ' | '.join('未検証' if c is None or c == '' else str(c) for c in r) + ' |')
+        out.append('| ' + ' | '.join('未検証' if c is None or c == '' else str(c).replace('|', '\\|') for c in r) + ' |')
     return '\n'.join(out) + '\n'
 
 
@@ -80,11 +88,12 @@ def lat(rows, key):
 
 
 class Data:
-    def __init__(self):
-        self.main = read_jsonl(os.path.join(RESULTS, 'a', 'main.jsonl'))
-        self.kafka = read_jsonl(os.path.join(RESULTS, 'a', 'kafka.jsonl'))
-        self.wal = read_jsonl(os.path.join(RESULTS, 'a', 'wal.jsonl'))
-        self.audit = read_jsonl(os.path.join(RESULTS, 'a', 'audit.jsonl'))
+    def __init__(self, run=2):
+        base = os.path.join(RESULTS, 'a', *([] if run == 2 else ['run1']))
+        self.main = read_jsonl(os.path.join(base, 'main.jsonl'))
+        self.kafka = read_jsonl(os.path.join(base, 'kafka.jsonl'))
+        self.wal = read_jsonl(os.path.join(base, 'wal.jsonl'))
+        self.audit = read_jsonl(os.path.join(base, 'audit.jsonl'))
         self.by = defaultdict(list)
         for r in self.main + self.kafka:
             self.by[(r['broker'], r['config'], r['variant'], r['case'], r['concurrency'])].append(r)
@@ -289,9 +298,16 @@ def sec_faults(d):
     L.append(table(['ケース', '構成', '試行', '要求', '応答済み', '失敗した要求', '失敗の内訳',
                     '応答なし・失敗なのに DB にはコミット済み', 'うち索引に届かない', '応答済みなのに索引に届かない',
                     '最終状態の食い違い（注文）', '照合が見つけた数', '照合で直した後の差'], rows))
+    bb = [r for case, _c in plan[:4] for cfg in ('b', 'be') for r in d.rows(cfg, '', case, 4)]
+    bb_broker = [r for r in bb if r['case'] != 'writer_kill']
+    bb_writer = [r for r in bb if r['case'] == 'writer_kill']
     L.append('N では、発行に失敗した要求も、強制終了で応答が無かった要求も、DB にはコミットされている。'
              '呼び出し元から見ると失敗だが、注文の表は変わっており、索引と通知には届かない（片方だけの成功）。'
-             'B・BE では、同じ障害のあいだも要求は失敗せず、障害が終わった後に全件が届いた。\n')
+             + (f'B・BE では、ブローカーの障害（切断・一時停止・強制終了）のあいだに失敗した要求は {tot(bb_broker, "request_failures")} 件'
+                f'（{len(bb_broker)} 実行）。書き手の強制終了では、応答が無かった要求が {tot(bb_writer, "request_failures")} 件あり'
+                f'（{len(bb_writer)} 実行）、うち DB にコミット済みだったものは {tot(bb_writer, "committed_unacked")} 件。'
+                f'B・BE のこの 4 つのケースで、DB にコミット済みなのに索引に届かなかったイベントは {tot(bb, "index.missing_committed")} 件、'
+                f'通知に届かなかったイベントは {tot(bb, "notify.missing_committed")} 件。\n' if bb else 'B・BE は未検証。\n'))
     return L
 
 
@@ -424,13 +440,13 @@ def sec_wal(d):
             st = a['connector_state']
             mb = a['missing_by_phase']
             rows.append([r['trial'], 'はい' if r['slot_invalid_before_restart'] else 'いいえ', st['task'],
-                         (st['trace'] or 'なし')[:420], '；'.join(st.get('log_excerpt') or []) or 'なし',
+                         (st['trace'] or 'なし')[:420], '；'.join(STAMP.sub('', x) for x in (st.get('log_excerpt') or [])) or 'なし',
                          a['metrics']['index']['missing_committed'],
                          '、'.join(f'{k}：{v["missing"]}/{v["committed"]}' for k, v in sorted(mb.items())),
                          a['metrics']['final']['mismatch'], a['would_detect_by_reconcile'],
                          a['metrics']['index']['dup_effect_extra'] + a['metrics']['notify']['dup_effect_extra']])
         L.append('Kafka Connect を戻した後：\n')
-        L.append(table(['試行', '戻す前にスロットは無効か', 'コネクタのタスクの状態（REST）', 'タスクの失敗の内容（先頭）', 'Kafka Connect のログ（スロット・WAL に触れた警告とエラーの先頭）', '正にあって索引に届かない',
+        L.append(table(['試行', '戻す前にスロットは無効か', 'コネクタのタスクの状態（REST）', 'タスクの失敗の内容（先頭）', 'Kafka Connect のログ（スロット・WAL に触れた警告とエラーの先頭。時刻は除いた）', '正にあって索引に届かない',
                         '内訳（届かない／コミット済み）', '最終状態の食い違い（注文）', '照合が見つける差（注文）', '状態に 2 回効いた'], rows))
         if rs[0].get('after_catchup'):
             L.append('追いついた後（位置の確認応答と CHECKPOINT の後）：' + '；'.join(
@@ -452,10 +468,33 @@ def sec_wal(d):
             L.append(table(['試行', 'snapshot.mode', 'タスクの状態', 'エラー', '正にあって索引に届かない', '内訳（届かない／コミット済み）',
                             'ブローカーのログ内の重複', '届いた重複（索引／通知）', '状態に 2 回効いた（索引／通知）',
                             '最終状態の食い違い（注文）', '最後の照合が見つけた数', '照合で直した後の差'], rows))
+            L.append('スロットを作り直して取り直した後も、照合の前の索引には最終状態の食い違いが残った（試行ごと：'
+                     + '、'.join(str(r['recovery']['metrics']['final']['mismatch']) for r in rs) + ' 注文）。同じ実行で、古いイベントの再適用は '
+                     + '、'.join(str(r['recovery']['metrics']['index']['regress_pairs']) for r in rs) + ' 組、正にあって索引に届かないイベントは '
+                     + '、'.join(str(r['recovery']['metrics']['index']['missing_committed']) for r in rs) + ' 件。'
+                     '**この食い違いの原因は調べていない。** 推定：止めている間のイベントは取り直しのスナップショットで初めて届くので、'
+                     '同じ注文のより新しいイベントより後に索引に効いたものがあった（同じ実行で古いイベントの再適用が出ていることと合う）。'
+                     'この推定は切り分けていない（イベントごとの適用の順を追っていない）。条件（上限あり／時間切れ）で件数が違う理由も調べていない。'
+                     '照合はこの差を見つけて直した（表の右の 2 列）。\n')
     return L
 
 
-def sec_kafka(d):
+def _split_items(d, keys):
+    diffs = []
+    for cfg, var, case, conc in keys:
+        a, b = d.rows(cfg, var, case, conc, broker='redpanda'), d.rows(cfg, var, case, conc, broker='kafka')
+        if not a or not b:
+            continue
+        for path, name in (('index.missing_committed', '正にあって索引に届かない'), ('index.missing_acked', '応答済みなのに索引に届かない'),
+                           ('notify.dup_effect_extra', '通知が 2 回効いた'), ('index.reorder_pairs', '順序の入れ替わり'),
+                           ('final.mismatch', '最終状態の食い違い')):
+            if (tot(a, path) == 0) != (tot(b, path) == 0):
+                diffs.append((f'{CASE_JA[case]}・{CFG_JA[(cfg, var)]}（並行度 {conc}）：{name}',
+                              f'Redpanda {occ(a, path)}／Apache Kafka {occ(b, path)}'))
+    return diffs
+
+
+def sec_kafka(d, runs):
     L = ['## Apache Kafka での照合\n']
     if not d.kafka:
         L.append('未検証（結果のファイルが無い）。\n')
@@ -473,18 +512,13 @@ def sec_kafka(d):
             rs = d.rows(cfg, var, case, conc, broker=broker)
             rows.append([CASE_JA[case], 'Redpanda' if broker == 'redpanda' else 'Apache Kafka'] + line(CFG_JA[(cfg, var)], conc, rs))
     L.append(table(['ケース', 'ブローカー'] + HEAD, rows))
-    diffs = []
-    for cfg, var, case, conc in keys:
-        a, b = d.rows(cfg, var, case, conc, broker='redpanda'), d.rows(cfg, var, case, conc, broker='kafka')
-        if not a or not b:
-            continue
-        for path, name in (('index.missing_committed', '正にあって索引に届かない'), ('index.missing_acked', '応答済みなのに索引に届かない'),
-                           ('notify.dup_effect_extra', '通知が 2 回効いた'), ('final.mismatch', '最終状態の食い違い')):
-            za, zb = tot(a, path) == 0, tot(b, path) == 0
-            if za != zb:
-                diffs.append(f'{CASE_JA[case]}・{CFG_JA[(cfg, var)]}：{name}が Redpanda {tot(a, path)}／Apache Kafka {tot(b, path)}')
-    L.append('「起きた／起きなかった」が 2 つのブローカーで分かれた項目：' + ('；'.join(diffs) if diffs else 'なし') + '。'
-             '件数そのものは、並行の競合と再送の範囲に左右されるので、試行ごとに揺れる。\n')
+    per = {run: dict(_split_items(x, keys)) for run, x in sorted(runs.items())}
+    L.append('「起きた／起きなかった」（試行の合計が 0 か 1 以上か）が 2 つのブローカーで分かれた項目を、2 回の実行のそれぞれで数えた。'
+             + '；'.join(f'{run} 回目：' + ('、'.join(f'{k}＝{v}' for k, v in sorted(items.items())) or 'なし') for run, items in per.items()) + '。\n')
+    common = sorted(set.intersection(*(set(v) for v in per.values()))) if per else []
+    L.append('2 回とも分かれた項目：' + ('、'.join(common) if common else 'なし') + '。'
+             '片方の回だけで分かれた項目は、どちらのブローカーでも試行によって 0 にも 1 以上にもなる数（並行の競合に頼る数）で、'
+             'ブローカーの違いによるものとは言えない。件数そのものも、並行の競合と再送の範囲に左右されるので、試行ごとに揺れる。\n')
     return L
 
 
@@ -525,14 +559,16 @@ def sec_guide(d):
                      f'この実装の N は「DB のコミット → 発行」の順で、DB が失敗したら発行しない。発行を先にする作りは試していない。'
                      f'全実行で、DB に無いイベントが受け手に効いた数は {ghosts}'])
     wm_n = d.where(lambda r: r['variant'] == 'wm' and r['case'] == 'normal' and r['concurrency'] > 1)
+    wm_4, wm_16 = d.rows('b', 'wm', 'normal', 4), d.rows('b', 'wm', 'normal', 16)
     wm_l = d.rows('b', 'wm', 'longtxn', 4)
     wm_1 = d.rows('b', 'wm', 'normal', 1)
     if wm_n or wm_l:
         rows.append(['アウトボックスの運び方は 2 つ：ポーリングと CDC',
                      '「連番の順に読むポーリングは、あとからコミットされた小さい番号の行を読み飛ばすか。一次資料では確かめられなかった。題材 A で、長いトランザクションを混ぜて実測する」',
                      verdict(None if not (wm_n or wm_l) else True, '未確認だった点の実測'),
-                     f'「最後に読んだ連番より大きい行だけ読む」作りは読み飛ばした。障害なし・並行度 4 と 16：応答済みなのに索引に効果なし {occ(wm_n, "index.missing_acked")}。'
-                     f'長いトランザクションを混ぜた並行度 4：{occ(wm_l, "index.missing_acked")}。並行度 1：{tot(wm_1, "index.missing_acked") if wm_1 else "未検証"}。'
+                     f'「最後に読んだ連番より大きい行だけ読む」作りの、応答済みなのに索引に効果が無かったイベント：障害なし・並行度 4 で {occ(wm_4, "index.missing_acked")}、'
+                     f'並行度 16 で {occ(wm_16, "index.missing_acked")}、長いトランザクションを混ぜた並行度 4 で {occ(wm_l, "index.missing_acked")}、'
+                     f'並行度 1 で {tot(wm_1, "index.missing_acked") if wm_1 else "未検証"}。読み飛ばしは並行の競合に頼り、起きた試行の数は条件と実行で違う。'
                      f'「未送信の行を読む」作り（B）は同じ条件で {tot(d.rows("b", "", "normal") + d.rows("b", "", "longtxn"), "index.missing_acked")}'])
     ball = d.where(lambda r: r['config'] == 'b' and r['variant'] == '')
     if ball:
@@ -664,7 +700,10 @@ def sec_notes(d):
     if n16:
         notes.append(f'二重書き込みの順序の入れ替わりは起きたが、頻度は低い（並行度 16 で応答済み {tot(n16, "acked")} 件に対し {tot(n16, "index.reorder_pairs")} 組）。'
                      '同じ注文への 2 つ目の更新は、1 つ目のコミットまで行のロックで待たされるので、入れ替わるのは「1 つ目がコミットしてから発行するまで」に 2 つ目がコミットと発行を済ませたときだけである。'
-                     '最終状態の食い違いはさらに少なく、試行によっては 0 だった。少ないから安全とは言えない：エラーが出ないので、照合なしでは 1 件も見つからない')
+                     f'障害なしの N の最終状態の食い違いは、並行度 4・16 の {len(n16) + len(d.rows("n", "", "normal", 4))} 試行の合計で '
+                     f'{tot(n16 + d.rows("n", "", "normal", 4), "final.mismatch")} 注文（Apache Kafka に替えた並行度 16 では '
+                     f'{occ(d.rows("n", "", "normal", 16, broker="kafka"), "final.mismatch")}）。'
+                     '0 件や少ない件数は安全を意味しない：入れ替わりが注文の最後の 2 件に当たれば残り、エラーが出ないので、照合なしでは 1 件も見つからない')
     notes.append('Redpanda のコンテナイメージは、引数なしでは開発用の設定で起動した（write_caching_default＝true、--unsafe-bypass-fsync）。'
                  'ガイドの Part 8 の注記（開発モードは write caching が既定で有効で、fsync も省く）のとおりで、欠落を数える実験では明示して切る必要があった')
     notes.append('ブローカーのトピックの自動作成を切ると、Debezium のハートビート用のトピック（__debezium-heartbeat.<prefix>）が作られず、'
@@ -701,25 +740,37 @@ def sec_notes(d):
     return L
 
 
+def sections(d, runs):
+    out = []
+    for sec in (sec_guide(d), sec_normal(d), sec_variant(d), sec_faults(d), sec_ablation(d), sec_wal(d), sec_kafka(d, runs), sec_notes(d)):
+        out += sec
+    return out
+
+
 def main():
-    d = Data()
+    runs = {1: Data(1), 2: Data(2)}
+    d = runs[2]
     env = {}
     p = os.path.join(RESULTS, 'env.json')
     if os.path.exists(p):
         with open(p, encoding='utf-8') as f:
             env = json.load(f)
     L = ['# 題材 A：基盤をまたぐデータ統合（結果）\n',
-         'このファイルは `cs/a/aggregate.py` が `results/a/*.jsonl` から作る。表の数は結果のファイルから数えたもので、手では書いていない。'
+         'このファイルは `cs/a/aggregate.py` が `results/a/*.jsonl`（2 回目の実行）と `results/a/run1/*.jsonl`（1 回目の実行）から作る。'
+         '表の数は結果のファイルから数えたもので、手では書いていない。'
          '性能の数字は同じ環境の中での相対比較で、ほかの環境には一般化できない。\n',
          '問い：注文の状態の変化を、検索の索引と通知へ、失わず・重複させず・順序を崩さずに届けられるか。'
          '構成は 3 つ：**N**（二重書き込み。受け手は冪等でない）、**B**（アウトボックス＋ポーリング、冪等な受け手）、'
-         '**BE**（アウトボックス＋Debezium の CDC、冪等な受け手、キーは注文 ID）。\n']
-    for sec in (sec_overview(d, env), sec_guide(d), sec_normal(d), sec_variant(d), sec_faults(d), sec_ablation(d),
-                sec_wal(d), sec_kafka(d), sec_notes(d)):
-        L += sec
+         '**BE**（アウトボックス＋Debezium の CDC、冪等な受け手、キーは注文 ID）。\n',
+         tworuns.LEGEND.format(t='a'),
+         'この題材は、並行度 4・16 の実行の件数がすべて並行の競合に頼る。試行は 3〜5 回で、0 件と 1 件以上が 2 回の実行で入れ替わった行がある。'
+         '0 件は「この試行では起きなかった」という意味で読む。\n']
+    L += sec_overview(d, env)
+    L.append('実行の概要（実行の数、版、メモリ）は 2 回目のもの。1 回目も同じ実行 ID の集合で、監査の合格数も同じだった（`results/RERUN.md`）。\n')
+    L += tworuns.merge(sections(runs[1], runs), sections(runs[2], runs), COUNTS, 'topic A')
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
-        f.write('\n'.join(L))
+        f.write('\n'.join(L).rstrip() + '\n')
     return OUT
 
 

@@ -29,7 +29,8 @@
 ## 構成
 
 - `cs/`：実験の仕組み
-- `results/`：結果（件数は必ずここから数える）
+- `results/`：結果（件数は必ずここから数える）。実験は題材ごとに 2 回、最初から流した。`results/<題材>/*.jsonl` が 2 回目、`results/<題材>/run1/*.jsonl` が 1 回目。`results/<題材>/summary.md` は 2 回の値が違った箇所を並べて書き、`results/RERUN.md` は 2 回の比較（決定的な欄の変化、「起きた／起きなかった」が変わったケース、件数と時間の揺れの幅）をまとめる
+- まとめの作り直し（実験は流さない。Docker に触れない）：WSL の中で `bash cs/common/remake_summaries.sh`。検査は `python -m cs.common.check_summaries`
 - `catalog/`：設計レビューの一覧表（xlsx）とその生成・検査のスクリプト
 - `research/`：実験の設計メモ
 

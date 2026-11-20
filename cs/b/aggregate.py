@@ -3,14 +3,19 @@ counted from the result files; nothing is typed by hand. The verdicts of the com
 with the guide are derived from the same numbers."""
 import json
 import os
+import re
 from statistics import median
 
+from ..common import tworuns
 from ..common.record import RESULTS
 from . import agg_sections as A, b3_ddl as B3, b5_rebuild as B5, config as C, schemas as S
 from .agg_sections import med, occ, table
 
 OUT = os.path.join(RESULTS, 'b', 'summary.md')
 NA = '未検証'
+# Columns that hold counts depending on the instant of an operation under load: where the two runs differ, both are written.
+COUNTS = re.compile('失敗した要求|誤った読み取り|：失敗$|エラーの種類|照合：|^[0-6] |ログの先頭のオフセット|ログに残ったイベント|レコード数'
+                    '|古い・無い読み取り|監視の警報|削除の印がログから消えた|二重書き込みで|埋め戻しの[前後]|購読の適用エラー|新だけに入った')
 
 
 def _env():
@@ -75,6 +80,16 @@ def safe(rows, title, claim, fn):
 
 def v3(all_ok, none_ok=False, yes='一致', part='一部だけ再現', no='食い違い'):
     return yes if all_ok else (no if none_ok else part)
+
+
+def refer(rows, claims):
+    """The verdict of a row that only points at earlier rows: taken from those rows, not typed."""
+    vs = [r[2] for r in rows if any(r[1].startswith(c) for c in claims)]
+    if len(vs) != len(claims):
+        return NA
+    if all(v.startswith('一致') for v in vs):
+        return vs[0] if len(set(vs)) == 1 else '一致'
+    return '一部だけ再現（指した行のうち、一致でないもの：' + '、'.join(sorted({v for v in vs if not v.startswith('一致')})) + '）'
 
 
 def comparison(d):
@@ -336,7 +351,8 @@ def comparison(d):
             f'スナップショット＋記録したオフセット（{sp[0]["snapshot_offset"]}）からのログ：無い注文・食い違いの合計 {bad(sp)}（{len(sp)} 試行）。'
             f'位置を記録せず、スナップショット＋ログの末尾から：状態の食い違い {occ(r["final"]["state_mismatch"] for r in sl)} 注文、適用回数の食い違い {occ(r["final"]["count_mismatch"] for r in sl)} 注文')
     safe(rows, T8, '② 足りない分はスナップショット：ログ上の位置と対応しないと、続きを当てられない', snapshot)
-    safe(rows, T8, '③ コンパクションの意味を知る：途中の値は残らない。期限を過ぎると削除の印も消えうる', lambda: ('一致', '上の「コンパクション」と「削除の印」の行のとおり'))
+    safe(rows, T8, '③ コンパクションの意味を知る：途中の値は残らない。期限を過ぎると削除の印も消えうる',
+         lambda: (refer(rows, ['コンパクション：', '最初から読む受け手が']), '上の「コンパクション」と「削除の印」の行のとおり'))
 
     def schema_pre():
         bad = [r for r in d.b2 if r['sequence'] == 'hole' and r['mode'] == 'DEFAULT']
@@ -360,8 +376,11 @@ def comparison(d):
         bad_n = sum(A._reads(r, 'not_found') + A._reads(r, 'regress') for r in n)
         bad_be = sum(A._reads(r, 'not_found') + A._reads(r, 'regress') + A._reads(r, 'error') for r in be)
         ok = bad_n > 0 and bad_be == 0 and all(r['outcome'] == 'switched' and r['final']['new']['state_mismatch'] == 0 for r in be)
-        return v3(ok), (f'一括（同じ場所で作り直す）：読み取りで見つからない {occ(A._reads(r, "not_found") for r in n)}、前より古い版 {occ(A._reads(r, "regress") for r in n)}。'
-                        f'並べて切り替える：{sum(1 for r in be if r["outcome"] == "switched")}/{len(be)} 試行で切り替え、読み取りの異常 {bad_be}、'
+        part = ('一部だけ再現（並べて切り替える側でも、切り替えの途中に読み取りの異常が出た）'
+                if bad_n > 0 and bad_be > 0 and all(r['outcome'] == 'switched' and r['final']['new']['state_mismatch'] == 0 for r in be) else '一部だけ再現')
+        return v3(ok, part=part), (f'一括（同じ場所で作り直す）：読み取りで見つからない {occ(A._reads(r, "not_found") for r in n)}、前より古い版 {occ(A._reads(r, "regress") for r in n)}。'
+                        f'並べて切り替える：{sum(1 for r in be if r["outcome"] == "switched")}/{len(be)} 試行で切り替え、'
+                        f'読み取りで見つからない {occ(A._reads(r, "not_found") for r in be)}、前より古い版 {occ(A._reads(r, "regress") for r in be)}、エラー {occ(A._reads(r, "error") for r in be)}、'
                         f'新のストアの最終状態の食い違い {sum(r["final"]["new"]["state_mismatch"] + r["final"]["new"]["count_mismatch"] + r["final"]["new"]["agg_mismatch"] for r in be)}')
     safe(rows, T9, '並べて切り替えれば、どの段階でも旧のビューに戻せる。一括で切り替えると、問題が出たとき戻れるシステムが無い', swap)
 
@@ -416,7 +435,8 @@ def comparison(d):
             f'削除の印を受け取っても消す処理が無い受け手：削除した {sum(r["deleted"] for r in rs)} 件のうち {sum(r["final"]["nodel"]["deleted_left"] for r in rs)} 件が残った（{len(rs)} 実行）。'
             f'消す処理を持ち、止めなかった受け手：{sum(r["final"]["fast"]["deleted_left"] for r in rs)} 件')
     safe(rows, T11, '受け手ごとに実装が要る：削除イベントを受け取っても、消す処理が無ければ残る', del_impl)
-    safe(rows, T11, '遅れた受け手は見落としうる：削除の印は、既定で 1 日を過ぎると消えうる', lambda: ('一致（保持を縮めた条件で再現）', '上の「削除の印」の行のとおり。1 日そのものは待っていない'))
+    safe(rows, T11, '遅れた受け手は見落としうる：削除の印は、既定で 1 日を過ぎると消えうる',
+         lambda: (refer(rows, ['最初から読む受け手が']), '上の「削除の印」の行のとおり。1 日そのものは待っていない'))
 
     def cdc():
         rs = d.b5of('redpanda', 'cdc_delete')
@@ -438,7 +458,8 @@ def comparison(d):
     T12 = '「PostgreSQL 互換」の幅は製品ごとに違う'
     rows.append([T12, 'Aurora DSQL・Spanner・CockroachDB の既定の分離レベルと使えない機能（公式文書の記述。未検証）', NA, '題材 B では PostgreSQL 18 だけを使った。CockroachDB の分離レベルごとの異常は題材 D の結果を参照。Aurora DSQL と Spanner は動かしていない'])
     safe(rows, '導出データの側は、作り直して入れ替えられる', 'どの段階からも戻れる。「題材 B で、導出ストアの差し替えと、ログからの再構築の一致率を実測する」',
-         lambda: ('一致', '上の「導出ストアは、新旧を並べて作り、照合して切り替える」の 3 行と、B-4・B-5 の表のとおり'))
+         lambda: (refer(rows, ['並べて切り替えれば', '照合する：', '① 保持期間が', '② 足りない分は']),
+                  '上の「導出ストアは、新旧を並べて作り、照合して切り替える」の行と、作り直しの前提 ①・② の行、B-4・B-5 の表のとおり'))
 
     T13 = '記録のシステムの入れ替えは、書籍の手順だけでは足りない'
 
@@ -473,10 +494,20 @@ def comparison(d):
         n, nv = [r for r in d.b6 if r['config'] == 'n'], [r for r in d.b6 if r['config'] == 'n_vbackfill']
         a, b = sum(r['steps']['diff_after_backfill'] for r in n), sum(r['steps']['diff_after_backfill'] for r in nv)
         pn, pv = a / max(1, len(n)), b / max(1, len(nv))
-        verdict = '一致' if a > 0 and b == 0 else ('一部だけ再現（版を比べる埋め戻しで減ったが、0 にはならなかった）' if a > 0 and pv < pn else '食い違い')
-        return verdict, (f'上書きする埋め戻しの後、新が古いまま・無い行 {occ(r["steps"]["diff_after_backfill"] for r in n)}（1 試行あたり {round(pn, 1)}）。'
-                         f'版を比べて古ければ捨てる埋め戻し：{occ(r["steps"]["diff_after_backfill"] for r in nv)}（1 試行あたり {round(pv, 1)}）。'
-                         '上書きによるものと、二重書き込みの更新が「新にまだ行が無い」ために当たらなかったものは、この数では分けられない。「無ければ入れる」は未検証')
+        xn, xv = sorted(r['steps']['diff_after_backfill'] for r in n), sorted(r['steps']['diff_after_backfill'] for r in nv)
+        apart = bool(xn and xv) and xv[-1] < xn[0]
+        if a > 0 and b == 0:
+            verdict = '一致'
+        elif a > 0 and apart:
+            verdict = '一部だけ再現（版を比べる埋め戻しのほうが、どの試行でも少なかったが、0 にはならなかった）'
+        elif a > 0:
+            verdict = '一部だけ再現（埋め戻しの後に古い・無い行が残った。版を比べる埋め戻しでも残り、試行ごとの件数の範囲は重なった。減ったとは言えない）'
+        else:
+            verdict = '食い違い'
+        return verdict, (f'上書きする埋め戻しの後、新が古いまま・無い行 {occ(xn)}（1 試行あたり {round(pn, 1)}、試行ごとの範囲 {xn[0]}〜{xn[-1]}）。'
+                         f'版を比べて古ければ捨てる埋め戻し：{occ(xv)}（1 試行あたり {round(pv, 1)}、試行ごとの範囲 {xv[0]}〜{xv[-1]}）。'
+                         '上書きによるものと、二重書き込みの更新が「新にまだ行が無い」ために当たらなかったものは、この数では分けられない。'
+                         '版を比べても残る理由は調べていない。「無ければ入れる」は未検証')
     safe(rows, T14, '埋め戻しと新しい書き込みが競う：埋め戻しが、新しい値を古い値で上書きする。版を比べ古ければ捨てる（本ガイドの整理）', backfill)
 
     def seq():
@@ -597,7 +628,7 @@ def notes(d):
                  '（この長さでは、Redpanda の既定で印がいつ消えるか・消えないかは分からない）'))
     add(lambda: (f'列の型を変えた後、読み手の要求が {sum(r["read"]["errors"].get("FeatureNotSupported:0A000", 0) for r in d.b3of("ops", "alter_type") + d.b3of("ops", "alter_type_nowrite"))} 件失敗した'
                  f'（SQLSTATE 0A000。{len(d.b3of("ops", "alter_type") + d.b3of("ops", "alter_type_nowrite"))} 実行の合計、読み手は 2 接続）。'
-                 '読み手の接続が持っていたプリペアド文の結果の型が変わったためと見ている（エラーの文言は記録していない。接続を張り直した後は成功した）。'
+                 '原因は調べていない（エラーの文言は記録していない。接続を張り直した後は成功した）。推定：読み手の接続が持っていたプリペアド文の結果の型が変わった。'
                  f'表を書き換えない varchar(20) → text でも、読み取りが {med([r["read"]["max_gap_ms"] for r in d.b3of("ops", "alter_type_nowrite")], 0)} ms 止まった'
                  f'（書き込みは {med([r["write"]["max_gap_ms"] for r in d.b3of("ops", "alter_type_nowrite")], 0)} ms）。この差の原因は調べていない'))
     add(lambda: (f'流れている更新の下では、新旧のストアが 1 つのスナップショットで完全に一致することはほとんど無かった（欠陥の無い切り替えの照合で、一致したスナップショットは '
@@ -605,16 +636,18 @@ def notes(d):
                  '最初に作った照合（1 回でも完全に一致すれば合格）は、欠陥の無い切り替えも止めた（開発中に観測。結果のファイルには入れていない）。'
                  'そこで、2 回のスナップショットの両方で食い違い、かつ新が動いていない注文だけを数える形に変えた'))
     add(lambda: (f'少しずつ切り替える間、読み手が前より古い版を読むことがあった：欠陥なし {occ(A._reads(r, "regress") for r in d.b4of("be", "clean"))}、受け手が 1 回落ちた場合 {occ(A._reads(r, "regress") for r in d.b4of("be", "crash"))}。'
-                 '最終状態は正解と一致していた。新旧の追従の差を、読む先を行き来する読み手が見たものと見ている。読む先を利用者ごとに固定する作りは試していない'))
+                 '0 件の回と 1 件以上の回があり、試行の数（各 5）では頻度は言えない。最終状態は正解と一致していた。原因は調べていない。'
+                 '推定：新旧の追従の差を、読む先を行き来する読み手が見た。読む先を利用者ごとに固定する作りは試していない'))
     add(lambda: (f'版を比べる埋め戻しにしても、二重書き込みの構成では、埋め戻しの後に新が古い・無い行が {occ(r["steps"]["diff_after_backfill"] for r in d.b6 if r["config"] == "n_vbackfill")} 残り、'
                  f'移し切った後の新にも応答済みの書き込みの欠落が {occ(r["final"]["lost_acked_write"] for r in d.b6of("n_vbackfill", "complete"))} あった。'
-                 '推定：埋め戻しが旧から行を読んだ後、新へ入れる前に来た更新は、新にまだ行が無いので当たらず（要求は成功として応答する）、その後に埋め戻しが古い版を入れる。この経路は切り分けていない'))
+                 '原因は調べていない。推定：埋め戻しが旧から行を読んだ後、新へ入れる前に来た更新は、新にまだ行が無いので当たらず（要求は成功として応答する）、その後に埋め戻しが古い版を入れる。この経路は切り分けていない'))
     add(lambda: ('論理レプリケーションの初期コピーは、購読を作った時点（並行稼働の段階）から始まり、埋め戻しの段階に入る前に終わっていた（表の「埋め戻しの時間」は、段階に入ってからの待ちで '
                  f'{med([r["steps"]["backfill_s"] for r in d.b6 if r["config"].startswith("be")], 2)} 秒）。初期コピーそのものの所要時間は測れていない（未検証）'))
     add(lambda: (f'遮断なしの切り替えで、応答済みの書き込みの欠落が出たのは {sum(1 for r in d.b6of("be_nofence", "complete") if r["final"]["lost_acked_write"] + r["final"]["missing"])}/{len(d.b6of("be_nofence", "complete"))} 試行だった。'
-                 f'主キーの重複による挿入の失敗は全試行で出た（{sum(r["write_all"]["errors"].get("UniqueViolation:23505", 0) for r in d.b6of("be_nofence", "complete"))} 件）。0.7 秒のずれと、1 つの行を 1 つの書き手だけが更新する負荷では、欠落は低い頻度でしか起きなかった'))
+                 f'主キーの重複による挿入の失敗は {sum(1 for r in d.b6of("be_nofence", "complete") if r["write_all"]["errors"].get("UniqueViolation:23505", 0))}/{len(d.b6of("be_nofence", "complete"))} 試行で出た'
+                 f'（{sum(r["write_all"]["errors"].get("UniqueViolation:23505", 0) for r in d.b6of("be_nofence", "complete"))} 件）。0.7 秒のずれと、1 つの行を 1 つの書き手だけが更新する負荷での値で、欠落が出るかどうかは試行によった'))
     add(lambda: (f'読みを新へ先に切り替えた段階（書きはまだ旧）で、BE の古い・無い読み取りは {sum(r["read_by_phase"].get("4_read_new", {}).get("wrong", 0) for r in d.b6 if r["config"].startswith("be"))} 件'
-                 f'（{sum(r["read_by_phase"].get("4_read_new", {}).get("ok", 0) for r in d.b6 if r["config"].startswith("be"))} 読み取り）。非同期の複製なので古い読み取りを予想したが、この負荷と 1 台の上の遅れでは観測されなかった。遅れを入れた条件は試していない'))
+                 f'（{sum(r["read_by_phase"].get("4_read_new", {}).get("ok", 0) for r in d.b6 if r["config"].startswith("be"))} 読み取り）。非同期の複製なので古い読み取りは起きうる。この負荷と 1 台の上の遅れでの件数で、遅れを入れた条件は試していない'))
     add(lambda: ('REFRESH MATERIALIZED VIEW CONCURRENTLY は読み取りを止めなかったが、所要時間は通常の REFRESH の約 '
                  f'{round(median([r["refresh_ms"] for r in d.b7 if r.get("case") == "refresh_concurrently"]) / median([r["refresh_ms"] for r in d.b7 if r.get("case") == "refresh"]), 1)} 倍だった'))
     add(lambda: ('削除が届くまでの時間は、同じホストの時計で測った参考値。削除の印を直接流した実行では 100 件を 1 回で流して 1 つのトランザクションで適用し、Debezium の実行では受け手を DELETE の後に起動した。'
@@ -656,15 +689,9 @@ TAIL = """
 """
 
 
-def main():
-    d = A.Data()
-    out = ['# 題材 B：置換と更新の演習（結果）\n',
-           'このファイルは `cs/b/aggregate.py` が `results/b/*.jsonl` から作る。表の数は結果のファイルから数えたもので、手では書いていない。'
-           '性能の数字は同じ環境の中での相対比較で、ほかの環境には一般化できない。\n',
-           '問い：動かしたまま、スキーマを変え、導出ストアを入れ替え、ログから作り直せるか。構成は **N**（素朴な作り）、**B**（共通の基準：互換性検査は製品の既定のまま）、'
-           '**BE**（基準＋題材 B の重点：推移的な検査、expand/contract、新旧を並べて照合してから切り替える、削除の印が消える前に受け手が追いつくことの監視）。\n']
-    out += overview(d)
-    out.append('## ガイドの記述との照合\n')
+def sections(d):
+    """Everything whose numbers come from the result files, rendered from one run."""
+    out = ['## ガイドの記述との照合\n']
     out.append('ガイド `data-intensive-design-guide` の Part 7（deck/p07.js）、Part 12（deck/p12.js）、Part 15（deck/p15.js）の記述と、スライドが「題材 B で実測する」「未確認」「未検証」と書いた点を、'
                '下の結果と比べた。判定は結果のファイルの数から付けた。「一部だけ再現」は、記述のうち再現した点としなかった点が混じることを表し、中身は実測の列に書いた。\n')
     out.append(table(['スライドの題', 'ガイドの記述', '判定', '実測'], comparison(d)))
@@ -675,17 +702,34 @@ def main():
     out.append('## 正常な操作：基準と重点の費用\n')
     out.append('互換性検査や移行の手順のせいで、正規の変更・書き込み・読み取りが止められた、失敗した、遅れた数。\n')
     out.append(table(['見たもの', '実測'], normal_ops(d)))
+    out += notes(d)
+    return out
+
+
+def main():
+    d1, d = A.Data(1), A.Data(2)
+    out = ['# 題材 B：置換と更新の演習（結果）\n',
+           'このファイルは `cs/b/aggregate.py` が `results/b/*.jsonl`（2 回目の実行）と `results/b/run1/*.jsonl`（1 回目の実行）から作る。'
+           '表の数は結果のファイルから数えたもので、手では書いていない。'
+           '性能の数字は同じ環境の中での相対比較で、ほかの環境には一般化できない。\n',
+           '問い：動かしたまま、スキーマを変え、導出ストアを入れ替え、ログから作り直せるか。構成は **N**（素朴な作り）、**B**（共通の基準：互換性検査は製品の既定のまま）、'
+           '**BE**（基準＋題材 B の重点：推移的な検査、expand/contract、新旧を並べて照合してから切り替える、削除の印が消える前に受け手が追いつくことの監視）。\n',
+           tworuns.LEGEND.format(t='b'),
+           'B-1・B-2（スキーマの検査と読み直し）は決定的で、2 回とも同じ結果だった。B-3〜B-7 は、負荷をかけ続けながら操作する実験で、'
+           '件数は操作の瞬間と並行の進み方に頼る。試行は 2〜5 回で、0 件と 1 件以上が 2 回の実行で入れ替わった行がある。\n']
+    out += overview(d)
+    out.append('実行の概要（実行の数、版、メモリ）は 2 回目のもの。1 回目も同じ実行 ID の集合で、監査の合格数も同じだった（`results/RERUN.md`）。\n')
+    out += tworuns.merge(sections(d1), sections(d), COUNTS, 'topic B')
     out.append('## 判定器の監査\n')
     by = {}
     for r in d.audit:
         by.setdefault(r['judge'], []).append(r)
     out.append('誤りを仕込んだデータと、誤りの無いデータを判定器に流し、仕込んだ数だけを数えることを確かめた（`cs/b/audit.py`、結果は audit.jsonl）。\n')
-    out.append(table(['判定器', 'ケースの数', '合格', 'ケース'], [[k, len(v), sum(1 for r in v if r['ok']), '、'.join(r['case'] for r in v)] for k, v in by.items()]))
-    out += notes(d)
+    out.append(table(['判定器', 'ケースの数', '合格', 'ケース'], [[k, len(v), sum(1 for r in v if r['ok']), '、'.join(r['case'] for r in v)] for k, v in sorted(by.items())]))
     out.append(TAIL.strip() + '\n')
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
-        f.write('\n'.join(out))
+        f.write('\n'.join(out).rstrip() + '\n')
 
 
 if __name__ == '__main__':

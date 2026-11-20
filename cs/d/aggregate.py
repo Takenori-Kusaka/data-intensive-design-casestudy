@@ -1,9 +1,11 @@
 """Build results/d/summary.md from the JSONL files. Every number in the tables is
 counted here from the result files; nothing is typed in by hand."""
 import os
+import re
 import statistics
 from collections import defaultdict
 
+from ..common import tworuns
 from ..common.record import RESULTS, read_jsonl
 from . import config as C
 from .d1_hermitage import TEST_IDS, TEST_JA
@@ -33,8 +35,14 @@ HERMITAGE = {
 RO_WRITE_VARIANT = {'PMP': 'PMPW2', 'GS': 'GSW'}
 
 
-def load(name):
-    return read_jsonl(os.path.join(RESULTS, 'd', name + '.jsonl'))
+# Columns whose value is a count that depends on a concurrent race or on the instant of a kill:
+# where the two runs differ, both values are written (see cs/common/tworuns.py).
+COUNTS = re.compile('ロストアップデート|売り越し|失われた応答済み|^試行ごと$|失った試行|起きた試行|違反したエリア|正常な要求の失敗'
+                    '|応答なしで残った行|エラーで終わった要求|在庫が負|引き当て／正しい件数|通った申請|失敗した要求|読めなかった|応答済みに対する割合')
+
+
+def load(name, run=2):
+    return read_jsonl(os.path.join(RESULTS, 'd', *([] if run == 2 else ['run1']), name + '.jsonl'))
 
 
 def med(xs):
@@ -321,6 +329,14 @@ def sec_d4(rows):
         if mode == 'cut':
             head += ['経路を切った後に応答された件数（試行ごと）', '書き込みが止まった試行（5 秒の観測）']
         L.append(table(head, out))
+        if mode == 'kill':
+            hit = [f"{_names(n)}・{sc}：{'、'.join(str(r['lost_acked']) for r in sorted(g[(n, sc)], key=lambda r: r['trial']))}"
+                   for n in ('', 'dic_s1') for sc in ('local', 'remote_write', 'on', 'remote_apply')
+                   if g.get((n, sc)) and _sumk(g[(n, sc)], 'lost_acked') > 0]
+            L.append('synchronous_commit が off 以外の行で、失われた応答済みが 1 件以上あったもの（試行ごとの件数）：'
+                     + ('；'.join(hit) if hit else 'なし') + '。'
+                     'この表の件数は、強制終了の瞬間にスタンバイへ届いていなかった分で、試行によって 0 にも 1 件以上にもなる。'
+                     '同期スタンバイを名指ししていない行の 0 件は「この試行では届いていた」という意味で、失わない設定だという意味ではない。\n')
     L.append(f'実行の数：{len(rows)} 回。「経路を切ってから」の失われた件数は、切った後に応答された件数で決まる（この実験では上限 200 件）。'
              '割合ではなく、設定がその窓の書き込みを守るかどうかを見る数である。\n')
     return '\n'.join(L)
@@ -739,7 +755,12 @@ def sec_guide(d1, d2, d3, d4, d5, d6, d7):
             _sumk(kl['dic_s1'], 'lost_acked') == 0,
             f"負荷をかけたままプライマリを強制終了して昇格（経路は切らない）。非同期（on、名前は空）：応答済み {_sumk(kl[''], 'acked')} 件のうち "
             f"{_sumk(kl[''], 'lost_acked')} 件を失った（試行ごと：{'、'.join(str(r['lost_acked']) for r in sorted(kl[''], key=lambda r: r['trial']))}）。"
-            f"同期（on、名指し）：{_sumk(kl['dic_s1'], 'lost_acked')} 件。経路が切れていた場合は上の行", '未確認だった点の実測')
+            f"同期（on、名指し）：{_sumk(kl['dic_s1'], 'lost_acked')} 件。"
+            + '名前が空のほかの値（手元の同期）：' + '、'.join(
+                f"{sc} {_sumk(rs_, 'lost_acked')} 件（失った試行 {sum(1 for r in rs_ if r['lost_acked'] > 0)}/{len(rs_)}）"
+                for sc in ('local', 'remote_write', 'remote_apply')
+                for rs_ in [[r for r in d4 if r['mode'] == 'kill' and r['synchronous_commit'] == sc and r['synchronous_standby_names'] == '']] if rs_)
+            + '。強制終了の瞬間に届いていなかった分だけを失うので、0 件の試行と 1 件以上の試行がある。経路が切れていた場合は上の行', '未確認だった点の実測')
     else:
         add(T2, '非同期で昇格したとき、失われた応答済みコミットの件数', None, '')
 
@@ -801,10 +822,18 @@ def sec_guide(d1, d2, d3, d4, d5, d6, d7):
     return '\n'.join(L), rows
 
 
+def sections(run):
+    """The sections whose numbers come from the result files, rendered from one run."""
+    d1rows, d2, d3, d4, d5, d6, d7 = (load(n, run) for n in ('d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'))
+    d1 = D1(d1rows)
+    guide_md, _rows = sec_guide(d1, d2, d3, d4, d5, d6, d7)
+    return [guide_md, sec_d1(d1), sec_d2(d2), sec_d3(d3), sec_d4(d4), sec_d5(d5), sec_d6(d6), sec_d7(d7),
+            sec_ablation(d3, d4, d5, d7)]
+
+
 def main():
     d1rows, d2, d3, d4, d5, d6, d7 = (load(n) for n in ('d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'))
     audit = load('audit')
-    d1 = D1(d1rows)
     env = {}
     import json
     envp = os.path.join(RESULTS, 'env.json')
@@ -812,8 +841,10 @@ def main():
         with open(envp, encoding='utf-8') as f:
             env = json.load(f)
     L = ['# 題材 D：整合性の異常の再現（結果）\n']
-    L.append('このファイルは `cs/d/aggregate.py` が `results/d/*.jsonl` から作る。表の数は結果のファイルから数えたもので、手では書いていない。'
+    L.append('このファイルは `cs/d/aggregate.py` が `results/d/*.jsonl`（2 回目の実行）と `results/d/run1/*.jsonl`（1 回目の実行）から作る。'
+             '表の数は結果のファイルから数えたもので、手では書いていない。'
              '性能の数字は同じ環境の中での相対比較で、ほかの環境には一般化できない。\n')
+    L.append(tworuns.LEGEND.format(t='d'))
     L.append('## 実行の概要\n')
     rows = [['D-1 分離レベルごとの異常', 'd1.jsonl', sum(1 for r in d1rows if r['exp'] == 'd1')],
             ['D-2 並行の負荷での発生率', 'd2.jsonl', len(d2)], ['D-3 防ぎ方の費用', 'd3.jsonl', len(d3)],
@@ -822,6 +853,7 @@ def main():
             ['D-7 昇格の手順', 'd7.jsonl', len(d7)],
             ['判定器の監査', 'audit.jsonl', f'{len(audit)}（合格 {sum(1 for a in audit if a["pass"])}）']]
     L.append(table(['実験', '結果のファイル', '実行の数（行）'], rows))
+    L.append('実行の数は 2 回目のもの。1 回目も同じ実行 ID の集合で、監査の合格数も同じだった（`results/RERUN.md`）。\n')
     imgs = env.get('images', {})
     vers = env.get('topic_d_server_versions', {})
     rows = [[img, '、'.join(i.get('repo_digests', [])) if i else '未取得', f'{i.get("size_mb")} MB' if i else '未取得'] for img, i in imgs.items()
@@ -837,16 +869,7 @@ def main():
                  'D-1〜D-3 のコンテナのメモリ（docker stats で見た値）：'
                  + ('、'.join(f'{k} {v}' for k, v in sorted(env.get('topic_d_container_memory_seen', {}).items())) or '未取得')
                  + '。D-4〜D-7（PostgreSQL 2〜3 台と Toxiproxy）のメモリは記録していない。\n')
-    guide_md, guide_rows = sec_guide(d1, d2, d3, d4, d5, d6, d7)
-    L.append(guide_md)
-    L.append(sec_d1(d1))
-    L.append(sec_d2(d2))
-    L.append(sec_d3(d3))
-    L.append(sec_d4(d4))
-    L.append(sec_d5(d5))
-    L.append(sec_d6(d6))
-    L.append(sec_d7(d7))
-    L.append(sec_ablation(d3, d4, d5, d7))
+    L += tworuns.merge(sections(1), sections(2), COUNTS, 'topic D')
     L.append('## 判定器の監査\n')
     g = defaultdict(list)
     for a in audit:
@@ -855,7 +878,7 @@ def main():
     L.append(table(['判定器', 'ケース', '合格'], [[k, len(v), sum(1 for a in v if a['pass'])] for k, v in sorted(g.items())]))
     L.append(NOTES)
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
-        f.write('\n'.join(L))
+        f.write('\n'.join(L).rstrip() + '\n')
     return OUT
 
 

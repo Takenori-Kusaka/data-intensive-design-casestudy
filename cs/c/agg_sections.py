@@ -63,6 +63,21 @@ def one(xs):
     return str(s[0]) if len(s) == 1 else f'{s[0]}〜{s[-1]}'
 
 
+def per_trial(rs, f):
+    """The value of every trial, in the order of the trial number."""
+    return '、'.join(str(f(r)) for r in sorted(rs, key=lambda r: r['trial']))
+
+
+def apart(a, b):
+    """How the trials of b compare with the trials of a: only said when the two ranges do not overlap."""
+    a, b = list(a), list(b)
+    if max(b) < min(a):
+        return '短い（試行の範囲が重ならない）'
+    if min(b) > max(a):
+        return '長い（試行の範囲が重ならない）'
+    return '試行の範囲が重なり、差は言えない'
+
+
 # ====================================================================== C-1
 def c1_section(d):
     out = ['## C-1 行指向・列指向・ファイル（同じデータ、同じ問い合わせ）\n',
@@ -161,6 +176,19 @@ def c1_section(d):
     out.append(table(['規模', '行数', '並べた集計の本数', '検索 p50', '検索 p95', '挿入 p50', '挿入 p95', '検索の回数（6 秒）', '失敗', '終わった集計の回数'], rows))
     out.append('1 つの接続が、主キーの検索と 1 行の挿入を交互に 6 秒続け、その横で「店舗ごとの集計」を 0・1・4 本の接続が繰り返した。'
                'p50・p95 は 1 試行の中の値で、表は 5 試行の中央値と幅。CPU は 8 コア、PostgreSQL の並列ワーカーは既定（1 つの問い合わせに 2 つまで）。\n')
+    parts = []
+    for run, x in sorted(d.both.items()):
+        cells = []
+        for sc in C.SCALES:
+            rs = sel(x.c1, scale=sc, product='pg')
+            if rs:
+                v = [r['mixed']['0']['insert']['p50_ms'] for r in rs]
+                cells.append(f'{sc} は {sum(1 for t in v if t < 2)}/{len(v)} 試行（{fms(min(v))}〜{fms(max(v))}）')
+        parts.append(f'{run} 回目：' + '、'.join(cells))
+    out.append('挿入の時間は、試行（コンテナの作り直し）ごとに 2 つの水準に分かれた。集計を並べない条件で、挿入の p50 が 2 ms 未満だった試行の数と、p50 の範囲：'
+               + '。'.join(parts) + '。速い水準の試行が出た規模は 2 回の実行で同じとは限らず、同じ規模の中でも分かれるので、'
+               'この表の挿入の時間の差を規模の差として読むことはできない。原因は調べていない。'
+               '検索の回数（6 秒）は挿入と交互なので、同じ試行で一緒に変わる。\n')
     return out
 
 
@@ -311,7 +339,8 @@ def c3_section(d):
     for p, o, c in seen:
         rs = sel(d.compress, product=p, order=o, codec=c)
         r0 = rs[0]
-        top = '、'.join(f'{n} {mb(b)}' for n, b, _u in r0['top_columns'][:3]) or '列ごとの内訳なし（行の単位で持つ）'
+        top = ('、'.join(f'{n} {mb(b)}' for n, b, _u in sorted(r0['top_columns'], key=lambda t: (-t[1], t[0]))[:3])
+               or '列ごとの内訳なし（行の単位で持つ）')
         codec = {'none': '設定なし（ヒープ）', 'lz4': 'LZ4（既定）', 'zstd': 'ZSTD(3)' if p == 'ch' else 'ZSTD（水準は DuckDB の既定）',
                  'snappy': 'Snappy（既定）', 'uncompressed': '圧縮なし'}.get(c, c)
         rows.append([PROD_S[p] + ('＋Parquet' if p == 'duck' else ''), C3.ORDER_JA[o], codec,
@@ -550,6 +579,10 @@ def comparison(d):
         + f'。最大の規模でも表は {mb(sel(d.c1, scale=big, product="pg")[0]["size"]["data_bytes"])} で、コンテナのメモリ（{C.PG_MEMORY}）に収まる。メモリに収まらない規模は未検証')
 
     s = '索引は、読み取りを買い、書き込みと領域で払う導出データ'
+
+    def idx_pair(a, b, q):
+        xa, xb = [qmed(r, q, 'reads') for r in a], [qmed(r, q, 'reads') for r in b]
+        return f'{rng(xa)} → {rng(xb)}（{apart(xa, xb)}）'
     i0, i1, i3, ic = (sel(d.c5, product='pg', variant=v) for v in ('idx0', 'idx1', 'idx3', 'idx_cover'))
     if i0 and i1 and i3 and ic:
         m = lambda rs, k: median(r[k] for r in rs)  # noqa: E731
@@ -557,34 +590,39 @@ def comparison(d):
         load1, load3 = m(i1, 'load_ms') / m(i0, 'load_ms'), m(i3, 'load_ms') / m(i0, 'load_ms')
         ins1, ins3 = m(i1, 'insert_ms') / m(i0, 'insert_ms'), m(i3, 'insert_ms') / m(i0, 'insert_ms')
         buys = rd(i1, 'filter_sum') < rd(i0, 'filter_sum') / 2
-        pays = load1 > 1.1 and i1[0]['index_bytes'] > i0[0]['index_bytes']
+        pays = min(r['load_ms'] for r in i1) > max(r['load_ms'] for r in i0) and i1[0]['index_bytes'] > i0[0]['index_bytes']
+        ins_cmp = apart((r['insert_ms'] for r in i0), (r['insert_ms'] for r in i1))
         v = '一致' if buys and pays else '一部だけ再現'
-        if buys and pays and ins1 < 1.1:
-            v = f'一致（一括の取り込みと領域で。{C5.INSERT_BATCH} 行ずつの挿入では、索引 1 本の差は 1 割未満だった）'
+        if buys and pays and not ins_cmp.startswith('長い'):
+            v = f'一致（一括の取り込みと領域で。{C5.INSERT_BATCH} 行ずつの挿入の時間は、索引なしと 1 本とで試行の範囲が重なり、差は言えない）'
         add(s, '索引を足すと問い合わせは速くなり、書き込みは遅くなり、ディスクの領域も使う', v,
             f'PostgreSQL、{i0[0]["n_rows"]:,} 行。顧客 1 人の絞り込み：索引なし {fms(rd(i0, "filter_sum"))} → 1 本 {fms(rd(i1, "filter_sum"))}。'
             f'取り込み：{fms(m(i0, "load_ms"))} → 1 本 {fms(m(i1, "load_ms"))}（{load1:.2f} 倍）→ 3 本 {fms(m(i3, "load_ms"))}（{load3:.2f} 倍）。'
-            f'{C5.INSERT_ROWS:,} 行の挿入：{fms(m(i0, "insert_ms"))} → {fms(m(i1, "insert_ms"))}（{ins1:.2f} 倍）→ {fms(m(i3, "insert_ms"))}（{ins3:.2f} 倍）。'
+            f'{C5.INSERT_ROWS:,} 行の挿入：{rng(r["insert_ms"] for r in i0)} → 1 本 {rng(r["insert_ms"] for r in i1)}（中央値で {ins1:.2f} 倍。{ins_cmp}）'
+            f'→ 3 本 {rng(r["insert_ms"] for r in i3)}（{ins3:.2f} 倍。{apart((r["insert_ms"] for r in i0), (r["insert_ms"] for r in i3))}）。'
             f'索引の容量（主キーを含む）：{mb(i0[0]["index_bytes"])} → {mb(i1[0]["index_bytes"])} → {mb(i3[0]["index_bytes"])}（表は {mb(i0[0]["data_bytes"])}）')
         only = any('Index Only Scan' in x for x in ic[0]['plans']['filter_sum'])
         bigger = ic[0]['index_bytes'] > i1[0]['index_bytes'] and m(ic, 'load_ms') > m(i1, 'load_ms')
-        faster = rd(ic, 'filter_sum') < 0.9 * rd(i1, 'filter_sum')
-        v = '一致' if only and bigger and faster else ('一部だけ再現（索引だけで答える計画になり、領域と取り込み時間は増えた。読み取りの時間の差は 1 割未満で、この大きさでは見えなかった）'
+        rd_cmp = apart((qmed(r, 'filter_sum', 'reads') for r in i1), (qmed(r, 'filter_sum', 'reads') for r in ic))
+        faster = rd_cmp.startswith('短い')
+        v = '一致' if only and bigger and faster else ('一部だけ再現（索引だけで答える計画になり、領域と取り込み時間は増えた。読み取りの時間は、列を持たない索引と試行の範囲が重なり、この大きさでは差は言えない）'
                                                    if only and bigger else '食い違い')
         add(s, '一部の列を中に持つ索引は、一部の問い合わせに索引だけで答える。さらに領域を使い、書き込みも遅くなる', v,
             f'customer_id INCLUDE (amount, ts)：実行計画は {" → ".join(ic[0]["plans"]["filter_sum"])}。索引の容量 {mb(ic[0]["per_index_bytes"]["ix_customer_cover"])}'
             f'（列を持たない索引は {mb(i1[0]["per_index_bytes"]["ix_customer"])}）。取り込み {fms(m(ic, "load_ms"))}（同 {fms(m(i1, "load_ms"))}）。'
-            f'件数と金額の読み取り {fms(rd(ic, "filter_sum"))}（同 {fms(rd(i1, "filter_sum"))}）')
+            f'件数と金額の読み取り {rng(qmed(r, "filter_sum", "reads") for r in ic)}（同 {rng(qmed(r, "filter_sum", "reads") for r in i1)}。{rd_cmp}）')
         add(s, '索引を足しても消しても、DB の内容は変わらない', '一致' if sum(r['mismatch_total'] for r in d.c5) == 0 else '食い違い',
             f'C-5 の {len(d.c5)} 実行で、索引の有無にかかわらず、読み取りの結果は生成器の正解と一致（不一致 {sum(r["mismatch_total"] for r in d.c5)} 件）')
         dk0, dk1 = sel(d.c5, product='duck', variant='tbl0'), sel(d.c5, product='duck', variant='tbl_art')
         c0, c1 = sel(d.c5, product='ch', variant='skip0'), sel(d.c5, product='ch', variant='skip_bloom')
         if dk0 and dk1 and c0 and c1:
             add(s, '索引は全部には張らない。問い合わせの形を知っている人が、効くものを選ぶ', '実測',
-                f'DuckDB の表に customer_id の索引を張っても、実行計画は {" → ".join(dk1[0]["plans"]["filter_sum"]) or "記録なし"} のままで、'
-                f'ファイルは {mb(dk0[0]["data_bytes"])} → {mb(dk1[0]["data_bytes"])} に増えた（件数と金額 {fms(rd(dk0, "filter_sum"))} → {fms(rd(dk1, "filter_sum"))}、行の取得 {fms(rd(dk0, "filter_rows"))} → {fms(rd(dk1, "filter_rows"))}）。'
-                f'ClickHouse の bloom_filter のスキップ索引は、読む行を {one(r["read_rows"] for r in c0)} → {one(r["read_rows"] for r in c1)} に減らし、'
-                f'件数と金額は {fms(rd(c0, "filter_sum"))} → {fms(rd(c1, "filter_sum"))}、行の取得は {fms(rd(c0, "filter_rows"))} → {fms(rd(c1, "filter_rows"))}')
+                f'DuckDB の表に customer_id の索引を張った：件数と金額の実行計画は {" → ".join(dk1[0]["plans"]["filter_sum"]) or "記録なし"} のままで、'
+                f'ファイルは {mb(dk0[0]["data_bytes"])} → {mb(dk1[0]["data_bytes"])} に増えた。時間（索引なし → あり。中央値と試行の幅）は、'
+                f'件数と金額 {idx_pair(dk0, dk1, "filter_sum")}、行の取得 {idx_pair(dk0, dk1, "filter_rows")}。'
+                f'ClickHouse の bloom_filter のスキップ索引は、読む行を {one(r["read_rows"] for r in c0)} → {one(r["read_rows"] for r in c1)} に減らした。時間は、'
+                f'件数と金額 {idx_pair(c0, c1, "filter_sum")}、行の取得 {idx_pair(c0, c1, "filter_rows")}。'
+                '索引で時間が短くなるか長くなるかは、問い合わせの形で違い、試行の範囲が重なるものは向きを言えない')
     pgb = sel(d.c1, scale=big, product='pg')
     add(s, '「索引を作り直す時間と、その間の問い合わせの遅さを、障害対応と移行の計画に入れておく」', '一部だけ実測（作る時間だけ。その間の問い合わせの遅さは未検証）',
         f'{nbig:,} 行の表で、主キーの作成 {rng(r["ingest"]["pk_ms"] for r in pgb)}、ts の索引の作成 {rng(r["ingest"]["index_ts_ms"] for r in pgb)}（取り込みの直後、ほかの負荷なし）')
@@ -719,10 +757,15 @@ def comparison(d):
             f'下流の停止中に、読む側の Collector を強制終了：既定のまま {cj("kafka", "crash", "lost_acked")}、処理の後で印を付ける設定 {cj("kafka_after", "crash", "lost_acked")}。'
             f'短い停止はどちらも {cj("kafka", "outage", "lost_acked")}・{cj("kafka_after", "outage", "lost_acked")}')
         add(s, 'Kafka を間に置いても、まだ失う場面は、Kafka の障害、保持期限の超過',
-            '一致' if lost('kafka_after', 'retention') and lost('kafka', 'broker_down_crash') else '一部だけ再現',
+            ('一致（保持の超過と、ブローカーの停止中の強制終了で失った。'
+             + ('ブローカーを戻しただけの場面でも、失った試行があった）' if lost('kafka', 'broker_down') else 'ブローカーを戻しただけの場面では、この回は失わなかった）'))
+            if lost('kafka_after', 'retention') and lost('kafka', 'broker_down_crash') else '一部だけ再現',
             f'保持（2 秒）より長い停止：処理の後で印を付ける設定で {cj("kafka_after", "retention", "lost_acked")} 件、既定のままでは {cj("kafka", "retention", "lost_acked")} 件（先に読み出していたため）。'
-            f'ブローカーの一時停止：戻せば {cj("kafka", "broker_down", "lost_acked")} 件（重複 {cj("kafka", "broker_down", "duplicates")} 件）、'
-            f'停止中に送り側の Collector を強制終了すると {cj("kafka", "broker_down_crash", "lost_acked")} 件')
+            f'ブローカーの一時停止（Collector は落とさず、ブローカーを戻す）：受け付けたのに届かなかったログは試行ごとに '
+            f'{per_trial(sel(d.c6, design="kafka", scenario="broker_down"), lambda r: r["judge"]["lost_acked"])} 件、'
+            f'重複して届いたログは {per_trial(sel(d.c6, design="kafka", scenario="broker_down"), lambda r: r["judge"]["duplicates"])} 件'
+            + ('（戻しただけで失った試行がある。原因は特定していない）' if lost('kafka', 'broker_down') else '（この回の試行では失わなかった）')
+            + f'。停止中に送り側の Collector を強制終了すると {cj("kafka", "broker_down_crash", "lost_acked")} 件')
         add(s, '既定のキューは多くの場合 1000 バッチ。再試行は既定で 5 分まで', NA,
             'キューの大きさは既定のまま使ったが、あふれさせた場面は 10 要求に縮めた。再試行の上限は 120 秒と 3 秒に縮めて測り、既定の 5 分は待っていない'
             '（Collector 0.165.0 の文書の既定値は queue_size 1000、max_elapsed_time 300s）')
@@ -842,8 +885,10 @@ def findings(d):
     if scales:
         big = scales[-1]
         m = lambda p, q: median(qmed(r, q) for r in sel(d.c1, scale=big, product=p))  # noqa: E731
-        b.append(f'**キーでない列の絞り込み（顧客 1 人、全列）は、列指向でも行指向の全走査と同じ桁だった**：{big} で PostgreSQL {fms(m("pg", "filter_nokey"))}、'
-                 f'ClickHouse {fms(m("ch", "filter_nokey"))}、DuckDB＋Parquet {fms(m("duck", "filter_nokey"))}。集計ほどの差は出ていない。'
+        b.append(f'**キーでない列の絞り込み（顧客 1 人、全列）は、店舗ごとの集計より、行指向と列指向の差が小さかった**：{big} で PostgreSQL {fms(m("pg", "filter_nokey"))}、'
+                 f'ClickHouse {fms(m("ch", "filter_nokey"))}、DuckDB＋Parquet {fms(m("duck", "filter_nokey"))}'
+                 f'（PostgreSQL は ClickHouse の {m("pg", "filter_nokey") / m("ch", "filter_nokey"):.1f} 倍、DuckDB＋Parquet の {m("pg", "filter_nokey") / m("duck", "filter_nokey"):.1f} 倍。'
+                 f'店舗ごとの集計では {m("pg", "agg_store") / m("ch", "agg_store"):.1f} 倍と {m("pg", "agg_store") / m("duck", "agg_store"):.1f} 倍）。'
                  f'キーで 1 行の検索は、索引のある PostgreSQL が {fms(m("pg", "point_pk"))}、ClickHouse は {fms(m("ch", "point_pk"))}（event_id は並び順の 2 番目で、索引として効かない）')
     cj = sel(d.perf, variant='ch_json')
     if cj:
@@ -910,7 +955,11 @@ def findings(d):
     ar = sel(d.c5, product='duck', variant='tbl_art')
     a0 = sel(d.c5, product='duck', variant='tbl0')
     if ar and a0:
-        b.append(f'**DuckDB の索引は、この絞り込みでは使われなかった**：実行計画は索引なしと同じ {" → ".join(ar[0]["plans"]["filter_sum"])} で、ファイルだけが {mb(a0[0]["data_bytes"])} → {mb(ar[0]["data_bytes"])} に増えた')
+        fs = apart((qmed(r, 'filter_sum', 'reads') for r in a0), (qmed(r, 'filter_sum', 'reads') for r in ar))
+        fr = apart((qmed(r, 'filter_rows', 'reads') for r in a0), (qmed(r, 'filter_rows', 'reads') for r in ar))
+        b.append(f'**DuckDB の索引は、件数と金額の絞り込みの実行計画には現れなかった**：実行計画は索引なしと同じ {" → ".join(ar[0]["plans"]["filter_sum"])} で、'
+                 f'ファイルは {mb(a0[0]["data_bytes"])} → {mb(ar[0]["data_bytes"])} に増えた。時間は、索引ありのほうが、件数と金額で「{fs}」、'
+                 f'行の取得（全列）で「{fr}」。行の取得の実行計画は記録していないので、索引が使われたかどうかは分からない（調べていない）')
     kd, ka = sel(d.c6, design='kafka', scenario='crash'), sel(d.c6, design='kafka', scenario='retention')
     kr = sel(d.c6, design='kafka_after', scenario='retention')
     if kd and ka:
@@ -932,11 +981,15 @@ def findings(d):
                  'ディスクのキューは fsync を指定している。'
                  '差の内訳は分けて測っていない。受け口は同じ機械の上の実験用の HTTP サーバーで、ネットワークの遅れは無い')
     bd = sel(d.c6, design='kafka', scenario='broker_down')
-    if bd and any(r['judge']['duplicates'] for r in bd):
-        b.append(f'**ブローカーの一時停止の後、同じログが 2 回届いた**（{one(r["judge"]["duplicates"] for r in bd)} 件）。失ってはいないが、受け手に重複を捨てる仕組みが要る')
+    if bd:
+        n_lost, n_dup = sum(1 for r in bd if r['judge']['lost_acked']), sum(1 for r in bd if r['judge']['duplicates'])
+        b.append(f'**ブローカーの一時停止の後（Collector は落とさず、ブローカーを戻しただけの場面）の、重複と欠落**：'
+                 f'重複して届いたログは試行ごとに {per_trial(bd, lambda r: r["judge"]["duplicates"])} 件（{n_dup}/{len(bd)} 試行）、'
+                 f'受け付けたのに届かなかったログは {per_trial(bd, lambda r: r["judge"]["lost_acked"])} 件（{n_lost}/{len(bd)} 試行）。'
+                 + ('ブローカーを戻しただけでも失った試行がある。原因は特定していない（調べていない）。' if n_lost else 'この回の試行では失わなかった。')
+                 + ('重複があるので、受け手に重複を捨てる仕組みが要る' if n_dup else 'この回の試行では重複も無かった'))
     for x in b:
-        out.append(f'- {x}')
-    out.append('')
+        out.append(f'- {x}\n')
     return out
 
 
@@ -967,8 +1020,12 @@ def closing(d):
         'C-6 の時間は縮めた（再試行の上限 120 秒と 3 秒、保持 2 秒）。下流の「停止」は 503 の応答で、接続の拒否や無応答ではない。送り手は再送しない。Kafka の役は Redpanda の 1 ノードで、Apache Kafka では流していない',
         '「0 件」「失わなかった」は、この手順と試行回数で起きなかったという意味で、起きないことの証明ではない',
     ]
-    out += [f'- {x}' for x in lim]
-    out += ['', '## 未検証\n']
+    fr5 = {run: [r['windows_free_gb_before'] for r in x.c5 if r.get('windows_free_gb_before') is not None] for run, x in sorted(d.both.items())}
+    lim.append('実行の直前の Windows の空きメモリは、2 回の実行で違った。C-5 では '
+               + '、'.join(f'{run} 回目 {min(v)}〜{max(v)} GB（最初 {v[0]} GB、最後 {v[-1]} GB）' for run, v in fr5.items() if v)
+               + '。空きが下がっていく間に流れた回の時間は、もう片方の回と同じ条件とは言えない。時間の 2 回の比は `results/RERUN.md`')
+    out += [f'- {x}\n' for x in lim]
+    out += ['## 未検証\n']
     un = [
         '公開のデータセット：DESIGN.md は公開の小さなデータセットも使うとしていたが、使っていない（正解を生成器から作れないため。生成器のログだけで測った）',
         'B ツリーと LSM ツリーの直接の比較（設計のとおり、対象外）',
@@ -982,6 +1039,5 @@ def closing(d):
         'ClickHouse の Nullable な列での型つきの取り込み、PostgreSQL と ClickHouse の外部の取り込みの道具（Kafka エンジン、COPY 以外のローダー）',
         '保持の TTL を now() で表した場合の動き（壁時計に頼らないよう、固定の境目の式で測った）',
     ]
-    out += [f'- {x}' for x in un]
-    out.append('')
+    out += [f'- {x}\n' for x in un]
     return out
