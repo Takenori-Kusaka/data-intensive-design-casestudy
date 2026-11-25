@@ -32,7 +32,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 2,
@@ -67,7 +70,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 3,
@@ -102,7 +108,35 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "分析基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "取り込んだ表は通常は導出、新しい事実は正になりうる、と書く"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "学習済みモデルは導出、と書く"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "監査の記録は、ほかに元が無ければ正、と書く"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "利用者の資格情報は、ほかに元が無ければ正、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 4,
@@ -113,7 +147,7 @@
   "target": "サービス全般",
   "question": "更新の途中、新旧の版が混在する間に何が起きるか",
   "why": "規格の特性の名前に無く、抜けやすい",
-  "good": "逐次更新の間、新旧のコードが新旧のデータを読む組み合わせを書き出し、両方向の互換を保つ変更だけを 1 回で出す。互換でない変更は expand/contract の 3 段階に分ける",
+  "good": "逐次更新の間、新旧のコードが新旧のデータを読む組み合わせを書き出し、両方向の互換を保つ変更だけを 1 回で出す。互換でない変更は expand/contract の 3 段階に分ける（詳しくは Part 7）",
   "sign": "全体の一斉更新が前提になっている",
   "when": "変更の前",
   "first_question": "",
@@ -137,7 +171,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 5,
@@ -172,7 +209,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 6,
@@ -207,7 +247,17 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "セキュリティ基盤": [
+    [
+     "分類は所有者が決め、製品の更新は段階的に配る",
+     "検出の内容・方針・設定は「データ」として配られる、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 7,
@@ -242,7 +292,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 8,
@@ -291,7 +344,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 9,
@@ -326,7 +382,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 10,
@@ -361,7 +420,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 11,
@@ -396,7 +458,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 12,
@@ -411,7 +476,7 @@
   "sign": "可用性の % と混同。復旧の演習の記録が無い",
   "when": "作る前・定期",
   "first_question": "ステップ 1〜3：数字と正と問い合わせを先に問う",
-  "properties": "拡張性・置換性：失ってよい量と待てる時間が決まると、複製と復元の設計を比べられる",
+  "properties": "該当なし（失ってよい量と待てる時間の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Dean・Barroso「The Tail at Scale」2013／指針・報告：Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01／書籍：DDIA 2e 2 章 p.39〜50",
   "book": "DDIA 2e 2 章 p.39〜50",
@@ -437,7 +502,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 13,
@@ -452,7 +520,7 @@
   "sign": "「障害に強い」とだけ書いてある",
   "when": "作る前",
   "first_question": "",
-  "properties": "拡張性：耐える範囲を決めると、複製の台数と配置を決められる",
+  "properties": "該当なし（耐える障害の範囲の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Dean・Barroso「The Tail at Scale」2013／指針・報告：Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01／書籍：DDIA 2e 2 章 p.39〜50",
   "book": "DDIA 2e 2 章 p.39〜50",
@@ -472,7 +540,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 14,
@@ -507,7 +578,12 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "スケールの方向は 3 つ。分散は必要になってから"
+  ]
  },
  {
   "no": 15,
@@ -545,7 +621,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 16,
@@ -583,7 +662,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 17,
@@ -621,7 +703,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 18,
@@ -636,7 +721,7 @@
   "sign": "「マイクロサービスだから分ける」とだけ答え、DB が止まったときに止まるサービスを挙げられない",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "柔軟性：停止の影響が及ぶ範囲を小さくできるかを確かめる",
+  "properties": "該当なし（停止の影響が及ぶ範囲の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "書籍／本ガイドの考え",
   "basis": "書籍：『ハードパーツ』6.1.1 節 p.131〜132・6.1.2 節 p.144〜146・6.2 節 p.149〜150・6.2.4〜6.2.5 節 p.157〜159",
   "book": "『ハードパーツ』6.1.1 節 p.131〜132・6.1.2 節 p.144〜146・6.2 節 p.149〜150・6.2.4〜6.2.5 節 p.157〜159",
@@ -659,7 +744,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 19,
@@ -697,7 +785,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 20,
@@ -735,7 +826,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 21,
@@ -773,7 +867,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 22,
@@ -811,7 +908,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 23,
@@ -852,7 +952,37 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "分析基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "「この基盤にしかない事実はあるか」を、この基盤の例で問う"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "同じスライドの表が、この基盤のデータを例に挙げる"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "同じスライドの表が、この基盤のデータを例に挙げる"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "同じスライドの表が、この基盤のデータを例に挙げる"
+    ]
+   ]
+  },
+  "related": [
+   "共通基盤が持つデータも、正か導出かを先に決める"
+  ]
  },
  {
   "no": 24,
@@ -887,7 +1017,37 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "分析基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "「消したら、どこから作り直すか」を、この基盤の例で問う"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "同じスライドの表が、この基盤のデータを例に挙げる"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "同じスライドの表が、この基盤のデータを例に挙げる"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "共通基盤が持つデータも、正か導出かを先に決める",
+     "同じスライドの表が、この基盤のデータを例に挙げる"
+    ]
+   ]
+  },
+  "related": [
+   "共通基盤が持つデータも、正か導出かを先に決める"
+  ]
  },
  {
   "no": 25,
@@ -928,7 +1088,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 26,
@@ -971,7 +1134,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 27,
@@ -1006,7 +1172,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 28,
@@ -1041,7 +1210,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 29,
@@ -1082,7 +1254,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 30,
@@ -1117,7 +1292,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 31,
@@ -1152,7 +1330,12 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "非正規化したデータは、導出データとして扱う"
+  ]
  },
  {
   "no": 32,
@@ -1187,7 +1370,12 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "リレーショナルとドキュメントは、得失が逆になる"
+  ]
  },
  {
   "no": 33,
@@ -1222,7 +1410,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 34,
@@ -1263,7 +1454,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 35,
@@ -1298,7 +1492,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 36,
@@ -1333,7 +1530,12 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "ほぼ同じ問いが Part 12 にある（RQ-P12-05）。文言が違うので別の行にした",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "導出データの価値は、入力から作り直せること"
+  ]
  },
  {
   "no": 37,
@@ -1386,7 +1588,19 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "分析基盤": [
+    [
+     "ストアを足す前に、既存の DB の拡張で足りるかを問う",
+     "集計・分析を専用のストアに切り替える合図を書く"
+    ]
+   ]
+  },
+  "related": [
+   "ストアを足す前に、既存の DB の拡張で足りるかを問う"
+  ]
  },
  {
   "no": 38,
@@ -1401,7 +1615,7 @@
   "sign": "XID の年齢を見ていない。autovacuum を止めた表がある",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "拡張性：周回の保護による書き込みの停止を、監視で先に見つける",
+  "properties": "該当なし（運用の監視の問い。書き込みが止まる事態を先に見つけるためで、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 24.1.5／pgvector README v0.8.7／Iceberg Table Spec（2026-11 確認）／指針・報告：ClickBench README（ClickHouse のチームが運営）／Azure「Materialized View pattern」／書籍：DDIA 2e 4.1 p.113〜114、1.1.3 p.11",
   "book": "DDIA 2e 4.1 p.113〜114、1.1.3 p.11",
@@ -1421,7 +1635,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 39,
@@ -1468,7 +1685,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 40,
@@ -1476,7 +1696,7 @@
   "key": "P05-05",
   "part": 5,
   "step": "基礎",
-  "target": "AI 基盤",
+  "target": "サービス全般",
   "question": "ベクトル検索の再現率を測ったか。絞り込みと併用して件数は足りるか",
   "why": "近似の索引は、絞り込みを後で適用する",
   "good": "厳密な検索と比べた再現率を測り、絞り込みと併用したときに件数が足りることを確かめている",
@@ -1503,7 +1723,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 41,
@@ -1511,7 +1734,7 @@
   "key": "P05-06",
   "part": 5,
   "step": "基礎",
-  "target": "データ基盤",
+  "target": "サービス全般",
   "question": "表形式の版と機能に、読む全エンジンが対応しているか",
   "why": "新しい版の機能は、古い読み手が正しく読めない",
   "good": "読む全エンジンが、使う表形式の版と機能に対応していることを確かめてから、書き手を新しい版にしている",
@@ -1538,7 +1761,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 42,
@@ -1573,7 +1799,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 43,
@@ -1637,7 +1866,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 44,
@@ -1672,7 +1904,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 45,
@@ -1707,7 +1942,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 46,
@@ -1771,7 +2009,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 47,
@@ -1814,7 +2055,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 48,
@@ -1829,7 +2073,7 @@
   "sign": "上限の設定が既定のまま。使っていないスロットがある",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "更新性：導出側の停止が正の DB に跳ね返らないようにする",
+  "properties": "更新性：受け手を止めて直す・入れ替える間も、正の DB を止めずに済む",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）／指針・報告：AWS 規範ガイダンス Transactional outbox／.NET Microservices／書籍：DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199",
   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199",
@@ -1872,7 +2116,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 49,
@@ -1887,7 +2134,7 @@
   "sign": "呼び先が落ちると自分も落ちる",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "拡張性・柔軟性：連鎖が短いほど、応答時間と可用性の掛け算が小さい",
+  "properties": "拡張性：連鎖が長いほど、負荷が増えたときに遅い呼び出しが重なる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）／指針・報告：AWS 規範ガイダンス Transactional outbox／.NET Microservices／書籍：DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199",
   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199",
@@ -1907,7 +2154,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 50,
@@ -1956,7 +2206,12 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "データの流れは 3 つの形に分けて考える"
+  ]
  },
  {
   "no": 51,
@@ -2014,7 +2269,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 52,
@@ -2055,7 +2313,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 53,
@@ -2090,7 +2351,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 54,
@@ -2148,7 +2412,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 55,
@@ -2183,7 +2450,19 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "セキュリティ基盤": [
+    [
+     "分類は所有者が決め、製品の更新は段階的に配る",
+     "互換性の検査と段階配布の両方を持つかを問う、と書く"
+    ]
+   ]
+  },
+  "related": [
+   "分類は所有者が決め、製品の更新は段階的に配る"
+  ]
  },
  {
   "no": 56,
@@ -2198,7 +2477,7 @@
   "sign": "「synchronous_commit は on です」だけ",
   "when": "作る前・動かす前",
   "first_question": "ステップ 4〜6：書く箇所、互換の向き、置く台数を問う",
-  "properties": "拡張性：失ってよい量を先に決めると、複製の構成を選べる",
+  "properties": "該当なし（失ってよい量の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）／指針・報告：GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）／書籍：DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
@@ -2247,7 +2526,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 57,
@@ -2262,7 +2544,7 @@
   "sign": "同期スタンバイを 1 台だけ名指ししている",
   "when": "作る前・動かす前",
   "first_question": "",
-  "properties": "拡張性：損失ゼロの設定が持ち込む止まり方を、先に設計に入れる",
+  "properties": "該当なし（損失ゼロの設定が持ち込む止まり方の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）／指針・報告：GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）／書籍：DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
@@ -2294,7 +2576,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 58,
@@ -2309,7 +2594,7 @@
   "sign": "障害とみなす条件としきい値を、誰も言えない",
   "when": "作る前・動かす前",
   "first_question": "ステップ 4〜6：書く箇所、互換の向き、置く台数を問う",
-  "properties": "更新性：取り決めがあれば、昇格しても 2 つのリーダーが並ばない",
+  "properties": "該当なし（フェイルオーバーの取り決めの問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）／指針・報告：GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）／書籍：DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
@@ -2347,7 +2632,12 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "フェイルオーバーの事故は、取り決めの欠陥で起きた"
+  ]
  },
  {
   "no": 59,
@@ -2362,7 +2652,7 @@
   "sign": "昇格してよい範囲に制限が無い",
   "when": "作る前・動かす前",
   "first_question": "",
-  "properties": "拡張性・更新性：昇格の範囲を決めると、両側に相手に無い書き込みが残る事態を避けられる",
+  "properties": "該当なし（昇格の範囲の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）／指針・報告：GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）／書籍：DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
@@ -2382,7 +2672,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 60,
@@ -2397,7 +2690,7 @@
   "sign": "遅れを測っていない。しきい値と警報が無い",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "拡張性：読み取りを複製へ広げるときの異常を、保証ごとに防ぐ",
+  "properties": "拡張性：読み取りの負荷を複製へ広げるときに出る異常を、保証ごとに防ぐ",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）／指針・報告：GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）／書籍：DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
@@ -2417,7 +2710,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 61,
@@ -2432,7 +2728,7 @@
   "sign": "「レプリカがあるので不要」。復元の所要時間を知らない",
   "when": "動かす前・定期",
   "first_question": "ステップ 4〜6：書く箇所、互換の向き、置く台数を問う",
-  "properties": "置換性：復元できると確かめたバックアップが、戻す手段になる",
+  "properties": "該当なし（復元の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）／指針・報告：GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）／書籍：DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258",
@@ -2458,7 +2754,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 62,
@@ -2501,7 +2800,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 63,
@@ -2535,8 +2837,11 @@
   "p17_moment": "",
   "casestudy": [],
   "origin": "ガイドの問い",
-  "note": "",
-  "checked_on": "2026-11-25"
+  "note": "ケーススタディの持ち帰る問い「読んで書き戻す処理は無いか。その製品の既定の水準は何か」の後半は、この行の問い（前半は RQ-P09-04 にまとめた）",
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 64,
@@ -2551,7 +2856,7 @@
   "sign": "不変条件がコードの if 文にしか無い",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "柔軟性：不変条件が書いてあれば、守る手段を後から替えられる",
+  "properties": "該当なし（正しさの問い。不変条件を書くことは、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）／指針・報告：Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）／書籍：DDIA 2e 8.2 節 p.283、8.3 節 p.302–303",
   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303",
@@ -2571,7 +2876,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 65,
@@ -2586,7 +2894,7 @@
   "sign": "1 回の API 呼び出しに自動コミットの文が複数ある",
   "when": "作る前・変更の前",
   "first_question": "ステップ 7〜9：範囲、作り直し、止まり方を問う",
-  "properties": "柔軟性：範囲が正しければ、分離レベルや守る手段を後から選べる",
+  "properties": "該当なし（正しさの問い。トランザクションの範囲は、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）／指針・報告：Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）／書籍：DDIA 2e 8.2 節 p.283、8.3 節 p.302–303",
   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303",
@@ -2612,7 +2920,12 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "トランザクションは失敗と並行の後始末を肩代わりする"
+  ]
  },
  {
   "no": 66,
@@ -2670,7 +2983,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 67,
@@ -2717,7 +3033,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 68,
@@ -2732,7 +3051,7 @@
   "sign": "負荷試験が正常系だけ",
   "when": "変更の前・定期",
   "first_question": "",
-  "properties": "更新性：並行の試験が、変更で守り方が外れたことを見つける",
+  "properties": "該当なし（正しさの問い。並行の試験は、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）／指針・報告：Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）／書籍：DDIA 2e 8.2 節 p.283、8.3 節 p.302–303",
   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303",
@@ -2752,7 +3071,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 69,
@@ -2767,7 +3089,7 @@
   "sign": "依存の一覧が無い。全サービスが 1 つのクラスタに載る",
   "when": "作る前・定期",
   "first_question": "ステップ 7〜9：範囲、作り直し、止まり方を問う",
-  "properties": "柔軟性・置換性：頼り先の一覧があれば、入れ替えと障害の影響を見積もれる",
+  "properties": "置換性：頼り先の一覧があれば、調整サービスを入れ替えるときの影響を見積もれる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -2793,7 +3115,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 70,
@@ -2808,7 +3133,7 @@
   "sign": "要求のたびに引く。キャッシュが無い。監視も同じ基盤",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：頼る側の作りで、頼り先の停止の影響が決まる",
+  "properties": "該当なし（頼り先が止まったときの問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -2828,7 +3153,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 71,
@@ -2843,7 +3171,7 @@
   "sign": "「NTP で同期しているから大丈夫」。端末の時計を使う",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "柔軟性：順序の根拠を時計に置かなければ、ノードや拠点を足しても黙って書き込みを捨てない",
+  "properties": "該当なし（正しさの問い。時計に頼る順序は、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -2863,7 +3191,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 72,
@@ -2878,7 +3209,7 @@
   "sign": "現在時刻の差で測る。負の経過時間を想定していない",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "柔軟性：時計が飛んでも戻っても、タイムアウトと期限が狂わない",
+  "properties": "該当なし（正しさの問い。時計の飛びと戻りは、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -2898,7 +3229,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 73,
@@ -2913,7 +3247,7 @@
   "sign": "「ロックしているから二重実行は無い」。番号の検査が無い",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "更新性：止まっていた古い持ち主が戻っても、書き込みを壊さない",
+  "properties": "該当なし（正しさの問い。古い持ち主の書き込みを拒むことは、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -2933,7 +3267,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 74,
@@ -2948,7 +3285,7 @@
   "sign": "既定値のまま。全層で再試行。上限もばらつきも無い",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "拡張性：再試行は層を重ねると掛け算で増えるので、層と回数を決める",
+  "properties": "該当なし（過負荷を広げない・回復する問い。耐障害性で、負荷の増減に容量を合わせる拡張性とは別）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -2968,7 +3305,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 75,
@@ -2983,7 +3323,7 @@
   "sign": "ハートビートとプロセスの生存だけを見ている",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "更新性：半分動く障害を、利用者の数字で見つける",
+  "properties": "該当なし（障害の検知の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -3003,7 +3343,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 76,
@@ -3018,7 +3361,7 @@
   "sign": "「強整合」「CP」の一言で済ませる。全部を最強にする",
   "when": "作る前",
   "first_question": "",
-  "properties": "拡張性：線形化可能な操作は平常時も遅いので、要る操作だけに使う",
+  "properties": "該当なし（操作ごとに要る保証の水準の問い。正しさと遅さの交換で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022／指針・報告：Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告／書籍：DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440",
@@ -3038,7 +3381,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 77,
@@ -3073,7 +3419,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 78,
@@ -3088,7 +3437,7 @@
   "sign": "軸ごとの選択を言えない。調整役が単一障害点になること、または状態の持ち主がいないことを見ていない",
   "when": "作る前",
   "first_question": "",
-  "properties": "柔軟性・拡張性：待たない形にすると、サービスを分けて伸ばせる",
+  "properties": "柔軟性：結果を待たない形にすると、サービスを別々に変えられる",
   "basis_kind": "指針・報告／書籍／本ガイドの考え",
   "basis": "指針・報告：AWS Prescriptive Guidance saga choreography・orchestration／Azure Saga（任意）／書籍：『ハードパーツ』表 12-1 p.324・表 11-1 p.306・表 11-5 p.315・11.3 節 p.316〜317",
   "book": "『ハードパーツ』表 12-1 p.324・表 11-1 p.306・表 11-5 p.315・11.3 節 p.316〜317",
@@ -3111,7 +3460,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 79,
@@ -3126,7 +3478,7 @@
   "sign": "軸ごとの選択を言えない。補償が失敗したときの扱いが無い",
   "when": "作る前",
   "first_question": "",
-  "properties": "柔軟性：戻し方を処理ごとに決めると、流れを変えやすい",
+  "properties": "該当なし（正しさの問い。失敗したときの戻し方は、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告／書籍／本ガイドの考え",
   "basis": "指針・報告：AWS Prescriptive Guidance saga choreography・orchestration／Azure Saga（任意）／書籍：『ハードパーツ』表 12-1 p.324・表 11-1 p.306・表 11-5 p.315・11.3 節 p.316〜317",
   "book": "『ハードパーツ』表 12-1 p.324・表 11-1 p.306・表 11-5 p.315・11.3 節 p.316〜317",
@@ -3149,7 +3501,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 80,
@@ -3187,7 +3542,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 81,
@@ -3228,7 +3586,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 82,
@@ -3243,7 +3604,7 @@
   "sign": "分散 DB の保証が、ブローカーや他サービスに及ぶと見なす",
   "when": "作る前",
   "first_question": "",
-  "properties": "柔軟性：またぐ保証に頼らなければ、片方の製品を入れ替えられる",
+  "properties": "置換性：またぐ保証に頼らなければ、片方の製品を入れ替えられる",
   "basis_kind": "指針・報告／書籍",
   "basis": "指針・報告：Azure Architecture Center Saga・Compensating Transaction（任意の推奨）／書籍：DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362",
   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362",
@@ -3263,7 +3624,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 83,
@@ -3298,7 +3662,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 84,
@@ -3333,7 +3700,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 85,
@@ -3348,7 +3718,7 @@
   "sign": "「保留中」の状態が無く、途中の値がそのまま見える",
   "when": "作る前",
   "first_question": "",
-  "properties": "柔軟性：途中の状態を名前のある状態にすると、ほかの処理を足しても壊れない",
+  "properties": "該当なし（正しさの問い。途中の状態の見え方は、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告／書籍",
   "basis": "指針・報告：Azure Architecture Center Saga・Compensating Transaction（任意の推奨）／書籍：DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362",
   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362",
@@ -3368,7 +3738,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 86,
@@ -3379,11 +3752,11 @@
   "target": "サービス全般",
   "question": "補償が失敗したら、誰がどう気づくか。取り消せない操作はいつ行うか",
   "why": "補償は失敗しうる。原論文の答えも人手",
-  "good": "補償が失敗したときに気づく手段（状態と警報）と、人が直す手順がある。取り消せない操作（外部への送金など）は、流れの最後に置く",
+  "good": "補償が失敗したときに気づく手段（状態と通知）と、人が直す手順がある。まず再試行し、補償は最後の手段にする。取り消せない操作（送金、発送、メール）は、検証が済んでから行う",
   "sign": "補償が未実装。最初のステップが外部への送金",
   "when": "作る前",
   "first_question": "",
-  "properties": "更新性：失敗を状態として持てば、流れの途中で止まっても後から直せる",
+  "properties": "該当なし（正しさの問い。補償の失敗の扱いは、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告／書籍",
   "basis": "指針・報告：Azure Architecture Center Saga・Compensating Transaction（任意の推奨）／書籍：DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362",
   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362",
@@ -3403,7 +3776,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 87,
@@ -3450,7 +3826,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 88,
@@ -3488,7 +3867,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 89,
@@ -3526,7 +3908,17 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ETL 基盤": [
+    [
+     "再実行しても同じ結果になるタスクが作り直しの前提",
+     "一時的な場所に書き、検証してから適用、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 90,
@@ -3564,7 +3956,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 91,
@@ -3572,7 +3967,7 @@
   "key": "P12-04",
   "part": 12,
   "step": "8 導出",
-  "target": "データ基盤",
+  "target": "サービス全般",
   "question": "どのジョブが、どのデータを読み書きしたか",
   "why": "作り直せても、壊れた出力を配れば下流は止まる（同じスライドのリード）。系譜は、どのジョブがどのデータを読み書きしたかに答える道具で、検査はしない",
   "good": "実行・ジョブ・データセットを記録する系譜（OpenLineage など）があり、ある入力の変更が届く先を引ける。系譜は検査をしないので、照合や出力の検査と併せて使う",
@@ -3602,7 +3997,17 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "データ基盤": [
+    [
+     "カタログは表の現在を持つ正。系譜は実行側が出す",
+     "系譜は実行時に出すイベントが記録する、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 92,
@@ -3651,7 +4056,12 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "ほぼ同じ問いが Part 5 にある（RQ-P05-01）。文言が違うので別の行にした",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": [
+   "導出データの価値は、入力から作り直せること"
+  ]
  },
  {
   "no": 93,
@@ -3704,7 +4114,10 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 94,
@@ -3751,7 +4164,17 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ETL 基盤": [
+    [
+     "再実行しても同じ結果になるタスクが作り直しの前提",
+     "再実行のたびに同じ結果を出す。INSERT ではなく UPSERT、決まった分割を読む、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 95,
@@ -3786,7 +4209,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 96,
@@ -3821,7 +4247,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 97,
@@ -3856,7 +4285,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 98,
@@ -3871,7 +4303,7 @@
   "sign": "「大手がやっているから」が理由になっている",
   "when": "作る前",
   "first_question": "",
-  "properties": "柔軟性：作らなければ、運用と移行の費用を持ち続けずに済む",
+  "properties": "該当なし（基盤を作るかどうかの判断の問い。4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告／書籍",
   "basis": "指針・報告：CNCF TAG App Delivery「Platforms White Paper」v1.0（2026-11 確認。任意の指針）／書籍：『プラットフォームエンジニアリング』1.1 節 p.4、5.2.1 節 p.104、5.4.2 節 p.122（考え方）",
   "book": "『プラットフォームエンジニアリング』1.1 節 p.4、5.2.1 節 p.104、5.4.2 節 p.122（考え方）",
@@ -3897,7 +4329,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 99,
@@ -3938,7 +4373,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 100,
@@ -3973,7 +4411,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 101,
@@ -4010,7 +4451,55 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "データ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「① 正か導出か・所有者」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ETL 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「① 正か導出か・所有者」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「① 正か導出か・所有者」の列に、この基盤の答えがある"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「① 正か導出か・所有者」の列に、この基盤の答えがある"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「① 正か導出か・所有者」の列に、この基盤の答えがある"
+    ]
+   ],
+   "分析基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「① 正か導出か・所有者」の列に、この基盤の答えがある"
+    ]
+   ],
+   "セキュリティ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「① 正か導出か・所有者」の列に、この基盤の答えがある"
+    ]
+   ]
+  },
+  "related": [
+   "共通基盤が持つデータも、正か導出かを先に決める"
+  ]
  },
  {
   "no": 102,
@@ -4047,7 +4536,53 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "データ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「② 流れと契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ETL 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「② 流れと契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「② 流れと契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「② 流れと契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「② 流れと契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "分析基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「② 流れと契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "セキュリティ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「② 流れと契約」の列に、この基盤の答えがある"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 103,
@@ -4084,7 +4619,53 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "データ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「③ 止めずに変える契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ETL 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「③ 止めずに変える契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「③ 止めずに変える契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「③ 止めずに変える契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「③ 止めずに変える契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "分析基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「③ 止めずに変える契約」の列に、この基盤の答えがある"
+    ]
+   ],
+   "セキュリティ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「③ 止めずに変える契約」の列に、この基盤の答えがある"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 104,
@@ -4099,7 +4680,7 @@
   "sign": "基盤が止まったときの利用側のふるまいを決めていない。要求の経路に同期の依存がある",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：止まったときのふるまいを決めておくと、基盤の障害や入れ替えが全体の停止にならない",
+  "properties": "該当なし（止まったときのふるまいの問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "書籍／本ガイドの考え",
   "basis": "書籍：『データ指向アプリケーションデザイン 第2版』1 章 p.10–11（記録のシステムと導出データ）、13.2.1.2 節 p.544",
   "book": "『データ指向アプリケーションデザイン 第2版』1 章 p.10–11（記録のシステムと導出データ）、13.2.1.2 節 p.544",
@@ -4121,7 +4702,55 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "データ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「④ 止まったとき」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ETL 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「④ 止まったとき」の列に、この基盤の答えがある"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「④ 止まったとき」の列に、この基盤の答えがある"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「④ 止まったとき」の列に、この基盤の答えがある"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「④ 止まったとき」の列に、この基盤の答えがある"
+    ]
+   ],
+   "分析基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「④ 止まったとき」の列に、この基盤の答えがある"
+    ]
+   ],
+   "セキュリティ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "表の「④ 止まったとき」の列に、この基盤の答えがある"
+    ]
+   ]
+  },
+  "related": [
+   "止まったとき拒否するか通すかは、選んで書く"
+  ]
  },
  {
   "no": 105,
@@ -4162,7 +4791,21 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "データ基盤": [
+    [
+     "設計レビューで問うこと：7 つの基盤に 1 問ずつ",
+     "データ基盤に最初に問う 1 問"
+    ],
+    [
+     "データ基盤の中身は導出。所有はドメインに置く",
+     "中身は導出で、所有はドメインと書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 106,
@@ -4197,7 +4840,21 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ETL 基盤": [
+    [
+     "設計レビューで問うこと：7 つの基盤に 1 問ずつ",
+     "ETL 基盤に最初に問う 1 問"
+    ],
+    [
+     "再実行しても同じ結果になるタスクが作り直しの前提",
+     "再実行のたびに同じ結果を出す、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 107,
@@ -4208,11 +4865,11 @@
   "target": "ログ基盤",
   "question": "監査ログは、診断のログと別の経路か。書けないときの扱いは",
   "why": "失ってよい記録と、作り直せない記録は扱いが違う",
-  "good": "監査ログは、診断のログ・メトリクス・トレースとは別の経路に載せる。監査ログを書けないときの行動（止める、別の場所に書く、など）を決めて書いている",
+  "good": "監査ログは、診断のログ・メトリクス・トレースとは別の経路に載せる。監査ログを書けないときの行動（最も古い記録を上書き、システムを止める、記録の生成を止める、など）を、操作ごとに決めて書いている",
   "sign": "同じ「失ってよい」経路に載っている",
   "when": "作る前・動かす前",
   "first_question": "",
-  "properties": "更新性：失ってよい記録と作り直せない記録を分けると、ログ基盤を止めずに替えられる",
+  "properties": "該当なし（失ってよい記録と作り直せない記録を分ける問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：RFC 7662 §4／AWS KMS 文書 Rotate AWS KMS keys（2026-11 確認）／指針・報告：NIST SP 800-53 Rev.5 AU-5（連邦向け。ほかは任意）／AWS「Static stability…」（任意）／書籍：DDIA 2e 13.2.2.1 節 p.548（考え方）",
   "book": "DDIA 2e 13.2.2.1 節 p.548（考え方）",
@@ -4232,7 +4889,27 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ログ基盤": [
+    [
+     "設計レビューで問うこと：7 つの基盤に 1 問ずつ",
+     "ログ基盤に最初に問う 1 問"
+    ],
+    [
+     "テレメトリは失いうる前提。監査の記録は経路を分ける",
+     "診断のログと監査の記録は経路を分ける、と書く"
+    ]
+   ],
+   "セキュリティ基盤": [
+    [
+     "監査ログは記録のシステム。書けないときを決める",
+     "監査ログは記録のシステムで、書けないときの行動を決める、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 108,
@@ -4247,7 +4924,7 @@
   "sign": "期限が長く、失効の手段が無い。「たぶん落ちる」",
   "when": "作る前・動かす前",
   "first_question": "",
-  "properties": "更新性：手元の検証は、認証基盤が止まっても続く。代償は失効の遅れ",
+  "properties": "該当なし（失効の遅れと、止まったときのふるまいの問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：RFC 7662 §4／AWS KMS 文書 Rotate AWS KMS keys（2026-11 確認）／指針・報告：NIST SP 800-53 Rev.5 AU-5（連邦向け。ほかは任意）／AWS「Static stability…」（任意）／書籍：DDIA 2e 13.2.2.1 節 p.548（考え方）",
   "book": "DDIA 2e 13.2.2.1 節 p.548（考え方）",
@@ -4267,7 +4944,27 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "認証基盤": [
+    [
+     "設計レビューで問うこと：7 つの基盤に 1 問ずつ",
+     "認証基盤に最初に問う 1 問"
+    ],
+    [
+     "手元の検証は、止まらなさと失効の遅さの交換",
+     "手元の検証は失効が期限まで届かない、と書く"
+    ],
+    [
+     "止まったとき拒否するか通すかは、選んで書く",
+     "届かないとき拒否か通すかを選んで書く、と書く"
+    ]
+   ]
+  },
+  "related": [
+   "止まったとき拒否するか通すかは、選んで書く"
+  ]
  },
  {
   "no": 109,
@@ -4302,7 +4999,21 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "AI 基盤": [
+    [
+     "設計レビューで問うこと：7 つの基盤に 1 問ずつ",
+     "AI 基盤に最初に問う 1 問"
+    ],
+    [
+     "特徴量・埋め込み・索引・モデルは導出データ",
+     "元のデータと作り方の版を残す、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 110,
@@ -4317,7 +5028,7 @@
   "sign": "分析基盤が止まると業務の画面も止まる",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "更新性：分析を要求の経路から外しておくと、分析基盤を止めて替えられる",
+  "properties": "該当なし（止まったときのふるまいの問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：RFC 7662 §4／AWS KMS 文書 Rotate AWS KMS keys（2026-11 確認）／指針・報告：NIST SP 800-53 Rev.5 AU-5（連邦向け。ほかは任意）／AWS「Static stability…」（任意）／書籍：DDIA 2e 13.2.2.1 節 p.548（考え方）",
   "book": "DDIA 2e 13.2.2.1 節 p.548（考え方）",
@@ -4337,7 +5048,21 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "分析基盤": [
+    [
+     "設計レビューで問うこと：7 つの基盤に 1 問ずつ",
+     "分析基盤に最初に問う 1 問"
+    ],
+    [
+     "分析基盤は導出。指標の定義だけは所有者を決める",
+     "結果を業務へ戻す連携の止まり方を書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 111,
@@ -4372,7 +5097,21 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "セキュリティ基盤": [
+    [
+     "設計レビューで問うこと：7 つの基盤に 1 問ずつ",
+     "セキュリティ基盤に最初に問う 1 問"
+    ],
+    [
+     "鍵の入れ替えは再暗号化ではない",
+     "入れ替えは再暗号化ではない、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 112,
@@ -4420,7 +5159,19 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "セキュリティ基盤": [
+    [
+     "分類は所有者が決め、製品の更新は段階的に配る",
+     "互換性の検査と段階配布の両方を持つかを問う、と書く"
+    ]
+   ]
+  },
+  "related": [
+   "分類は所有者が決め、製品の更新は段階的に配る"
+  ]
  },
  {
   "no": 113,
@@ -4435,7 +5186,7 @@
   "sign": "依存の一覧が無い。「そこは落ちない前提」",
   "when": "作る前・定期",
   "first_question": "ステップ 7〜9：範囲、作り直し、止まり方を問う",
-  "properties": "柔軟性・更新性：依存の一覧があれば、止まる範囲を設計で狭められる",
+  "properties": "該当なし（止まる範囲の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告",
   "basis": "指針・報告：各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）",
   "book": "",
@@ -4468,7 +5219,17 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "認証基盤": [
+    [
+     "全体が止まる条件は、要求の経路にある同期の依存",
+     "認証・認可の基盤への同期の依存で止まった 2 件を挙げる"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 114,
@@ -4483,7 +5244,7 @@
   "sign": "監視が本番と同じネットワーク・同じ認証",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "更新性：復旧の道具が別に動けば、障害のときに直せる",
+  "properties": "該当なし（復旧の道具の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告",
   "basis": "指針・報告：各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）",
   "book": "",
@@ -4516,7 +5277,17 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "認証基盤": [
+    [
+     "止まったとき拒否するか通すかは、選んで書く",
+     "社内の道具も同じ認証に依存し、連絡が遅れた件を挙げる"
+    ]
+   ]
+  },
+  "related": []
  },
  {
   "no": 115,
@@ -4531,7 +5302,7 @@
   "sign": "フェイルオーバーの試験が DB 単体",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "更新性：自動化の範囲を決めておくと、想定外の状況で被害を広げない",
+  "properties": "該当なし（自動化の歯止めの問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告",
   "basis": "指針・報告：各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）",
   "book": "",
@@ -4558,7 +5329,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 116,
@@ -4573,7 +5347,7 @@
   "sign": "再試行に上限・乱数なし。絞る手段が無い",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "拡張性：引き金が消えた後に過負荷が続かないようにする",
+  "properties": "該当なし（過負荷からの回復の問い。耐障害性で、負荷の増減に容量を合わせる拡張性とは別）",
   "basis_kind": "指針・報告",
   "basis": "指針・報告：各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）",
   "book": "",
@@ -4600,7 +5374,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 117,
@@ -4615,7 +5392,7 @@
   "sign": "「バックアップは取っている」",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "置換性：復元の時間が分かっていれば、戻す計画を立てられる",
+  "properties": "該当なし（復元の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告",
   "basis": "指針・報告：各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）",
   "book": "",
@@ -4642,7 +5419,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 118,
@@ -4653,11 +5433,11 @@
   "target": "共通基盤全般",
   "question": "破壊的な操作は、対象の種類と数をどう確かめるか。取り消せるか",
   "why": "ID の種類を確かめない API が、サイトごと消した（Atlassian 2022）",
-  "good": "破壊的な操作（削除、切り離し）が、対象の種類と数を実行の前に確かめ、取り消せる（論理削除、猶予期間など）作りになっている",
+  "good": "破壊的な操作（削除、切り離し）が、対象の種類と数を実行の前に確かめ、速すぎる・広すぎる操作を止め、取り消せる（ソフトデリート）作りになっている",
   "sign": "同じ API が複数の種類の ID を受ける",
   "when": "動かす前・変更の前",
   "first_question": "",
-  "properties": "更新性：広く消せる道具に歯止めがあれば、操作の誤りを戻せる",
+  "properties": "該当なし（操作の誤りの歯止めの問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告",
   "basis": "指針・報告：各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）",
   "book": "",
@@ -4684,7 +5464,10 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 119,
@@ -4699,7 +5482,7 @@
   "sign": "「リージョンは独立なので」",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "拡張性：共有を見つけておくと、単位を足しても一緒に止まらない",
+  "properties": "該当なし（隠れた共有の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "指針・報告",
   "basis": "指針・報告：各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）",
   "book": "",
@@ -4726,10 +5509,177 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
   "no": 120,
+  "id": "RQ-P14-09",
+  "key": "P14-09",
+  "part": 14,
+  "step": "9 基盤",
+  "target": "共通基盤全般",
+  "question": "各段で、どの指標を、どれだけの時間見てから次へ進むか",
+  "why": "段階配布の途中で起きた件と、通り抜けたあとに起きた件がある（同じスライドのリード）。PagerDuty 2025-08-28 は、25% の段階で 1 回目の障害が起き、機能との関係に気づかず 75% に上げて 2 回目が起きた（同じスライドのカード。事業者の事後報告）",
+  "good": "段ごとに、見る指標と、見る時間の長さを決めて書いている。その指標の監視が、配る対象まで届いている",
+  "sign": "「段階配布をしているから大丈夫」とする。次へ進む条件が、時間の経過だけ",
+  "when": "動かす前・変更の前",
+  "first_question": "",
+  "properties": "更新性：段ごとの判断があれば、変更が全体の停止になる前に止められる",
+  "basis_kind": "指針・報告／書籍／本ガイドの考え",
+  "basis": "指針・報告：Slack 2022-02-22／PagerDuty 2025-08-28／Google Cloud 2025-06-12 の事後報告／書籍：『プラットフォームエンジニアリング』6.3.2 節 p.145 脚注（考え方）",
+  "book": "『プラットフォームエンジニアリング』6.3.2 節 p.145 脚注（考え方）",
+  "sources": [
+   {
+    "part": 14,
+    "slide_title": "段階配布は万能ではない。何を見て進むかを問う",
+    "slide_no": 217,
+    "context": "注記「レビューで問うこと」"
+   }
+  ],
+  "supplied": [
+   "why",
+   "sign"
+  ],
+  "guide_hint": "",
+  "guide_context": "注記「レビューで問うこと」",
+  "p17_property": [],
+  "p17_moment": "",
+  "casestudy": [],
+  "origin": "ガイドの問い",
+  "note": "",
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
+ },
+ {
+  "no": 121,
+  "id": "RQ-P14-10",
+  "key": "P14-10",
+  "part": 14,
+  "step": "9 基盤",
+  "target": "共通基盤全般",
+  "question": "その指標は、遅れて現れる問題（メモリの増加、キャッシュの冷え）を拾えるか",
+  "why": "段階配布を通り抜けたあとに起きた件がある（同じスライドのリード）。Google Cloud 2025-06-12 は、落ちる経路が配布の間に一度も通らず、後からポリシーのデータが入って全リージョンで落ちた（同じスライドのカード。事業者の事後報告）",
+  "good": "遅れて現れる問題（メモリの増加、キャッシュの冷え）を拾える指標を選び、それが現れるだけの時間を各段に置いている",
+  "sign": "見る指標が、配った直後のエラー率だけ。各段の長さが、問題が現れるまでの時間より短い",
+  "when": "動かす前・変更の前",
+  "first_question": "",
+  "properties": "更新性：遅れて現れる問題を段の中で拾えれば、全体へ広げる前に戻せる",
+  "basis_kind": "指針・報告／書籍／本ガイドの考え",
+  "basis": "指針・報告：Slack 2022-02-22／PagerDuty 2025-08-28／Google Cloud 2025-06-12 の事後報告／書籍：『プラットフォームエンジニアリング』6.3.2 節 p.145 脚注（考え方）",
+  "book": "『プラットフォームエンジニアリング』6.3.2 節 p.145 脚注（考え方）",
+  "sources": [
+   {
+    "part": 14,
+    "slide_title": "段階配布は万能ではない。何を見て進むかを問う",
+    "slide_no": 217,
+    "context": "注記「レビューで問うこと」"
+   }
+  ],
+  "supplied": [
+   "why",
+   "sign"
+  ],
+  "guide_hint": "",
+  "guide_context": "注記「レビューで問うこと」",
+  "p17_property": [],
+  "p17_moment": "",
+  "casestudy": [],
+  "origin": "ガイドの問い",
+  "note": "",
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
+ },
+ {
+  "no": 122,
+  "id": "RQ-P14-11",
+  "key": "P14-11",
+  "part": 14,
+  "step": "9 基盤",
+  "target": "共通基盤全般",
+  "question": "各段は、負荷の高い時間帯を含むか。戻す手順は試してあるか",
+  "why": "段階配布の途中で起きた件がある（同じスライドのリード）。Slack 2022-02-22 は、25% ずつの更新の 3 回目が、その日のピークの通信と重なり、連鎖障害に入った。前の 2 回は何も起きずに通った（同じスライドのカード。事業者の事後報告）",
+  "good": "各段が負荷の高い時間帯を含むように進め、戻す手順を実際に試してある",
+  "sign": "負荷の低い時間帯だけで段を進めている。戻す手順を試したことが無い",
+  "when": "動かす前・変更の前",
+  "first_question": "",
+  "properties": "更新性：ピークを含む段と、試した戻す手順が、動かしたままの変更を安全にする",
+  "basis_kind": "指針・報告／書籍／本ガイドの考え",
+  "basis": "指針・報告：Slack 2022-02-22／PagerDuty 2025-08-28／Google Cloud 2025-06-12 の事後報告／書籍：『プラットフォームエンジニアリング』6.3.2 節 p.145 脚注（考え方）",
+  "book": "『プラットフォームエンジニアリング』6.3.2 節 p.145 脚注（考え方）",
+  "sources": [
+   {
+    "part": 14,
+    "slide_title": "段階配布は万能ではない。何を見て進むかを問う",
+    "slide_no": 217,
+    "context": "注記「レビューで問うこと」"
+   }
+  ],
+  "supplied": [
+   "why",
+   "sign"
+  ],
+  "guide_hint": "",
+  "guide_context": "注記「レビューで問うこと」",
+  "p17_property": [],
+  "p17_moment": "",
+  "casestudy": [],
+  "origin": "ガイドの問い",
+  "note": "",
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
+ },
+ {
+  "no": 123,
+  "id": "RQ-P14-12",
+  "key": "P14-12",
+  "part": 14,
+  "step": "9 基盤",
+  "target": "共通基盤全般",
+  "question": "「止まってもよいはず」の依存は、実際に止めて確かめたか",
+  "why": "付随の機能が本流を止めた例がある。Cognito の利用状況の送信（Kinesis 2020）、API の利用分析の新機能（PagerDuty 2025-08-28）（同じ注記の文。事業者の事後報告）",
+  "good": "止まってもよいと設計した依存（利用状況の送信、分析など）を一覧にし、実際に止めて、本流が動き続けることを確かめた記録がある",
+  "sign": "「ベストエフォートなので、止まっても影響しない」と言うが、止めた記録が無い",
+  "when": "動かす前・定期",
+  "first_question": "",
+  "properties": "該当なし（止まったときの影響の問い。耐障害性で、4 つの性質には直接は当たらない）",
+  "basis_kind": "指針・報告／本ガイドの考え",
+  "basis": "指針・報告：Roblox 2021-10-28／AWS DynamoDB 2015-09-20・Kinesis 2020-11-25／Datadog 2023-03-08／Cloudflare 2023-11-02／PagerDuty 2025-08-28",
+  "book": "",
+  "sources": [
+   {
+    "part": 14,
+    "slide_title": "型②⑧：1 つの基盤、1 つの共有が全体に届く",
+    "slide_no": 211,
+    "context": "注記（リーダーの視点）"
+   }
+  ],
+  "supplied": [
+   "why",
+   "sign"
+  ],
+  "guide_hint": "",
+  "guide_context": "注記（リーダーの視点）",
+  "p17_property": [],
+  "p17_moment": "",
+  "casestudy": [],
+  "origin": "ガイドの問い",
+  "note": "",
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
+ },
+ {
+  "no": 124,
   "id": "RQ-P15-01",
   "key": "P15-01",
   "part": 15,
@@ -4743,7 +5693,7 @@
   "first_question": "",
   "properties": "置換性：依存の一覧が、入れ替えで変わるものの見積もりになる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
-  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 の報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
+  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "book": "『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "sources": [
    {
@@ -4769,10 +5719,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 121,
+  "no": 125,
   "id": "RQ-P15-02",
   "key": "P15-02",
   "part": 15,
@@ -4786,7 +5739,7 @@
   "first_question": "",
   "properties": "置換性：導出側は作り直せるので、どの段階からも戻れる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
-  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 の報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
+  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "book": "『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "sources": [
    {
@@ -4804,10 +5757,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 122,
+  "no": 126,
   "id": "RQ-P15-03",
   "key": "P15-03",
   "part": 15,
@@ -4821,7 +5777,7 @@
   "first_question": "",
   "properties": "置換性：移行中も正が 1 つなら、食い違いを直す基準がある",
   "basis_kind": "仕様・文書／指針・報告／書籍",
-  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 の報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
+  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "book": "『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "sources": [
    {
@@ -4857,10 +5813,13 @@
   ],
   "origin": "両方（ガイドの問い＋ケーススタディから持ち帰る問い）",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 123,
+  "no": 127,
   "id": "RQ-P15-04",
   "key": "P15-04",
   "part": 15,
@@ -4874,7 +5833,7 @@
   "first_question": "",
   "properties": "更新性：戻れる段階は、速く安全に進められる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
-  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 の報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
+  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "book": "『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "sources": [
    {
@@ -4900,10 +5859,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 124,
+  "no": 128,
   "id": "RQ-P15-05",
   "key": "P15-05",
   "part": 15,
@@ -4917,7 +5879,7 @@
   "first_question": "",
   "properties": "置換性・更新性：移行の費用を入れた提案は、途中で頓挫しにくい",
   "basis_kind": "仕様・文書／指針・報告／書籍",
-  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 の報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
+  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "book": "『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "sources": [
    {
@@ -4935,10 +5897,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 125,
+  "no": 129,
   "id": "RQ-P15-06",
   "key": "P15-06",
   "part": 15,
@@ -4952,7 +5917,7 @@
   "first_question": "",
   "properties": "更新性：変化予算の中に収めると、利用側を止めずに移せる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
-  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 の報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
+  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "book": "『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "sources": [
    {
@@ -4976,10 +5941,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 126,
+  "no": 130,
   "id": "RQ-P15-07",
   "key": "P15-07",
   "part": 15,
@@ -4993,7 +5961,7 @@
   "first_question": "",
   "properties": "置換性：旧を消すところまで決めると、新旧の二重の運用が終わる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
-  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 の報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
+  "basis": "仕様・文書：PostgreSQL 18 文書 29.8（2026-11 確認）／指針・報告：GitHub 2021-11-27／Slack 2022-02-22 報告／書籍：『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "book": "『プラットフォームエンジニアリング』8・9 章（考え方）／DDIA 2e pp.541–542",
   "sources": [
    {
@@ -5017,10 +5985,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 127,
+  "no": 131,
   "id": "RQ-P16-01",
   "key": "P16-01",
   "part": 16,
@@ -5032,7 +6003,7 @@
   "sign": "一覧が人の記憶にある。系譜がない",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：消去の届く先が分かっていれば、ストアを足しても消し漏れない",
+  "properties": "該当なし（消去の届く先の問い。法とプライバシーへの責任で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5052,10 +6023,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 128,
+  "no": 132,
   "id": "RQ-P16-02",
   "key": "P16-02",
   "part": 16,
@@ -5067,7 +6041,7 @@
   "sign": "「次のバッチで消えるはず」",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：消去も同じ流れに載せると、導出側を作り直さずに揃えられる",
+  "properties": "該当なし（消去の届く時間の問い。法とプライバシーへの責任で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5087,10 +6061,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 129,
+  "no": 133,
   "id": "RQ-P16-03",
   "key": "P16-03",
   "part": 16,
@@ -5098,11 +6075,11 @@
   "target": "サービス全般",
   "question": "イベントのキーは何か。保持とコンパクションの設定は",
   "why": "コンパクションはキーの単位、保持は時間の単位",
-  "good": "イベントのキー、保持、コンパクションの設定を答える。コンパクションはキーの単位、保持は時間の単位で消えることを踏まえ、消去の単位に合うキーを選んでいる",
+  "good": "イベントのキー、保持、コンパクションの設定を答える。コンパクションはキーの単位、保持は時間の単位で消えることを踏まえ、キーは、順序を保つ単位と、消去の単位の両方から決めている",
   "sign": "キーが注文 ID。保持が無期限",
   "when": "作る前",
   "first_question": "",
-  "properties": "更新性：キーと保持は後から変えにくいので、流れを作る時に決める",
+  "properties": "柔軟性：消去の要求が来たとき、キーと保持の設計を変えずに応じられる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5121,11 +6098,14 @@
   "p17_moment": "",
   "casestudy": [],
   "origin": "ガイドの問い",
-  "note": "",
-  "checked_on": "2026-11-25"
+  "note": "ここは消去の単位の観点。順序の観点では、キーを注文 ID にするのがよい答えになる（RQ-CA-04）。同じ「キーが注文 ID」が、この行では危ない兆候（保持が無期限のとき、本人の単位で消せない）",
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 130,
+  "no": 134,
   "id": "RQ-P16-04",
   "key": "P16-04",
   "part": 16,
@@ -5137,7 +6117,7 @@
   "sign": "保持期間が決まっていない",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：復元の後に消去を当て直せれば、バックアップを書き換えずに済む",
+  "properties": "該当なし（バックアップと消去の問い。法とプライバシーへの責任で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5157,10 +6137,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 131,
+  "no": 135,
   "id": "RQ-P16-05",
   "key": "P16-05",
   "part": 16,
@@ -5172,7 +6155,7 @@
   "sign": "電話番号やメールアドレスが主キー",
   "when": "作る前",
   "first_question": "",
-  "properties": "更新性：キーに個人の値が無ければ、消去がスキーマの変更にならない",
+  "properties": "柔軟性：キーに個人の値が無ければ、消去の要求にスキーマを変えずに応じられる",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5192,10 +6175,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 132,
+  "no": 136,
   "id": "RQ-P16-06",
   "key": "P16-06",
   "part": 16,
@@ -5207,7 +6193,7 @@
   "sign": "「とりあえず全部残す」",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：起算点つきの期限があれば、消す処理を自動で回せる",
+  "properties": "該当なし（保持の決め方の問い。法とプライバシーへの責任で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5227,22 +6213,25 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 133,
+  "no": 137,
   "id": "RQ-P16-07",
   "key": "P16-07",
   "part": 16,
   "step": "責任",
-  "target": "ログ基盤",
+  "target": "サービス全般",
   "question": "ログ・トレースに、リクエストの本文や秘密が出ていないか",
   "why": "ログは、統制の弱い導出データになりやすい",
   "good": "ログ・トレースに、リクエストの本文や秘密を出していない。出す項目を決め、出ていないことを検査している",
   "sign": "「デバッグのため全部出している」",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：ログに個人のデータや秘密が無ければ、ログの消去と保持を軽くできる",
+  "properties": "該当なし（ログに出す内容の問い。法とプライバシーへの責任で、4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5262,10 +6251,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 134,
+  "no": 138,
   "id": "RQ-P16-08",
   "key": "P16-08",
   "part": 16,
@@ -5277,7 +6269,7 @@
   "sign": "技術側だけで「消えているから大丈夫」",
   "when": "作る前・定期",
   "first_question": "",
-  "properties": "更新性：未確認の点が分かっていれば、法や解釈が変わったときに直す箇所が分かる",
+  "properties": "該当なし（法務への確認の問い。4 つの性質には直接は当たらない）",
   "basis_kind": "仕様・文書／指針・報告／書籍",
   "basis": "仕様・文書：GDPR 12 条 3 項・17 条 1 項（EUR-Lex、2026-11 確認）／Apache Kafka 4.4 Design／指針・報告：EDPB 消去権の協調執行報告（2026-02-10 採択）4.2.6／Datatilsynet 2019-03-25／書籍：DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
   "book": "DDIA 2e 12.2.3.4 節 p.508〜509（考え方）",
@@ -5297,10 +6289,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 135,
+  "no": 139,
   "id": "RQ-P17-01",
   "key": "P17-01",
   "part": 17,
@@ -5309,7 +6304,7 @@
   "question": "何を、どの数字で約束するか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。ステップ 1 の数字が、後の選択を比べる物差しになる",
   "good": "負荷・応答時間・SLO・RPO／RTO を、条件つきの数字で 1 枚に書いている（Part 17 の「決めること」）",
-  "sign": "「利用者数」だけで、読み書きの比やピークが無い（Part 17「ステップ 1〜3」の表の、このステップの兆候）",
+  "sign": "「利用者数」だけで、読み書きの比やピークが無い／可用性の % と混同。復旧の演習の記録が無い",
   "when": "作る前・定期",
   "first_question": "",
   "properties": "拡張性：数字が、後のステップの選択を比べる物差しになる",
@@ -5331,8 +6326,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "負荷・応答時間・SLO・RPO／RTO を、条件つきの数字で 1 枚に",
   "guide_context": "1 要件",
@@ -5341,10 +6335,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 136,
+  "no": 140,
   "id": "RQ-P17-02",
   "key": "P17-02",
   "part": 17,
@@ -5353,7 +6350,7 @@
   "question": "どのデータを誰が持ち、どれが正か",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。正と所有が決まらないと、流れと契約を決められない",
   "good": "データごとの正・所有者・導出先を決め、書き手で所有を決めている（Part 17 の「決めること」）",
-  "sign": "「両方」「同期しているので同じ」（Part 17「ステップ 1〜3」の表の、このステップの兆候）",
+  "sign": "「両方」「同期しているので同じ」／全サービスが同じ DB ユーザーを使う",
   "when": "作る前・定期",
   "first_question": "",
   "properties": "置換性・柔軟性：正が 1 つで書き手が決まっていれば、ほかは作り直して変えられる",
@@ -5375,8 +6372,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "データごとの正・所有者・導出先。書き手で所有を決める",
   "guide_context": "2 所有",
@@ -5385,10 +6381,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 137,
+  "no": 141,
   "id": "RQ-P17-03",
   "key": "P17-03",
   "part": 17,
@@ -5397,7 +6396,7 @@
   "question": "関係の形と問い合わせの形に、どのモデルが合うか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。モデルの選択は、流れ・契約・分割に残る",
   "good": "主な問い合わせと関係の形に合うモデルを選び、イベントで持つ範囲を決めている（Part 17 の「決めること」）",
-  "sign": "問い合わせを書かずに、製品名から決めている（Part 17「ステップ 1〜3」の表の、このステップの兆候）",
+  "sign": "問い合わせを書かずに、製品名から決めている／全サービスの標準にしている。イベントの版の方針が無い",
   "when": "作る前",
   "first_question": "",
   "properties": "柔軟性：問い合わせと関係の形が書いてあれば、モデルを変える判断ができる",
@@ -5419,8 +6418,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "主な問い合わせと関係の形に合うモデル。イベントで持つ範囲",
   "guide_context": "3 モデル",
@@ -5429,10 +6427,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 138,
+  "no": 142,
   "id": "RQ-P17-04",
   "key": "P17-04",
   "part": 17,
@@ -5441,7 +6442,7 @@
   "question": "サービスと基盤の間を、データはどう流れるべきか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。流れが決まって、その上を通るデータの契約を決められる",
   "good": "順序を決める場所を 1 つにし、コピーを読むか正を呼ぶかを決め、受け手を冪等にしている（Part 17 の「決めること」）",
-  "sign": "commit の直後に publish。失敗を握りつぶす再送（Part 17「ステップ 4〜6」の表の、このステップの兆候）",
+  "sign": "commit の直後に publish。失敗を握りつぶす再送／イベントに ID が無い。「厳密に 1 回なので不要」",
   "when": "作る前・変更の前",
   "first_question": "",
   "properties": "柔軟性・置換性：順序の場所が 1 つで受け手が冪等なら、受け手を足し、入れ替えられる",
@@ -5463,8 +6464,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "順序を決める場所を 1 つに。コピーか正か。受け手の冪等性",
   "guide_context": "4 流れ",
@@ -5473,10 +6473,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 139,
+  "no": 143,
   "id": "RQ-P17-05",
   "key": "P17-05",
   "part": 17,
@@ -5485,7 +6488,7 @@
   "question": "何を契約にし、どう検査するか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。契約は、更新性を検査できる形にしたもの",
   "good": "互換の向き、検査を置く場所（書き手側と CI）、配り方を決めている（Part 17 の「決めること」）",
-  "sign": "「全部同時に更新するから大丈夫」（Part 17「ステップ 4〜6」の表の、このステップの兆候）",
+  "sign": "「全部同時に更新するから大丈夫」／本番で、スキーマの自動登録が有効",
   "when": "作る前・変更の前",
   "first_question": "",
   "properties": "更新性：契約と検査があれば、動かしたまま変えられる",
@@ -5507,8 +6510,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "互換の向き、検査を置く場所（書き手側と CI）、配り方",
   "guide_context": "5 契約",
@@ -5517,10 +6519,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 140,
+  "no": 144,
   "id": "RQ-P17-06",
   "key": "P17-06",
   "part": 17,
@@ -5529,10 +6534,10 @@
   "question": "どこまで失ってよく、どこまで待てるか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。設定の名前は保証を意味しない",
   "good": "応答までに置く台数、フェイルオーバーの取り決め、分割のキーと数を決めている（Part 17 の「決めること」）",
-  "sign": "「synchronous_commit は on です」だけ（Part 17「ステップ 4〜6」の表の、このステップの兆候）",
+  "sign": "「synchronous_commit は on です」だけ／障害とみなす条件としきい値を、誰も言えない／「レプリカがあるので不要」。復元の所要時間を知らない",
   "when": "作る前・動かす前",
   "first_question": "",
-  "properties": "拡張性：失ってよい量と待てる時間を先に決めると、構成を比べられる",
+  "properties": "拡張性：分割のキーと数が、負荷への対応を決める（Part 17 の表は、拡張性にステップ 6 を挙げる）",
   "basis_kind": "本ガイドの考え",
   "basis": "本ガイドの考え：順番と問いは本ガイドの構成（Part 0 の 5 枚目）。各ステップの根拠は、該当する Part の根拠の行",
   "book": "",
@@ -5551,8 +6556,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "応答までに置く台数、フェイルオーバーの取り決め、分割のキーと数",
   "guide_context": "6 複製",
@@ -5561,10 +6565,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 141,
+  "no": 145,
   "id": "RQ-P17-07",
   "key": "P17-07",
   "part": 17,
@@ -5573,7 +6580,7 @@
   "question": "どの異常を、どこで防ぐか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。分離レベルは名前ではなく、防ぐ異常で選ぶ",
   "good": "防ぐ異常とトランザクションの範囲を決め、サービスをまたぐ箇所は冪等・サーガ・照合で守っている（Part 17 の「決めること」）",
-  "sign": "1 回の API 呼び出しに自動コミットの文が複数ある。「結果整合性だから」で話が終わる（Part 17「ステップ 7〜9」の表の、このステップの兆候）",
+  "sign": "1 回の API 呼び出しに自動コミットの文が複数ある／「結果整合性だから」で話が終わる",
   "when": "作る前・変更の前",
   "first_question": "",
   "properties": "置換性：守り方を自分で決めていれば、DB を替えても正しさが変わらない",
@@ -5595,8 +6602,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "防ぐ異常とトランザクションの範囲。またぐ箇所は冪等・サーガ・照合",
   "guide_context": "7 正しさ",
@@ -5605,10 +6611,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 142,
+  "no": 146,
   "id": "RQ-P17-08",
   "key": "P17-08",
   "part": 17,
@@ -5617,7 +6626,7 @@
   "question": "ログから作り直せるか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。導出データの価値は、入力から作り直せること",
   "good": "作り直しの 6 つの前提（保持・スナップショット・コンパクション・スキーマ互換・決定性・副作用の停止）を 1 つずつ実行して確かめ、新旧を並べて切り替える手順を持っている（Part 17 の「決めること」と Part 12）",
-  "sign": "「作り直せるはず」。手順書はあるが、実行の記録が無い（Part 17「ステップ 7〜9」の表の、このステップの兆候）",
+  "sign": "「作り直せるはず」。手順書はあるが、実行の記録が無い／保持が既定のまま。スナップショットの時点が分からない",
   "when": "作る前・定期",
   "first_question": "",
   "properties": "置換性：作り直せる導出データが、置換と更新の土台になる",
@@ -5639,8 +6648,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "作り直しの 6 つの前提と、新旧を並べて切り替える手順",
   "guide_context": "8 導出",
@@ -5649,10 +6657,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {},
+  "related": []
  },
  {
-  "no": 143,
+  "no": 147,
   "id": "RQ-P17-09",
   "key": "P17-09",
   "part": 17,
@@ -5661,7 +6672,7 @@
   "question": "各基盤を、同じ 4 つの問いでどう設計するか",
   "why": "前のステップの答えが無いと、次のステップの問いに答えられない（同じスライドのリード）。共通基盤は全サービスに届く",
   "good": "4 つの問い（正か導出か、流れと契約、止めずに変える契約、止まったときのふるまい）への基盤ごとの答えと、止まったときのふるまいを決めている（Part 17 の「決めること」）",
-  "sign": "「全部大事」で区別が無い。依存の一覧が無い。「そこは落ちない前提」（Part 17「ステップ 7〜9」の表の、このステップの兆候）",
+  "sign": "「全部大事」で区別が無い／依存の一覧が無い。「そこは落ちない前提」",
   "when": "作る前・定期",
   "first_question": "",
   "properties": "置換性・更新性：基盤ごとの答えが、入れ替えと停止の計画の出発点になる",
@@ -5683,8 +6694,7 @@
    }
   ],
   "supplied": [
-   "why",
-   "sign"
+   "why"
   ],
   "guide_hint": "4 つの問いへの基盤ごとの答えと、止まったときのふるまい",
   "guide_context": "9 基盤",
@@ -5693,10 +6703,56 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "Part 17 の「まず問うこと」の表の、同じステップの行",
+  "named": {
+   "データ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "4 つの問いへの答えを、この基盤について書いている"
+    ]
+   ],
+   "ETL 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "4 つの問いへの答えを、この基盤について書いている"
+    ]
+   ],
+   "ログ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "4 つの問いへの答えを、この基盤について書いている"
+    ]
+   ],
+   "認証基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "4 つの問いへの答えを、この基盤について書いている"
+    ]
+   ],
+   "AI 基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "4 つの問いへの答えを、この基盤について書いている"
+    ]
+   ],
+   "分析基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "4 つの問いへの答えを、この基盤について書いている"
+    ]
+   ],
+   "セキュリティ基盤": [
+    [
+     "7 基盤 × 4 つの問い：答えは基盤ごとに違う",
+     "4 つの問いへの答えを、この基盤について書いている"
+    ]
+   ]
+  },
+  "related": []
  },
  {
-  "no": 144,
+  "no": 148,
   "id": "RQ-P17-10",
   "key": "P17-10",
   "part": 17,
@@ -5731,10 +6787,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 145,
+  "no": 149,
   "id": "RQ-P17-11",
   "key": "P17-11",
   "part": 17,
@@ -5769,10 +6828,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 146,
+  "no": 150,
   "id": "RQ-P17-12",
   "key": "P17-12",
   "part": 17,
@@ -5807,10 +6869,13 @@
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 147,
+  "no": 151,
   "id": "RQ-P17-13",
   "key": "P17-13",
   "part": 17,
@@ -5831,7 +6896,7 @@
     "part": 17,
     "slide_title": "トレードオフは、3 つの手順で自分で分析する",
     "slide_no": 252,
-    "context": "手順 1 絡み合う部分を見つける"
+    "context": "図「3 つの手順」の 1 つ目（絡み合う部分を見つける）"
    }
   ],
   "supplied": [
@@ -5839,16 +6904,19 @@
    "sign"
   ],
   "guide_hint": "",
-  "guide_context": "手順 1 絡み合う部分を見つける",
+  "guide_context": "図「3 つの手順」の 1 つ目（絡み合う部分を見つける）",
   "p17_property": [],
   "p17_moment": "",
   "casestudy": [],
   "origin": "ガイドの問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 148,
+  "no": 152,
   "id": "RQ-CA-02",
   "key": "CA-02",
   "part": null,
@@ -5860,7 +6928,7 @@
   "sign": "運び手が「最後に読んだ連番より大きい行」だけを読んでいる。長いトランザクションが混ざる",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "置換性：運び手が取りこぼさなければ、導出側を正から作り直す必要が減る",
+  "properties": "該当なし（取りこぼしの問い。正しさで、4 つの性質には直接は当たらない）",
   "basis_kind": "ケーススタディの実測",
   "basis": "",
   "book": "",
@@ -5887,10 +6955,13 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 149,
+  "no": 153,
   "id": "RQ-CA-04",
   "key": "CA-04",
   "part": null,
@@ -5902,7 +6973,7 @@
   "sign": "メッセージのキーがイベント ID や乱数で、同じ注文のイベントが別のパーティションに分かれる",
   "when": "作る前・変更の前",
   "first_question": "",
-  "properties": "拡張性・置換性：キーごとの順序があれば、パーティションを分けても受け手を作り直せる",
+  "properties": "該当なし（順序の正しさの問い。4 つの性質には直接は当たらない）",
   "basis_kind": "ケーススタディの実測",
   "basis": "",
   "book": "",
@@ -5928,11 +6999,14 @@
    }
   ],
   "origin": "ケーススタディから持ち帰る問い",
-  "note": "",
-  "checked_on": "2026-11-25"
+  "note": "ここは順序の観点。消去の観点では、キーが注文 ID で保持が無期限だと危ない兆候になる（RQ-P16-03）。キーは両方の観点から決める",
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 150,
+  "no": 154,
   "id": "RQ-CA-07",
   "key": "CA-07",
   "part": null,
@@ -5971,10 +7045,13 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 151,
+  "no": 155,
   "id": "RQ-CB-02",
   "key": "CB-02",
   "part": null,
@@ -6013,10 +7090,13 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 152,
+  "no": 156,
   "id": "RQ-CB-04",
   "key": "CB-04",
   "part": null,
@@ -6055,15 +7135,18 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  },
  {
-  "no": 153,
+  "no": 157,
   "id": "RQ-CC-02",
   "key": "CC-02",
   "part": null,
   "step": "9 基盤",
-  "target": "ETL 基盤",
+  "target": "共通基盤全般",
   "question": "上流のスキーマが揺れたとき、止める・保留・埋める・通すのどれかを決めたか",
   "why": "既定の動きは、7 ケースのうち 4 ケースで製品ごとに違った",
   "good": "上流のスキーマが揺れたときの動き（止める、保留して所有者に確認、黙って落とす・既定値で埋める、そのまま通す）を、得るものと失うものを比べて選び、書いている。保留を選ぶなら、見る人と手順も決める",
@@ -6108,22 +7191,32 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ETL 基盤": [
+    [
+     "取り込みは、スキーマが揺れたときの動きを先に決める",
+     "取り込みは、揺れたときの動きを先に決める、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
-  "no": 154,
+  "no": 158,
   "id": "RQ-CC-03",
   "key": "CC-03",
   "part": null,
   "step": "9 基盤",
-  "target": "ETL 基盤",
+  "target": "共通基盤全般",
   "question": "エラーなしで変わる値を、照合で見つけられるか",
   "why": "黙って変わった 31 実行。合計が合った 4 実行も、平均は違った",
   "good": "取り込みの後に、行数・合計だけでなく、平均や NULL の数など複数の値を元と突き合わせている。エラーが無いことを、値が正しい証拠にしない",
   "sign": "合計が合っていることだけを見ている。取り込みがエラーを出さないことを、正しい証拠にしている",
   "when": "動かす前・定期",
   "first_question": "",
-  "properties": "更新性：黙って変わった値を照合で見つけられれば、上流の変更に気づける",
+  "properties": "該当なし（黙って変わる値を見つける問い。正しさで、4 つの性質には直接は当たらない）",
   "basis_kind": "ケーススタディの実測",
   "basis": "",
   "book": "",
@@ -6150,15 +7243,25 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ETL 基盤": [
+    [
+     "取り込みは、スキーマが揺れたときの動きを先に決める",
+     "黙って落とす・埋めると、欠けたことに気づくのが遅れる、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
-  "no": 155,
+  "no": 159,
   "id": "RQ-CC-04",
   "key": "CC-04",
   "part": null,
   "step": "9 基盤",
-  "target": "ログ基盤",
+  "target": "共通基盤全般",
   "question": "保持は、パーティションの単位で落とせるか",
   "why": "PostgreSQL の DELETE と ClickHouse の軽量な削除は、直後に容量が減らなかった",
   "good": "保持で落とす単位（日など）でパーティションやファイルを切っておき、古い分はパーティションの単位で落とす。DELETE で消すなら、容量が減るまでの追加の操作と時間を見込む",
@@ -6192,22 +7295,32 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ログ基盤": [
+    [
+     "テレメトリは失いうる前提。監査の記録は経路を分ける",
+     "費用を決めるものに保持を挙げ、種類ごとに期間を決める、と書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
-  "no": 156,
+  "no": 160,
   "id": "RQ-CC-07",
   "key": "CC-07",
   "part": null,
   "step": "9 基盤",
-  "target": "ログ基盤",
+  "target": "共通基盤全般",
   "question": "テレメトリを失う場面と、読む側の設定を確かめたか",
   "why": "読む側が既定のままだと、強制終了で 820 件を失った",
   "good": "テレメトリを失う場面（クラッシュ、再試行の時間切れ、保持の超過）を挙げ、失ってよい量を決めている。間に Kafka を置くなら、読む側の設定（処理の後で印を付ける）まで確かめている",
   "sign": "「Kafka を間に置いたから失わない」とする。読む側の Collector が既定のまま",
   "when": "作る前・動かす前",
   "first_question": "",
-  "properties": "更新性：失う場面が分かっていれば、下流を止めて替えるときの損失を見積もれる",
+  "properties": "該当なし（失う場面の問い。耐障害性で、4 つの性質には直接は当たらない）",
   "basis_kind": "ケーススタディの実測",
   "basis": "",
   "book": "",
@@ -6234,10 +7347,20 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {
+   "ログ基盤": [
+    [
+     "テレメトリは失いうる前提。監査の記録は経路を分ける",
+     "Collector の送信で、まだ失う場面を書く"
+    ]
+   ]
+  },
+  "related": []
  },
  {
-  "no": 157,
+  "no": 161,
   "id": "RQ-CD-03",
   "key": "CD-03",
   "part": null,
@@ -6276,6 +7399,9 @@
   ],
   "origin": "ケーススタディから持ち帰る問い",
   "note": "",
-  "checked_on": "2026-11-25"
+  "checked_on": "2026-11-25",
+  "sign_from": "",
+  "named": {},
+  "related": []
  }
 ]

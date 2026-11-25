@@ -15,19 +15,23 @@ CAT = os.path.dirname(HERE)
 RAW = os.path.join(CAT, 'raw')
 
 # key, label, width, group
+PLATFORMS = [('nm_data', 'データ基盤'), ('nm_etl', 'ETL 基盤'), ('nm_log', 'ログ基盤'), ('nm_auth', '認証基盤'), ('nm_ai', 'AI 基盤'), ('nm_bi', '分析基盤'), ('nm_sec', 'セキュリティ基盤')]
+G_DEF, G_ENTRY, G_NAMED, G_BASIS, G_MEAS, G_CASE, G_NOTE = '定義', '記入欄（自分のシステム）', 'ガイドが名指しした基盤', '根拠', '実測', '架空の宅配注文サービスでの扱い', '備考'
 COLUMNS = [
-    ('no', 'No', 5, '定義'), ('id', 'ID', 12, '定義'), ('step', 'ステップ', 11, '定義'), ('target', '対象', 14, '定義'),
-    ('question', '問い', 40, '定義'), ('why', 'なぜ問うか', 36, '定義'), ('good', 'よい答えの例', 46, '定義'), ('sign', '危ない兆候', 34, '定義'),
-    ('when', 'いつ問うか', 14, '定義'), ('first', 'まず問う問いか（Part 17）', 16, '定義'), ('properties', '4 つの性質のどれに効くか', 30, '定義'),
-    ('basis_kind', '根拠の種別', 16, '根拠'), ('basis', '根拠（ガイドのスライドの根拠の行）', 44, '根拠'), ('book', '書籍（書名・章節・印刷ページ）', 34, '根拠'),
-    ('guide_slide', 'ガイドのスライド', 36, '根拠'),
-    ('exp', '題材と実験', 26, '実測'), ('result', '実測の結果', 60, '実測'), ('verdict_class', '実測の判定（区分）', 16, '実測'),
-    ('verdict', '実測の判定（照合の表のまま）', 36, '実測'), ('result_link', '結果へのリンク', 30, '実測'), ('cs_slide', 'ケーススタディのスライド', 36, '実測'),
-    ('judge', '扱いの判定', 16, '架空の宅配注文サービスでの扱い'), ('reason', '理由（防いだこと／失うこと）', 50, '架空の宅配注文サービスでの扱い'),
-    ('cost', '正常な操作への費用', 40, '架空の宅配注文サービスでの扱い'), ('revisit', '見直し条件', 32, '架空の宅配注文サービスでの扱い'),
-    ('my_answer', '自分のシステムでの現状の答え', 40, '記入欄（自分のシステム）'), ('my_judge', '判定', 10, '記入欄（自分のシステム）'),
-    ('my_owner', '担当', 10, '記入欄（自分のシステム）'), ('my_due', '期限', 11, '記入欄（自分のシステム）'), ('my_memo', 'メモ', 30, '記入欄（自分のシステム）'),
-    ('note', '備考', 44, '備考と確認'), ('checked_on', '確認日', 11, '備考と確認'), ('origin', '出どころの種別', 20, '備考と確認'),
+    ('no', 'No', 5, G_DEF), ('id', 'ID', 12, G_DEF), ('step', 'ステップ', 11, G_DEF), ('target', '対象', 14, G_DEF),
+    ('question', '問い', 40, G_DEF), ('why', 'なぜ問うか', 36, G_DEF), ('good', 'よい答えの例', 46, G_DEF), ('sign', '危ない兆候', 34, G_DEF),
+    ('when', 'いつ問うか', 14, G_DEF), ('first', 'まず問う問いか（Part 17）', 16, G_DEF), ('properties', '4 つの性質のどれに効くか', 30, G_DEF),
+    ('my_answer', '自分のシステムでの現状の答え', 40, G_ENTRY), ('my_judge', '判定', 10, G_ENTRY),
+    ('my_owner', '担当', 10, G_ENTRY), ('my_due', '期限', 11, G_ENTRY), ('my_memo', 'メモ', 30, G_ENTRY),
+] + [(k, lab, 7, G_NAMED) for k, lab in PLATFORMS] + [
+    ('named_basis', '名指しの根拠（ガイドのスライド）', 44, G_NAMED),
+    ('basis_kind', '根拠の種別', 16, G_BASIS), ('basis', '根拠（ガイドのスライドの根拠の行）', 44, G_BASIS), ('book', '書籍（書名・章節・印刷ページ）', 34, G_BASIS),
+    ('guide_slide', 'ガイドのスライド', 36, G_BASIS),
+    ('exp', '題材と実験', 26, G_MEAS), ('result', '実測の結果', 60, G_MEAS), ('verdict_class', '実測の判定（区分）', 16, G_MEAS),
+    ('verdict', '実測の判定（照合の表のまま）', 36, G_MEAS), ('result_link', '結果へのリンク', 30, G_MEAS), ('cs_slide', 'ケーススタディのスライド', 36, G_MEAS),
+    ('judge', '扱いの判定', 16, G_CASE), ('reason', '理由（防いだこと／失うこと）', 50, G_CASE),
+    ('cost', '正常な操作への費用', 40, G_CASE), ('revisit', '見直し条件', 32, G_CASE),
+    ('note', '備考', 44, G_NOTE), ('origin', '出どころの種別', 20, G_NOTE),
 ]
 ENTRY = ('my_answer', 'my_judge', 'my_owner', 'my_due', 'my_memo')
 
@@ -39,7 +43,8 @@ BASIS_KINDS = ['仕様・文書', '指針・報告', '書籍', '本ガイドの�
 JUDGES = ['共通の基準に含めた', '題材の重点に含めた', '実験で比べた', '見送った', '測っていない', '対象外']
 MY_JUDGES = ['問題なし', '要対応', '対象外']
 ORIGINS = ['ガイドの問い', 'ケーススタディから持ち帰る問い', '両方（ガイドの問い＋ケーススタディから持ち帰る問い）']
-NO_MEAS = '実測なし（未検証）'
+NO_MEAS = '照合の行なし（実測していない）'
+YES, NO = '○', '—'
 MIXED = '複数の判定（右の列）'
 MOMENT = {'作る前': '作る前', '動かす前': '動かす前', '入れ替える前': '入れ替えの前', 'やめる前': 'やめる前'}
 
@@ -115,9 +120,28 @@ class View:
         d = self.dec.get(r['key']) or {}
         meas, case = d.get('meas') or {}, d.get('case') or {}
         c, link = {}, {}
-        for k in ('no', 'id', 'step', 'target', 'question', 'why', 'good', 'sign', 'when', 'properties', 'basis_kind', 'checked_on', 'origin'):
+        for k in ('no', 'id', 'step', 'target', 'question', 'why', 'good', 'sign', 'when', 'properties', 'basis_kind', 'origin'):
             c[k] = r.get(k, '')
         c['first'] = ('はい（Part 17「%s」）' % r['first_question']) if r['first_question'] else 'いいえ（Part 17 の「まず問うこと」の表に無い）'
+        # --- platforms the guide names for this question
+        named = r.get('named') or {}
+        parts = []
+        for k, lab in PLATFORMS:
+            c[k] = YES if lab in named else NO
+            if lab in named:
+                refs = []
+                for title, why in named[lab]:
+                    g = self.guide_ref(title)
+                    if not g:
+                        self.problems.append((r['id'], 'guide slide not found (named platform): ' + title))
+                        continue
+                    refs.append('スライド %s「%s」：%s' % (g[0].split('（スライド ')[1].rstrip('）'), clean(title), why))
+                    link.setdefault('named_basis', g[1])
+                parts.append('%s＝%s' % (lab, '、'.join(refs)))
+        for lab in named:
+            if lab not in [x[1] for x in PLATFORMS]:
+                self.problems.append((r['id'], 'unknown platform ' + lab))
+        c['named_basis'] = '／'.join(parts) if parts else '名指しなし（ガイドは、この問いを特定の基盤の名前では書いていない。%sとして問う）' % r['target']
         keys = meas.get('links') or []
         rec_titles = self.reconcile_titles(keys)
         cs_only = r['part'] is None
@@ -207,13 +231,24 @@ class View:
         if r.get('note'):
             notes.append(r['note'])
         if r['guide_context'] and not cs_only:
-            notes.append('スライドの表での見出し：' + r['guide_context'])
+            notes.append('スライドでの見出し・位置：' + r['guide_context'])
         quoted = [s for s in r['sources'][1:] if 'short_form' not in s]
         if quoted:
             notes.append('同じ文言の問いを 1 行にまとめた（出どころ %d 枚）' % (1 + len(quoted)))
         for s in r['sources']:
             if 'short_form' in s:
                 notes.append('Part 14「%s」の短い形「%s」をこの行にまとめた' % (s['slide_title'], s['short_form']))
+        rel = []
+        for t in r.get('related') or []:
+            g = self.guide_ref(t)
+            if not g:
+                self.problems.append((r['id'], 'guide slide not found (related): ' + t))
+            else:
+                rel.append(g[0])
+        if rel:
+            notes.append('問いの表の外で、同じ点を「問う」と書いているスライド：' + '、'.join(rel))
+        if r.get('sign_from'):
+            notes.append('「危ない兆候」は、%sから写した' % r['sign_from'])
         if r['p17_property']:
             notes.append('Part 17 が性質（%s）の問いに選んだ' % '・'.join(r['p17_property']))
         if r['p17_moment']:

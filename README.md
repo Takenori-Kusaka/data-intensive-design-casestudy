@@ -7,7 +7,9 @@
 - 結果：題材ごとの [results/a/summary.md](results/a/summary.md)・[results/b/summary.md](results/b/summary.md)・[results/c/summary.md](results/c/summary.md)・[results/d/summary.md](results/d/summary.md)
 - 2 回の実行の比較：[results/RERUN.md](results/RERUN.md)
 - 実験の設計：[research/DESIGN.md](research/DESIGN.md)（末尾に「設計から変えた点」）、実装の決まり：[research/IMPLEMENTATION_RULES.md](research/IMPLEMENTATION_RULES.md)
-- スライド（`slides/`・`docs/`）と設計レビューの一覧表（`catalog/`）：準備中
+- スライド（106 枚）：Web 版 <https://takenori-kusaka.github.io/data-intensive-design-casestudy/>、PDF [slides/data-intensive-design-casestudy.pdf](slides/data-intensive-design-casestudy.pdf)、PowerPoint [slides/data-intensive-design-casestudy.pptx](slides/data-intensive-design-casestudy.pptx)（発表者ノートつき）
+- 設計レビューの一覧表（161 行）：[catalog/data-intensive-design-review.xlsx](catalog/data-intensive-design-review.xlsx)（作り方と限界は [catalog/README.md](catalog/README.md)）
+- スライドの確認の記録：書き手の確認（`research/reviews/verify_p00.md`〜`verify_p05.md`）、別の担当によるファクトチェックの指摘と対応（`research/reviews/fc/`）
 
 ## 4 つの題材と実行の数
 
@@ -112,13 +114,13 @@ AMD Ryzen 7 3700X（8 スレッド）、WSL2 のメモリ 11.7 GB、Ubuntu 24.04
 - `results/`：結果（件数は必ずここから数える）
 - `research/`：実験の設計、実装の決まり、スライドの数字の確認の記録（`research/reviews/`）
 - `deck/`・`tools/`：スライドを作る道具
-- `slides/`・`docs/`：スライド（準備中）
-- `catalog/`：設計レビューの一覧表（準備中）
+- `slides/`・`docs/`：スライド（公開用の pptx・PDF と、GitHub Pages の Web 版）。`deck/`：スライドの生成器と各 Part、書き手・点検の規則
+- `catalog/`：設計レビューの一覧表（xlsx）と、その素材・判定・検査・生成のスクリプト、点検の記録
 
 ## 道具の出どころ
 
 - `deck/` と `tools/` は、[data-intensive-design-guide](https://github.com/Takenori-Kusaka/data-intensive-design-guide) のコミット `ad5dd6b` からコピーした（道具のみ。中身はこのケーススタディ用に書き換えた）
-- `catalog/scripts/` の `build_xlsx.py`・`validate.py`・`links.py`・`header_rows.py`・`merge.py`・`xlsx_check.ps1` は、[jwt-claims-casestudy](https://github.com/Takenori-Kusaka/jwt-claims-casestudy) のコミット `080b8da` からコピーした（道具のみ。中身はこのテーマ用に書き換える）
+- `catalog/scripts/` の `build_xlsx.py`・`validate.py`・`links.py`・`merge.py`・`xlsx_check.ps1` は、[jwt-claims-casestudy](https://github.com/Takenori-Kusaka/jwt-claims-casestudy) のコミット `080b8da` からコピーした（道具のみ。中身はこのテーマ用に書き換える）
 - 題材 D の D-1 の手順の考え方は [Hermitage](https://github.com/ept/hermitage)（Martin Kleppmann、CC BY 4.0）による
 
 ## 調査日

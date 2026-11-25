@@ -1,10 +1,11 @@
 {
  "summary": {
-  "rows": 157,
+  "rows": 161,
+  "columns": 40,
   "blank_cells_outside_entry_columns": 0,
   "problems": 0,
   "by_step": {
-   "9 基盤": 27,
+   "9 基盤": 31,
    "7 正しさ": 18,
    "基礎": 16,
    "2 所有": 15,
@@ -19,38 +20,38 @@
    "置換と更新": 7
   },
   "by_target": {
-   "サービス全般": 123,
-   "共通基盤全般": 19,
-   "ログ基盤": 4,
-   "データ基盤": 3,
-   "ETL 基盤": 3,
-   "AI 基盤": 2,
+   "サービス全般": 127,
+   "共通基盤全般": 27,
+   "データ基盤": 1,
+   "ETL 基盤": 1,
+   "ログ基盤": 1,
    "認証基盤": 1,
+   "AI 基盤": 1,
    "分析基盤": 1,
    "セキュリティ基盤": 1
   },
   "by_origin": {
-   "ガイドの問い": 131,
+   "ガイドの問い": 135,
    "両方（ガイドの問い＋ケーススタディから持ち帰る問い）": 16,
    "ケーススタディから持ち帰る問い": 10
   },
   "by_verdict_class": {
-   "実測なし（未検証）": 91,
-   "複数の判定（右の列）": 35,
-   "一致": 11,
-   "未検証": 6,
-   "実測": 6,
+   "照合の行なし（実測していない）": 95,
+   "複数の判定（右の列）": 38,
+   "一致": 9,
+   "未検証": 7,
+   "実測": 4,
    "一部だけ実測": 3,
    "条件つきで食い違い": 2,
    "未確認だった点の実測": 2,
    "未検証だった点の実測": 1
   },
   "by_judge": {
-   "測っていない": 63,
+   "測っていない": 67,
    "題材の重点に含めた": 26,
    "対象外": 25,
-   "共通の基準に含めた": 23,
-   "実験で比べた": 17,
+   "共通の基準に含めた": 24,
+   "実験で比べた": 16,
    "見送った": 3
   },
   "by_part": {
@@ -67,19 +68,53 @@
    "Part 11": 10,
    "Part 12": 10,
    "Part 13": 14,
-   "Part 14": 8,
+   "Part 14": 12,
    "Part 15": 7,
    "Part 16": 8,
    "Part 17": 13,
    "ケーススタディ": 10
   },
-  "rows_with_supplied_cells": 42,
+  "by_platform": {
+   "データ基盤": {
+    "named": 7,
+    "named_or_all_platforms": 29
+   },
+   "ETL 基盤": {
+    "named": 10,
+    "named_or_all_platforms": 30
+   },
+   "ログ基盤": {
+    "named": 11,
+    "named_or_all_platforms": 31
+   },
+   "認証基盤": {
+    "named": 11,
+    "named_or_all_platforms": 31
+   },
+   "AI 基盤": {
+    "named": 9,
+    "named_or_all_platforms": 31
+   },
+   "分析基盤": {
+    "named": 10,
+    "named_or_all_platforms": 32
+   },
+   "セキュリティ基盤": {
+    "named": 10,
+    "named_or_all_platforms": 31
+   }
+  },
+  "rows_naming_a_platform": 28,
+  "rows_with_properties": 116,
+  "rows_with_supplied_cells": 46,
   "supplied_by_origin": {
-   "ガイド：why・sign": 28,
+   "ガイド：why・sign": 23,
    "ガイド：sign": 4,
+   "ガイド：why": 9,
    "ケーススタディ：sign": 10
   },
-  "reconcile_rows_linked": 110,
+  "rows_linked_to_reconcile": 66,
+  "reconcile_rows_linked": 115,
   "reconcile_rows": 152
  },
  "problems": []

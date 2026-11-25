@@ -18,6 +18,8 @@ RAW = os.path.join(CAT, 'raw')
 #   plus   : rows of a table whose first cell starts with '＋' (the guide's three additions to an ADR)
 #   quote  : a question quoted in the slide text (pattern)
 #   multi  : a cell that holds several questions, each followed by （Part N）
+#   boxlines: a note box labelled 「レビューで問うこと」; each line is a question
+#   boxquote: a question quoted inside a note box (pattern)
 SPEC = [
     ('設計レビューでは、性質を数字と手順で問う', 'table', dict(q=0, why=1, sign=2)),
     ('設計レビューで問うこと：要件と負荷', 'table', dict(q=0, why=1, sign=2)),
@@ -40,6 +42,8 @@ SPEC = [
     ('設計レビューで問うこと：7 つの基盤に 1 問ずつ', 'table', dict(q=1, why=2, sign=3, ctx=0)),
     ('被害を広げた設計は、8 つの型にまとまる', 'table', dict(q=3, ctx=0, short_of='設計レビューで問うこと：型ごとに 1 問')),
     ('設計レビューで問うこと：型ごとに 1 問', 'table', dict(q=1, why=2, sign=3, ctx=0)),
+    ('段階配布は万能ではない。何を見て進むかを問う', 'boxlines', dict(label='レビューで問うこと')),
+    ('型②⑧：1 つの基盤、1 つの共有が全体に届く', 'boxquote', dict(pattern=r'(「止まってもよいはず」の依存は、実際に止めて確かめたか)を問う')),
     ('設計レビューで問うこと：入れ替える前・やめる前', 'table', dict(q=0, why=1, sign=2)),
     ('設計レビューで問うこと：法・プライバシー', 'table', dict(q=0, why=1, sign=2)),
     ('9 つのステップで、全体像を順に押さえる', 'table', dict(q=2, ctx=0)),
@@ -102,7 +106,19 @@ def main():
             m = re.search(o['pattern'], text)
             if not m:
                 raise SystemExit('quoted question not found: ' + title)
-            recs.append(dict(base, question=m.group(1), why='', sign='', context='手順 1 絡み合う部分を見つける', hint='', header='スライドの図の文', short_of=''))
+            recs.append(dict(base, question=m.group(1), why='', sign='', context='図「3 つの手順」の 1 つ目（絡み合う部分を見つける）', hint='', header='スライドの図の文', short_of=''))
+        elif kind == 'boxlines':
+            box = [b for b in s['boxes'] if b['label'] == o['label']]
+            if len(box) != 1:
+                raise SystemExit('box not found: ' + title)
+            for line in box[0]['text'].split('\n'):
+                if line.strip():
+                    recs.append(dict(base, question=line.strip(), why='', sign='', context='注記「%s」' % o['label'], hint='', header='注記の行', short_of=''))
+        elif kind == 'boxquote':
+            m = re.search(o['pattern'], ' '.join(b['text'] for b in s['boxes']))
+            if not m:
+                raise SystemExit('quoted question not found: ' + title)
+            recs.append(dict(base, question=m.group(1), why='', sign='', context='注記（リーダーの視点）', hint='', header='注記の文', short_of=''))
         elif kind == 'multi':
             t = s['tables'][0]
             head = [clean(c) for c in t[0]]

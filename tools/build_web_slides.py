@@ -5,7 +5,7 @@ from PIL import Image
 from pptx import Presentation
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REPO = 'https://github.com/Takenori-Kusaka/data-intensive-design-guide'
+REPO = 'https://github.com/Takenori-Kusaka/data-intensive-design-casestudy'
 
 def build(pptx_name, docs_rel, title, lead, og_desc, other):
   PPTX = os.path.join(ROOT, 'slides', pptx_name)
@@ -85,7 +85,7 @@ def build(pptx_name, docs_rel, title, lead, og_desc, other):
   open(os.path.join(DOCS, '.nojekyll'), 'w').close()
   print('slides', len(slides), 'size MB', round(sum(os.path.getsize(f) for f in glob.glob(SL + '/*')) / 1e6, 1))
 
-build('data-intensive-design-guide.pptx', '', 'データ指向で設計する大規模クラウドサービス ― 全体像を押さえる 9 つのステップ',
-      'マイクロサービスと共通基盤（データ・ETL・ログ・認証・AI・分析・セキュリティ）から成る大規模クラウドサービスの全体設計を任された新任のテックリーダーに向けて、柔軟性・拡張性・置換性・更新性を保つための判断の材料と、設計レビューで問う観点をまとめた資料です',
-      'データはコードより長く残る。要件、記録のシステムと導出データ、データモデル、データの流れ、契約、複製と分割、正しさの水準、導出データの作り直し、7 つの共通基盤を、標準・公式文書・事業者の事後報告と日本語の専門書 4 冊を根拠に、9 つのステップで解説',
-      'ケーススタディ（実測）は準備中')
+build('data-intensive-design-casestudy.pptx', '', 'データ指向で設計する大規模クラウドサービス ― ケーススタディ（実測）',
+      'ガイド「データ指向で設計する大規模クラウドサービス ― 全体像を押さえる 9 つのステップ」の主張を、架空の宅配注文サービスの上で、1 台の Docker 環境の実機で 2 回測って確かめた記録です。会社・サービス・数値は架空です',
+      '二重書き込み・アウトボックス・CDC、スキーマ変更と入れ替え、行指向・列指向・ファイル、分離レベルと複製を、素朴な構成・共通の基準・重点の 3 構成と除去実験で比べ、ガイドの記述と 152 行で照合',
+      '<a href="https://takenori-kusaka.github.io/data-intensive-design-guide/">ガイド（256 枚）</a>／<a href="https://github.com/Takenori-Kusaka/data-intensive-design-casestudy/raw/main/catalog/data-intensive-design-review.xlsx">設計レビューの一覧表（xlsx）</a>')

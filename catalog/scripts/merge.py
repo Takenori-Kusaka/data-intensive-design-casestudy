@@ -93,6 +93,13 @@ def main():
             hit['p17_moment'] = r['context']
         if r.get('hint') and not hit.get('hint'):
             hit['hint'] = r['hint']
+    # the nine step questions: both warning signs of the step, copied from Part 17's 「まず問うこと」 tables
+    for row in rows:
+        if row['part'] == 17 and row['context'][:1].isdigit():
+            signs = [r['sign'] for r in recs if r['part'] == 17 and 'まず問う' in r.get('header', '') and r['context'] == row['context'] and r['sign']]
+            if signs:
+                row['sign'] = '／'.join(signs)
+                row['sign_from'] = 'Part 17 の「まず問うこと」の表の、同じステップの行'
     # keys: Part and order of first appearance
     count = {}
     for row in rows:
@@ -134,6 +141,11 @@ def main():
             if k in defs:
                 raise SystemExit('decided twice: ' + k)
             defs[k] = v
+    named = json.load(open(os.path.join(RAW, 'named_platforms.json'), encoding='utf-8'))
+    related = json.load(open(os.path.join(RAW, 'related_slides.json'), encoding='utf-8'))
+    for k in list(named) + list(related):
+        if k not in by_key:
+            raise SystemExit('named_platforms/related_slides point at an unknown row ' + k)
     out = []
     for n, row in enumerate(rows, 1):
         d = (defs.get(row['key']) or {}).get('def') or {}
@@ -152,6 +164,7 @@ def main():
             # the reason comes from the case-study slide (its evidence column); only the warning sign is written here
             row['why'] = row['casestudy'][0]['evidence']
         supplied = [x for x in ('why', 'sign') if not row[x]]
+        copied = row.get('sign_from', '')
         why = row['why'] or d.get('why', '')
         sign = row['sign'] or d.get('sign', '')
         if cs_only:
@@ -164,7 +177,8 @@ def main():
             basis_kind='／'.join(kinds), basis='／'.join(['%s：%s' % (lab, refs[k]) for k, lab in KIND_LABEL if refs.get(k)] + (['本ガイドの考え：' + book_note] if book_note else [])),
             book=refs.get('book', ''), sources=row['sources'], supplied=supplied, guide_hint=row['hint'], guide_context=row['context'],
             p17_property=row['p17_property'], p17_moment=row['p17_moment'], casestudy=row['casestudy'], origin=row['origin'],
-            note=d.get('note', ''), checked_on=links.CHECKED_ON))
+            note=d.get('note', ''), checked_on=links.CHECKED_ON, sign_from=copied,
+            named=named.get(row['key'], {}), related=related.get(row['key'], [])))
     json.dump(out, open(os.path.join(CAT, 'catalog.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     json.dump(log, open(os.path.join(RAW, 'merge_log.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     guide_rows = [r for r in out if r['part'] is not None]
