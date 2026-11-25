@@ -9,6 +9,7 @@
 - 実験の設計：[research/DESIGN.md](research/DESIGN.md)（末尾に「設計から変えた点」）、実装の決まり：[research/IMPLEMENTATION_RULES.md](research/IMPLEMENTATION_RULES.md)
 - スライド（106 枚）：Web 版 <https://takenori-kusaka.github.io/data-intensive-design-casestudy/>、Docswell <https://www.docswell.com/s/takenori_kusaka/5Y8XLE-2026-11-25-213232>、PDF [slides/data-intensive-design-casestudy.pdf](slides/data-intensive-design-casestudy.pdf)、PowerPoint [slides/data-intensive-design-casestudy.pptx](slides/data-intensive-design-casestudy.pptx)（発表者ノートつき）
 - 設計レビューの一覧表（161 行）：[catalog/data-intensive-design-review.xlsx](catalog/data-intensive-design-review.xlsx)（作り方と限界は [catalog/README.md](catalog/README.md)）
+- 記事：[Zenn](https://zenn.dev/takenori_kusaka/articles/data-intensive-design-guide)（全体）、[Qiita](https://qiita.com/Takenori-Kusaka/items/495c91b9047023bfbcd4)（アウトボックスのポーリングの読み飛ばし）、[note](https://note.com/t_k_official/n/nfa9a66e3a6be)（管理職向け）
 - スライドの確認の記録：書き手の確認（`research/reviews/verify_p00.md`〜`verify_p05.md`）、別の担当によるファクトチェックの指摘と対応（`research/reviews/fc/`）
 
 ## 4 つの題材と実行の数
