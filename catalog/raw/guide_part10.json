@@ -1,0 +1,236 @@
+[
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "どこで合意に頼っているか（リーダー選出・ロック・一意性・発見）",
+  "why": "合意は、過半数が通信できるときだけ進む",
+  "sign": "依存の一覧が無い。全サービスが 1 つのクラスタに載る",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "それが進まなくなったら、何が止まるか。試したか",
+  "why": "事故の被害は、頼る側の作りで決まった",
+  "sign": "要求のたびに引く。キャッシュが無い。監視も同じ基盤",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "時計の時刻で、順序や勝ち負けを決めていないか",
+  "why": "LWW は、ずれた時計で書き込みを黙って捨てる",
+  "sign": "「NTP で同期しているから大丈夫」。端末の時計を使う",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "経過時間と期限を、どの時計で測っているか",
+  "why": "実時間クロックは飛び、戻る",
+  "sign": "現在時刻の差で測る。負の経過時間を想定していない",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "ロックの後の書き込みを、資源の側は古い持ち主から拒めるか",
+  "why": "リースは、止まったプロセスの上で切れる",
+  "sign": "「ロックしているから二重実行は無い」。番号の検査が無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "タイムアウトと再試行は、どの層で何回か。負荷を落とせるか",
+  "why": "再試行は、層を重ねると掛け算で増える",
+  "sign": "既定値のまま。全層で再試行。上限もばらつきも無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "ヘルスチェックは、利用者から見た成功率・遅延と合うか",
+  "why": "グレー障害は、検知器には健全に見える",
+  "sign": "ハートビートとプロセスの生存だけを見ている",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 7
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "この操作に要るのは最新性か、分離か。なぜその水準か",
+  "why": "水準ごとに、遅延と分断時のふるまいが違う",
+  "sign": "「強整合」「CP」の一言で済ませる。全部を最強にする",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 8
+ },
+ {
+  "slide_title": "設計レビューで問うこと：頼り先が止まったら",
+  "slide_no": 150,
+  "part": 10,
+  "section": "Part 10 分散システムで信用できないもの",
+  "tag": "基礎",
+  "stages": [
+   5,
+   6
+  ],
+  "refs": {
+   "spec": "Jepsen「etcd 3.4.3」／Bailis ほか PVLDB 7(3)／Huang ほか 2017・2022",
+   "inst": "Amazon Builders' Library（2019-12）／Roblox・Cloudflare・OpenAI の事後報告",
+   "book": "DDIA 2e 9 章 p.341〜386、10 章 p.397〜440"
+  },
+  "lead": "合意の証明は要らない。頼り先・止まり方・時計・古い持ち主を、根拠つきで答えられるかを見る",
+  "kind": "table",
+  "question": "製品の主張は、どの版で、誰が、どう確かめたか",
+  "why": "文書の主張と障害時のふるまいは食い違いうる",
+  "sign": "「強い一貫性と書いてある」。検証の版が使う版より古い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 9
+ }
+]

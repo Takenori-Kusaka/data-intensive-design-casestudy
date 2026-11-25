@@ -1,0 +1,252 @@
+[
+ {
+  "slide_title": "サーガは 3 つの軸で整理し、調整役の得失で選ぶ",
+  "slide_no": 160,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "AWS Prescriptive Guidance saga choreography・orchestration／Azure Saga（任意）",
+   "book": "『ハードパーツ』表 12-1 p.324・表 11-1 p.306・表 11-5 p.315・11.3 節 p.316〜317"
+  },
+  "lead": "通信・整合性・調整の 3 軸で 8 通り。まず決めるのは、流れと状態を誰が持つか",
+  "kind": "table",
+  "question": "呼び出し側は結果を待つか",
+  "why": "",
+  "sign": "",
+  "context": "通信",
+  "hint": "同期 ／ 非同期",
+  "header": "軸｜2 つの値｜問うこと",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "サーガは 3 つの軸で整理し、調整役の得失で選ぶ",
+  "slide_no": 160,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "AWS Prescriptive Guidance saga choreography・orchestration／Azure Saga（任意）",
+   "book": "『ハードパーツ』表 12-1 p.324・表 11-1 p.306・表 11-5 p.315・11.3 節 p.316〜317"
+  },
+  "lead": "通信・整合性・調整の 3 軸で 8 通り。まず決めるのは、流れと状態を誰が持つか",
+  "kind": "table",
+  "question": "失敗したとき、全部戻すか、後で揃えるか",
+  "why": "",
+  "sign": "",
+  "context": "整合性",
+  "hint": "アトミック（補償で全部戻す）／ 結果整合性",
+  "header": "軸｜2 つの値｜問うこと",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "サーガは 3 つの軸で整理し、調整役の得失で選ぶ",
+  "slide_no": 160,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "AWS Prescriptive Guidance saga choreography・orchestration／Azure Saga（任意）",
+   "book": "『ハードパーツ』表 12-1 p.324・表 11-1 p.306・表 11-5 p.315・11.3 節 p.316〜317"
+  },
+  "lead": "通信・整合性・調整の 3 軸で 8 通り。まず決めるのは、流れと状態を誰が持つか",
+  "kind": "table",
+  "question": "流れと状態を誰が持つか",
+  "why": "",
+  "sign": "",
+  "context": "調整",
+  "hint": "オーケストレーション ／ コレオグラフィ",
+  "header": "軸｜2 つの値｜問うこと",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "設計レビューで問うこと：サービスをまたぐ整合性",
+  "slide_no": 164,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "Azure Architecture Center Saga・Compensating Transaction（任意の推奨）",
+   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362"
+  },
+  "lead": "範囲を問う。何から何までの保証か、破れたら誰がどう気づくか",
+  "kind": "table",
+  "question": "この処理は、遅れを許すのか、食い違いを許すのか",
+  "why": "適時性と完全性は別の要件",
+  "sign": "「結果整合性だから」で話が終わる",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "設計レビューで問うこと：サービスをまたぐ整合性",
+  "slide_no": 164,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "Azure Architecture Center Saga・Compensating Transaction（任意の推奨）",
+   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362"
+  },
+  "lead": "範囲を問う。何から何までの保証か、破れたら誰がどう気づくか",
+  "kind": "table",
+  "question": "「分散トランザクション」は製品の中の話か、異なる技術をまたぐ話か",
+  "why": "後者は調整役の障害でロックが残る",
+  "sign": "分散 DB の保証が、ブローカーや他サービスに及ぶと見なす",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "設計レビューで問うこと：サービスをまたぐ整合性",
+  "slide_no": 164,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "Azure Architecture Center Saga・Compensating Transaction（任意の推奨）",
+   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362"
+  },
+  "lead": "範囲を問う。何から何までの保証か、破れたら誰がどう気づくか",
+  "kind": "table",
+  "question": "受け手は冪等か。キーは誰が作り、どこまで通し、いつまで持つか",
+  "why": "配信は少なくとも 1 回。再試行は端でも起きる",
+  "sign": "キーを受け手側で採番する。保存期間が再試行の間隔より短い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ },
+ {
+  "slide_title": "設計レビューで問うこと：サービスをまたぐ整合性",
+  "slide_no": 164,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "Azure Architecture Center Saga・Compensating Transaction（任意の推奨）",
+   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362"
+  },
+  "lead": "範囲を問う。何から何までの保証か、破れたら誰がどう気づくか",
+  "kind": "table",
+  "question": "「厳密に 1 回」は、何から何までの範囲か",
+  "why": "保証は、その枠組みの中だけ",
+  "sign": "「Kafka が保証するので DB は重複を考えない」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 7
+ },
+ {
+  "slide_title": "設計レビューで問うこと：サービスをまたぐ整合性",
+  "slide_no": 164,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "Azure Architecture Center Saga・Compensating Transaction（任意の推奨）",
+   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362"
+  },
+  "lead": "範囲を問う。何から何までの保証か、破れたら誰がどう気づくか",
+  "kind": "table",
+  "question": "サーガの途中の状態を、他の処理が読むと何が起きるか",
+  "why": "サーガに分離性は無い",
+  "sign": "「保留中」の状態が無く、途中の値がそのまま見える",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 8
+ },
+ {
+  "slide_title": "設計レビューで問うこと：サービスをまたぐ整合性",
+  "slide_no": 164,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "Azure Architecture Center Saga・Compensating Transaction（任意の推奨）",
+   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362"
+  },
+  "lead": "範囲を問う。何から何までの保証か、破れたら誰がどう気づくか",
+  "kind": "table",
+  "question": "補償が失敗したら、誰がどう気づくか。取り消せない操作はいつ行うか",
+  "why": "補償は失敗しうる。原論文の答えも人手",
+  "sign": "補償が未実装。最初のステップが外部への送金",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 9
+ },
+ {
+  "slide_title": "設計レビューで問うこと：サービスをまたぐ整合性",
+  "slide_no": 164,
+  "part": 11,
+  "section": "Part 11 サービスをまたぐ整合性",
+  "tag": "ステップ 7",
+  "stages": [
+   6,
+   3
+  ],
+  "refs": {
+   "inst": "Azure Architecture Center Saga・Compensating Transaction（任意の推奨）",
+   "book": "DDIA 2e 8.4.2〜8.4.4 節 p.323〜330・13.3 節 p.558〜573／『ハードパーツ』12.2〜12.4 節 p.350〜362"
+  },
+  "lead": "範囲を問う。何から何までの保証か、破れたら誰がどう気づくか",
+  "kind": "table",
+  "question": "食い違いをどう検出し、誰が直すか",
+  "why": "仕組みを信頼しても、検証は要る",
+  "sign": "照合の処理も、取り消しの手順も無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 10
+ }
+]

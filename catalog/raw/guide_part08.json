@@ -1,0 +1,177 @@
+[
+ {
+  "slide_title": "設計レビューで問うこと：複製と分割",
+  "slide_no": 121,
+  "part": 8,
+  "section": "Part 8 複製と分割",
+  "tag": "ステップ 6",
+  "stages": [
+   5
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）",
+   "inst": "GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）",
+   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "応答済みの書き込みは、何台に置いてから応答するか",
+  "why": "非同期が既定の製品では、昇格で応答済みの書き込みを失いうる",
+  "sign": "「synchronous_commit は on です」だけ",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "設計レビューで問うこと：複製と分割",
+  "slide_no": 121,
+  "part": 8,
+  "section": "Part 8 複製と分割",
+  "tag": "ステップ 6",
+  "stages": [
+   5
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）",
+   "inst": "GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）",
+   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "同期先が足りなくなったら、書き込みはどうなるか",
+  "why": "PostgreSQL は、コミットが完了しないまま待つ",
+  "sign": "同期スタンバイを 1 台だけ名指ししている",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "設計レビューで問うこと：複製と分割",
+  "slide_no": 121,
+  "part": 8,
+  "section": "Part 8 複製と分割",
+  "tag": "ステップ 6",
+  "stages": [
+   5
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）",
+   "inst": "GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）",
+   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "誰が障害を検知し、昇格を決め、旧リーダーを止めるか",
+  "why": "PostgreSQL 本体は検知を持たない。遮断が無いとスプリットブレイン",
+  "sign": "障害とみなす条件としきい値を、誰も言えない",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "設計レビューで問うこと：複製と分割",
+  "slide_no": 121,
+  "part": 8,
+  "section": "Part 8 複製と分割",
+  "tag": "ステップ 6",
+  "stages": [
+   5
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）",
+   "inst": "GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）",
+   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "リージョンをまたぐ昇格を、自動で許すか",
+  "why": "非同期では、両側に相手に無い書き込みが残りうる（GitHub 2018-10）",
+  "sign": "昇格してよい範囲に制限が無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "設計レビューで問うこと：複製と分割",
+  "slide_no": 121,
+  "part": 8,
+  "section": "Part 8 複製と分割",
+  "tag": "ステップ 6",
+  "stages": [
+   5
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）",
+   "inst": "GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）",
+   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "書き込み直後の読み取りは、どこへ送るか。遅れが数分になったら",
+  "why": "自分の書き込みが読めない異常は、利用者に直接見える",
+  "sign": "遅れを測っていない。しきい値と警報が無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "設計レビューで問うこと：複製と分割",
+  "slide_no": 121,
+  "part": 8,
+  "section": "Part 8 複製と分割",
+  "tag": "ステップ 6",
+  "stages": [
+   5
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）",
+   "inst": "GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）",
+   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "複製とは別にバックアップを持ち、復元を試したか",
+  "why": "削除は複製先へ伝わる（GitLab 2017-01）",
+  "sign": "「レプリカがあるので不要」。復元の所要時間を知らない",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ },
+ {
+  "slide_title": "設計レビューで問うこと：複製と分割",
+  "slide_no": 121,
+  "part": 8,
+  "section": "Part 8 複製と分割",
+  "tag": "ステップ 6",
+  "stages": [
+   5
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.5・26.2.8・26.3／Apache Kafka 4.4 文書（各 2026-11 確認）",
+   "inst": "GitHub 事後報告（2018-10-21 発生）／GitLab 事後報告（2017-01-31 発生）",
+   "book": "DDIA 2e 6 章 p.195・200–201・209／7 章 p.247・258"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "分割のキーは何か。最も熱いキーの負荷と、数を変えたときの影響は",
+  "why": "キーと数は後から変えにくい。ホットキーは分割しても散らない",
+  "sign": "キーが時刻や連番。数の根拠が無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 7
+ }
+]

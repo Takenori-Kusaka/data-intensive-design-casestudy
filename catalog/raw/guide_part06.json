@@ -1,0 +1,177 @@
+[
+ {
+  "slide_title": "データの流れについて、設計レビューで問うこと",
+  "slide_no": 87,
+  "part": 6,
+  "section": "Part 6 データの流れを設計する",
+  "tag": "ステップ 4",
+  "stages": [
+   3
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）",
+   "inst": "AWS 規範ガイダンス Transactional outbox／.NET Microservices",
+   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199"
+  },
+  "lead": "運び方より先に、「順序をだれが決めるか」「止まったら何が溜まるか」を問う",
+  "kind": "table",
+  "question": "1 つの処理で、DB と別のシステムの両方に書く箇所はどこか",
+  "why": "二重書き込みは、片方だけ成功しうる",
+  "sign": "commit の直後に publish。失敗を握りつぶす再送",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "データの流れについて、設計レビューで問うこと",
+  "slide_no": 87,
+  "part": 6,
+  "section": "Part 6 データの流れを設計する",
+  "tag": "ステップ 4",
+  "stages": [
+   3
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）",
+   "inst": "AWS 規範ガイダンス Transactional outbox／.NET Microservices",
+   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199"
+  },
+  "lead": "運び方より先に、「順序をだれが決めるか」「止まったら何が溜まるか」を問う",
+  "kind": "table",
+  "question": "同じキーへの並行した更新が、2 つのシステムに同じ順で届く保証は何か",
+  "why": "エラーなしで食い違いが残る型がある",
+  "sign": "「めったに起きない」「時刻で後勝ち」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "データの流れについて、設計レビューで問うこと",
+  "slide_no": 87,
+  "part": 6,
+  "section": "Part 6 データの流れを設計する",
+  "tag": "ステップ 4",
+  "stages": [
+   3
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）",
+   "inst": "AWS 規範ガイダンス Transactional outbox／.NET Microservices",
+   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199"
+  },
+  "lead": "運び方より先に、「順序をだれが決めるか」「止まったら何が溜まるか」を問う",
+  "kind": "table",
+  "question": "コピーを読むのか、正を直接呼ぶのか。遅れをどこまで許すか",
+  "why": "許せる遅れと照合の要否で、運び方が決まる",
+  "sign": "遅れの上限を決めていない",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "データの流れについて、設計レビューで問うこと",
+  "slide_no": 87,
+  "part": 6,
+  "section": "Part 6 データの流れを設計する",
+  "tag": "ステップ 4",
+  "stages": [
+   3
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）",
+   "inst": "AWS 規範ガイダンス Transactional outbox／.NET Microservices",
+   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199"
+  },
+  "lead": "運び方より先に、「順序をだれが決めるか」「止まったら何が溜まるか」を問う",
+  "kind": "table",
+  "question": "受け手は冪等か。同じイベントが 2 回届いても、効果は 1 回分か",
+  "why": "どの方式も、既定は少なくとも 1 回",
+  "sign": "イベントに ID が無い。「厳密に 1 回なので不要」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "データの流れについて、設計レビューで問うこと",
+  "slide_no": 87,
+  "part": 6,
+  "section": "Part 6 データの流れを設計する",
+  "tag": "ステップ 4",
+  "stages": [
+   3
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）",
+   "inst": "AWS 規範ガイダンス Transactional outbox／.NET Microservices",
+   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199"
+  },
+  "lead": "運び方より先に、「順序をだれが決めるか」「止まったら何が溜まるか」を問う",
+  "kind": "table",
+  "question": "外に出しているのは内部の表の形か、外向きに決めた形か",
+  "why": "表の CDC は、内部のスキーマを公開の契約に変える",
+  "sign": "列を消すと下流が壊れる。だれが読んでいるか分からない",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "データの流れについて、設計レビューで問うこと",
+  "slide_no": 87,
+  "part": 6,
+  "section": "Part 6 データの流れを設計する",
+  "tag": "ステップ 4",
+  "stages": [
+   3
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）",
+   "inst": "AWS 規範ガイダンス Transactional outbox／.NET Microservices",
+   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199"
+  },
+  "lead": "運び方より先に、「順序をだれが決めるか」「止まったら何が溜まるか」を問う",
+  "kind": "table",
+  "question": "スロットの保持量をだれが監視し、上限はいくつか",
+  "why": "既定は無制限。正の DB のディスクが埋まりうる",
+  "sign": "上限の設定が既定のまま。使っていないスロットがある",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ },
+ {
+  "slide_title": "データの流れについて、設計レビューで問うこと",
+  "slide_no": 87,
+  "part": 6,
+  "section": "Part 6 データの流れを設計する",
+  "tag": "ステップ 4",
+  "stages": [
+   3
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 19.6・47.2.2／Debezium 3.7 文書（2026-11 確認）",
+   "inst": "AWS 規範ガイダンス Transactional outbox／.NET Microservices",
+   "book": "DDIA 2e p.498・p.504／『大規模データ管理 第2版』p.199"
+  },
+  "lead": "運び方より先に、「順序をだれが決めるか」「止まったら何が溜まるか」を問う",
+  "kind": "table",
+  "question": "1 つの要求を返すのに、同期でいくつのサービスを直列に呼ぶか",
+  "why": "連鎖は、応答時間と可用性を悪くする",
+  "sign": "呼び先が落ちると自分も落ちる",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 7
+ }
+]

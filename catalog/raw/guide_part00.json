@@ -1,0 +1,191 @@
+[
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "何を、どの数字で約束するか",
+  "why": "",
+  "sign": "",
+  "context": "1 要件",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "どのデータを誰が持ち、どれが正か",
+  "why": "",
+  "sign": "",
+  "context": "2 所有",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "関係の形と問い合わせの形に、どのモデルが合うか",
+  "why": "",
+  "sign": "",
+  "context": "3 モデル",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "サービスと基盤の間を、データはどう流れるべきか",
+  "why": "",
+  "sign": "",
+  "context": "4 流れ",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "何を契約にし、どう検査するか",
+  "why": "",
+  "sign": "",
+  "context": "5 契約",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "どこまで失ってよく、どこまで待てるか",
+  "why": "",
+  "sign": "",
+  "context": "6 複製",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 6
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "どの異常を、どこで防ぐか",
+  "why": "",
+  "sign": "",
+  "context": "7 正しさ",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 7
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "ログから作り直せるか",
+  "why": "",
+  "sign": "",
+  "context": "8 導出",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 8
+ },
+ {
+  "slide_title": "9 つのステップで、全体像を順に押さえる",
+  "slide_no": 5,
+  "part": 0,
+  "section": "Part 0 この資料の使い方",
+  "tag": "導入",
+  "stages": [],
+  "refs": {
+   "book": "順番は本ガイドの構成。DDIA 2e の章立てを判断の問いの順に並べ直した（章 → Part の対応表は Part 17）"
+  },
+  "lead": "各ステップは 1 つの問いに答える。前のステップの答えが、次のステップの前提になる",
+  "kind": "table",
+  "question": "各基盤を、同じ 4 つの問いでどう設計するか",
+  "why": "",
+  "sign": "",
+  "context": "9 基盤",
+  "hint": "",
+  "header": "ステップ｜題｜答える問い｜Part",
+  "short_of": "",
+  "seq": 9
+ }
+]

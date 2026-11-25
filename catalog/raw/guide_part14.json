@@ -1,0 +1,370 @@
+[
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "このデータは何秒で、どこまで届くか",
+  "why": "",
+  "sign": "",
+  "context": "① 設定・ルールの一斉配布",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 1
+ },
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "全体で 1 つしかないものは何か。この基盤が 1 時間止まったら、どのサービスが止まるか。その一覧は誰が持つか",
+  "why": "",
+  "sign": "",
+  "context": "② 基盤への集中と循環依存",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 2
+ },
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "監視と連絡は、この基盤なしで動くか",
+  "why": "",
+  "sign": "",
+  "context": "③ 復旧・監視の手段が同じ基盤上",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 3
+ },
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "自動化は、どこまで自分で変えてよいか",
+  "why": "",
+  "sign": "",
+  "context": "④ 自動化の誤動作",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 4
+ },
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "全員が同時に再試行したら何が起きるか",
+  "why": "",
+  "sign": "",
+  "context": "⑤ 再試行の嵐",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 5
+ },
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "最後に復元したのはいつで、何時間か",
+  "why": "",
+  "sign": "",
+  "context": "⑥ 復元できないバックアップ",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 6
+ },
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "対象の種類と数を、どう確かめるか",
+  "why": "",
+  "sign": "",
+  "context": "⑦ 削除の単位の誤り",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 7
+ },
+ {
+  "slide_title": "被害を広げた設計は、8 つの型にまとまる",
+  "slide_no": 209,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告 24 件（型ごとの該当と URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "引き金はばらばらでも、広げる側の設計は少数の型に集まる（1 件が複数の型に入る）",
+  "kind": "table",
+  "question": "独立と言う単位は、何を共有しているか",
+  "why": "",
+  "sign": "",
+  "context": "⑧ 隠れた共有",
+  "hint": "",
+  "header": "型｜何が起きるか｜該当する件｜問うこと",
+  "short_of": "設計レビューで問うこと：型ごとに 1 問",
+  "seq": 8
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "この設定・ルール・ポリシーは、何秒でどこまで届くか。読む側は不正な値で何をするか",
+  "why": "コードは段階的でも、データは数秒で全体に届いた（Google 2025、Cloudflare 2025-12）",
+  "sign": "「設定変更なのでリリースではない」",
+  "context": "①",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 9
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "全体で 1 つしかないものは何か。この基盤が 1 時間止まったら、どのサービスが止まるか。その一覧は誰が持つか",
+  "why": "1 つの Consul、1 つのメタデータサービスに全体が載っていた（Roblox 2021、DynamoDB 2015）",
+  "sign": "依存の一覧が無い。「そこは落ちない前提」",
+  "context": "②",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 10
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "監視・展開・状況ページ・連絡先は、守ろうとしている基盤なしで動くか",
+  "why": "9 件で、道具が壊れた基盤に依存していた（AWS 2021、Slack 2021 ほか）",
+  "sign": "監視が本番と同じネットワーク・同じ認証",
+  "context": "③",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 11
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "自動の昇格や修復は、どこまで自分で変えてよいか。切り替えた先でアプリは動くか",
+  "why": "設定どおりに昇格したが、アプリは支えられなかった（GitHub 2018）",
+  "sign": "フェイルオーバーの試験が DB 単体",
+  "context": "④",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 12
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "全クライアントが同時に再試行したら何が起きるか。流入を絞る手段はあるか",
+  "why": "再試行が過負荷を保った（DynamoDB 2015、Google 2025）",
+  "sign": "再試行に上限・乱数なし。絞る手段が無い",
+  "context": "⑤",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 13
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "最後に本番相当のデータを復元したのはいつで、何時間かかったか",
+  "why": "バックアップは失敗しており、通知は届いていなかった（GitLab 2017）",
+  "sign": "「バックアップは取っている」",
+  "context": "⑥",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 14
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "破壊的な操作は、対象の種類と数をどう確かめるか。取り消せるか",
+  "why": "ID の種類を確かめない API が、サイトごと消した（Atlassian 2022）",
+  "sign": "同じ API が複数の種類の ID を受ける",
+  "context": "⑦",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 15
+ },
+ {
+  "slide_title": "設計レビューで問うこと：型ごとに 1 問",
+  "slide_no": 219,
+  "part": 14,
+  "section": "Part 14 共通基盤が全体を止める 8 つの型",
+  "tag": "ステップ 9",
+  "stages": [
+   8
+  ],
+  "refs": {
+   "inst": "各事業者の事後報告（中央の列に事業者と発生年。URL は research/reviews/verify_p14.md）"
+  },
+  "lead": "",
+  "kind": "table",
+  "question": "独立と言う単位（リージョン・拠点）が共有しているものは何か",
+  "why": "直接の接続が無いリージョンが、更新時刻を共有していた（Datadog 2023）",
+  "sign": "「リージョンは独立なので」",
+  "context": "⑧",
+  "hint": "",
+  "header": "型｜問い｜なぜ問うか（事後報告）｜危ない兆候",
+  "short_of": "",
+  "seq": 16
+ }
+]

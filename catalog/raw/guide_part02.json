@@ -1,0 +1,177 @@
+[
+ {
+  "slide_title": "設計レビューで問うこと：要件と負荷",
+  "slide_no": 31,
+  "part": 2,
+  "section": "Part 2 要件と負荷を数字にする",
+  "tag": "ステップ 1",
+  "stages": [
+   0
+  ],
+  "refs": {
+   "book": "DDIA 2e 2 章 p.39〜50",
+   "inst": "Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01",
+   "spec": "Dean・Barroso「The Tail at Scale」2013"
+  },
+  "lead": "この 7 つに数字で答えられなければ、次のステップの選択肢を比べる物差しが無い",
+  "kind": "table",
+  "question": "負荷を表す数字は何か。ピークは平均の何倍か",
+  "why": "現在の負荷を数字で言えないと、成長の議論ができない",
+  "sign": "「利用者数」だけで、読み書きの比やピークが無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "設計レビューで問うこと：要件と負荷",
+  "slide_no": 31,
+  "part": 2,
+  "section": "Part 2 要件と負荷を数字にする",
+  "tag": "ステップ 1",
+  "stages": [
+   0
+  ],
+  "refs": {
+   "book": "DDIA 2e 2 章 p.39〜50",
+   "inst": "Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01",
+   "spec": "Dean・Barroso「The Tail at Scale」2013"
+  },
+  "lead": "この 7 つに数字で答えられなければ、次のステップの選択肢を比べる物差しが無い",
+  "kind": "table",
+  "question": "1 つの要求は、内部でいくつのサービスに広がるか",
+  "why": "広がるほど、遅い呼び出しに当たる確率が上がる",
+  "sign": "単体の p99 だけを目標にしている",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "設計レビューで問うこと：要件と負荷",
+  "slide_no": 31,
+  "part": 2,
+  "section": "Part 2 要件と負荷を数字にする",
+  "tag": "ステップ 1",
+  "stages": [
+   0
+  ],
+  "refs": {
+   "book": "DDIA 2e 2 章 p.39〜50",
+   "inst": "Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01",
+   "spec": "Dean・Barroso「The Tail at Scale」2013"
+  },
+  "lead": "この 7 つに数字で答えられなければ、次のステップの選択肢を比べる物差しが無い",
+  "kind": "table",
+  "question": "応答時間は、どのパーセンタイルを、どこで測るか",
+  "why": "平均は遅い側を隠す。サーバー側の処理時間はキュー待ちを含まない",
+  "sign": "平均応答時間だけ。測る場所が未定",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "設計レビューで問うこと：要件と負荷",
+  "slide_no": 31,
+  "part": 2,
+  "section": "Part 2 要件と負荷を数字にする",
+  "tag": "ステップ 1",
+  "stages": [
+   0
+  ],
+  "refs": {
+   "book": "DDIA 2e 2 章 p.39〜50",
+   "inst": "Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01",
+   "spec": "Dean・Barroso「The Tail at Scale」2013"
+  },
+  "lead": "この 7 つに数字で答えられなければ、次のステップの選択肢を比べる物差しが無い",
+  "kind": "table",
+  "question": "SLO は現状の値や 100% でないか。使い切ったら誰が何を止めるか",
+  "why": "100% は変更を止める。取り決めの無い予算は働かない",
+  "sign": "「現行と同等以上」「無停止」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "設計レビューで問うこと：要件と負荷",
+  "slide_no": 31,
+  "part": 2,
+  "section": "Part 2 要件と負荷を数字にする",
+  "tag": "ステップ 1",
+  "stages": [
+   0
+  ],
+  "refs": {
+   "book": "DDIA 2e 2 章 p.39〜50",
+   "inst": "Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01",
+   "spec": "Dean・Barroso「The Tail at Scale」2013"
+  },
+  "lead": "この 7 つに数字で答えられなければ、次のステップの選択肢を比べる物差しが無い",
+  "kind": "table",
+  "question": "RPO・RTO は、どの障害を想定した数字か。試したか",
+  "why": "1 回の出来事の上限で、可用性の % とは別",
+  "sign": "可用性の % と混同。復旧の演習の記録が無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "設計レビューで問うこと：要件と負荷",
+  "slide_no": 31,
+  "part": 2,
+  "section": "Part 2 要件と負荷を数字にする",
+  "tag": "ステップ 1",
+  "stages": [
+   0
+  ],
+  "refs": {
+   "book": "DDIA 2e 2 章 p.39〜50",
+   "inst": "Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01",
+   "spec": "Dean・Barroso「The Tail at Scale」2013"
+  },
+  "lead": "この 7 つに数字で答えられなければ、次のステップの選択肢を比べる物差しが無い",
+  "kind": "table",
+  "question": "どの種類の障害を、いくつまで耐えるか",
+  "why": "耐障害性は、種類と数を決めて初めて成り立つ",
+  "sign": "「障害に強い」とだけ書いてある",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ },
+ {
+  "slide_title": "設計レビューで問うこと：要件と負荷",
+  "slide_no": 31,
+  "part": 2,
+  "section": "Part 2 要件と負荷を数字にする",
+  "tag": "ステップ 1",
+  "stages": [
+   0
+  ],
+  "refs": {
+   "book": "DDIA 2e 2 章 p.39〜50",
+   "inst": "Google SRE 本 3・4 章／AWS Well-Architected Framework REL13-BP01",
+   "spec": "Dean・Barroso「The Tail at Scale」2013"
+  },
+  "lead": "この 7 つに数字で答えられなければ、次のステップの選択肢を比べる物差しが無い",
+  "kind": "table",
+  "question": "その分散は、いまの負荷の数字から必要か",
+  "why": "単一マシンで足りるなら、おそらくそのほうが望ましい",
+  "sign": "「将来に備えて」最初からシャーディング",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 7
+ }
+]

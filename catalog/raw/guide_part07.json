@@ -1,0 +1,152 @@
+[
+ {
+  "slide_title": "設計レビューで問うこと：契約と変更",
+  "slide_no": 103,
+  "part": 7,
+  "section": "Part 7 動かしたまま変える契約",
+  "tag": "ステップ 5",
+  "stages": [
+   4
+  ],
+  "refs": {
+   "spec": "Confluent Platform 8.4・Redpanda 26.2・PostgreSQL 18 の各文書（2026-11 確認）",
+   "inst": "事後報告：CrowdStrike 2024-07-19／Google Cloud 2025-06-12／Cloudflare 2025-11-18",
+   "book": "DDIA 2e 5.3 節 p.185〜186"
+  },
+  "lead": "変更の提案を見たら、向き、検査の場所、ロック、配り方の順に問う",
+  "kind": "table",
+  "question": "この変更は後方互換か、前方互換か。途中の時間に、どちらがどちらを読むか",
+  "why": "逐次更新と切り戻しは、両方向の互換を要する",
+  "sign": "「全部同時に更新するから大丈夫」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "設計レビューで問うこと：契約と変更",
+  "slide_no": 103,
+  "part": 7,
+  "section": "Part 7 動かしたまま変える契約",
+  "tag": "ステップ 5",
+  "stages": [
+   4
+  ],
+  "refs": {
+   "spec": "Confluent Platform 8.4・Redpanda 26.2・PostgreSQL 18 の各文書（2026-11 確認）",
+   "inst": "事後報告：CrowdStrike 2024-07-19／Google Cloud 2025-06-12／Cloudflare 2025-11-18",
+   "book": "DDIA 2e 5.3 節 p.185〜186"
+  },
+  "lead": "変更の提案を見たら、向き、検査の場所、ロック、配り方の順に問う",
+  "kind": "table",
+  "question": "レジストリのモードは何か。意図して選んだか。先に更新する側と合っているか",
+  "why": "既定は製品で違い、非推移は直前の版しか見ない",
+  "sign": "読み直しがあるのに、既定の BACKWARD のまま",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "設計レビューで問うこと：契約と変更",
+  "slide_no": 103,
+  "part": 7,
+  "section": "Part 7 動かしたまま変える契約",
+  "tag": "ステップ 5",
+  "stages": [
+   4
+  ],
+  "refs": {
+   "spec": "Confluent Platform 8.4・Redpanda 26.2・PostgreSQL 18 の各文書（2026-11 確認）",
+   "inst": "事後報告：CrowdStrike 2024-07-19／Google Cloud 2025-06-12／Cloudflare 2025-11-18",
+   "book": "DDIA 2e 5.3 節 p.185〜186"
+  },
+  "lead": "変更の提案を見たら、向き、検査の場所、ロック、配り方の順に問う",
+  "kind": "table",
+  "question": "互換性の検査は CI で走るか。登録せずに書く書き手を、何が止めるか",
+  "why": "レジストリが検査するのは、登録のときだけ",
+  "sign": "本番で、スキーマの自動登録が有効",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "設計レビューで問うこと：契約と変更",
+  "slide_no": 103,
+  "part": 7,
+  "section": "Part 7 動かしたまま変える契約",
+  "tag": "ステップ 5",
+  "stages": [
+   4
+  ],
+  "refs": {
+   "spec": "Confluent Platform 8.4・Redpanda 26.2・PostgreSQL 18 の各文書（2026-11 確認）",
+   "inst": "事後報告：CrowdStrike 2024-07-19／Google Cloud 2025-06-12／Cloudflare 2025-11-18",
+   "book": "DDIA 2e 5.3 節 p.185〜186"
+  },
+  "lead": "変更の提案を見たら、向き、検査の場所、ロック、配り方の順に問う",
+  "kind": "table",
+  "question": "消したフィールドの番号・名前・フラグを、再利用していないか",
+  "why": "新旧が混ざる間は、古い意味もまだ生きている",
+  "sign": "「もう誰も使っていないはず」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "設計レビューで問うこと：契約と変更",
+  "slide_no": 103,
+  "part": 7,
+  "section": "Part 7 動かしたまま変える契約",
+  "tag": "ステップ 5",
+  "stages": [
+   4
+  ],
+  "refs": {
+   "spec": "Confluent Platform 8.4・Redpanda 26.2・PostgreSQL 18 の各文書（2026-11 確認）",
+   "inst": "事後報告：CrowdStrike 2024-07-19／Google Cloud 2025-06-12／Cloudflare 2025-11-18",
+   "book": "DDIA 2e 5.3 節 p.185〜186"
+  },
+  "lead": "変更の提案を見たら、向き、検査の場所、ロック、配り方の順に問う",
+  "kind": "table",
+  "question": "この DDL はどのロックを取り、表を書き換えるか。lock_timeout はあるか",
+  "why": "既定では、ロックを無期限に待つ",
+  "sign": "移行ツールが作った DDL を、そのまま本番に流す",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "設計レビューで問うこと：契約と変更",
+  "slide_no": 103,
+  "part": 7,
+  "section": "Part 7 動かしたまま変える契約",
+  "tag": "ステップ 5",
+  "stages": [
+   4
+  ],
+  "refs": {
+   "spec": "Confluent Platform 8.4・Redpanda 26.2・PostgreSQL 18 の各文書（2026-11 確認）",
+   "inst": "事後報告：CrowdStrike 2024-07-19／Google Cloud 2025-06-12／Cloudflare 2025-11-18",
+   "book": "DDIA 2e 5.3 節 p.185〜186"
+  },
+  "lead": "変更の提案を見たら、向き、検査の場所、ロック、配り方の順に問う",
+  "kind": "table",
+  "question": "設定やルールを段階的に配っているか。読み手は想定外の値でどうなるか",
+  "why": "事故 3 件に共通するのは、全体への速い配布と読み手の検査の不足（本ガイドの整理）",
+  "sign": "「設定の変更なので、配備の手順は不要」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ }
+]

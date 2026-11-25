@@ -1,0 +1,512 @@
+[
+ {
+  "topic": "A",
+  "slide_title": "設計レビューに持ち帰る問い：題材 A から",
+  "slide_no": 32,
+  "part": 1,
+  "section": "Part 1 題材 A：基盤をまたぐデータ統合",
+  "refs": {
+   "spec": "results/a/summary.md「除去実験」「CDC の落とし穴」「ガイドの記述との照合」",
+   "inst": "ガイド Part 6「データの流れについて、設計レビューで問うこと」"
+  },
+  "key": "CA-01",
+  "question": "DB のコミットの直後に、別のシステムへ発行している箇所はないか",
+  "evidence": "N は障害なしで順序が入れ替わり（並行度 16 で 5・11 組）、接続の切断で 33・32 件が届かなかった",
+  "caveat": "頻度は低い。エラーが出ないので、照合なしでは見つからない"
+ },
+ {
+  "topic": "A",
+  "slide_title": "設計レビューに持ち帰る問い：題材 A から",
+  "slide_no": 32,
+  "part": 1,
+  "section": "Part 1 題材 A：基盤をまたぐデータ統合",
+  "refs": {
+   "spec": "results/a/summary.md「除去実験」「CDC の落とし穴」「ガイドの記述との照合」",
+   "inst": "ガイド Part 6「データの流れについて、設計レビューで問うこと」"
+  },
+  "key": "CA-02",
+  "question": "アウトボックスの運び手は「未送信の行」を読んでいるか",
+  "evidence": "連番より大きい行だけ読む変種は、並行度 16 で 76・85 件を落とした",
+  "caveat": "未送信の行を読む B は、同じ条件で 0 件"
+ },
+ {
+  "topic": "A",
+  "slide_title": "設計レビューに持ち帰る問い：題材 A から",
+  "slide_no": 32,
+  "part": 1,
+  "section": "Part 1 題材 A：基盤をまたぐデータ統合",
+  "refs": {
+   "spec": "results/a/summary.md「除去実験」「CDC の落とし穴」「ガイドの記述との照合」",
+   "inst": "ガイド Part 6「データの流れについて、設計レビューで問うこと」"
+  },
+  "key": "CA-03",
+  "question": "受け手は、イベント ID を効果と同じトランザクションで記録しているか",
+  "evidence": "届いた重複 1551・1746 回に対し、状態に 2 回効いた数は 0",
+  "caveat": "Kafka のトランザクションは未検証"
+ },
+ {
+  "topic": "A",
+  "slide_title": "設計レビューに持ち帰る問い：題材 A から",
+  "slide_no": 32,
+  "part": 1,
+  "section": "Part 1 題材 A：基盤をまたぐデータ統合",
+  "refs": {
+   "spec": "results/a/summary.md「除去実験」「CDC の落とし穴」「ガイドの記述との照合」",
+   "inst": "ガイド Part 6「データの流れについて、設計レビューで問うこと」"
+  },
+  "key": "CA-04",
+  "question": "メッセージのキーは、順序を保ちたい単位（注文 ID）か",
+  "evidence": "イベント ID にすると、並行度 16 で 1176・1172 組が入れ替わった",
+  "caveat": "違う注文どうしの順は測っていない"
+ },
+ {
+  "topic": "A",
+  "slide_title": "設計レビューに持ち帰る問い：題材 A から",
+  "slide_no": 32,
+  "part": 1,
+  "section": "Part 1 題材 A：基盤をまたぐデータ統合",
+  "refs": {
+   "spec": "results/a/summary.md「除去実験」「CDC の落とし穴」「ガイドの記述との照合」",
+   "inst": "ガイド Part 6「データの流れについて、設計レビューで問うこと」"
+  },
+  "key": "CA-05",
+  "question": "スロットの状態と保持量をだれが見るか。失われたときの手順はあるか",
+  "evidence": "上限なしは 271.7・271.6 MB まで増加。上限ありは lost でも RUNNING",
+  "caveat": "ディスクが埋まるまでは未検証。取り直し後の食い違いは原因未調査"
+ },
+ {
+  "topic": "A",
+  "slide_title": "設計レビューに持ち帰る問い：題材 A から",
+  "slide_no": 32,
+  "part": 1,
+  "section": "Part 1 題材 A：基盤をまたぐデータ統合",
+  "refs": {
+   "spec": "results/a/summary.md「除去実験」「CDC の落とし穴」「ガイドの記述との照合」",
+   "inst": "ガイド Part 6「データの流れについて、設計レビューで問うこと」"
+  },
+  "key": "CA-06",
+  "question": "正と導出の差を数えて直す照合はあるか",
+  "evidence": "全 147 実行で見つけた差 621・627 注文、直した後 0",
+  "caveat": "通知の欠落と重複は直せない"
+ },
+ {
+  "topic": "A",
+  "slide_title": "設計レビューに持ち帰る問い：題材 A から",
+  "slide_no": 32,
+  "part": 1,
+  "section": "Part 1 題材 A：基盤をまたぐデータ統合",
+  "refs": {
+   "spec": "results/a/summary.md「除去実験」「CDC の落とし穴」「ガイドの記述との照合」",
+   "inst": "ガイド Part 6「データの流れについて、設計レビューで問うこと」"
+  },
+  "key": "CA-07",
+  "question": "CDC の遅れの見込みは、コネクタの読み取りの間隔を含めて測ったか",
+  "evidence": "間隔を指定しない BE の p50 は 691.2・699.6 ms。追加実験（1 回だけ）は 10 ms で 24.8 ms、B は 18.0 ms",
+  "caveat": "同じ環境の中の相対比較。10 ms より縮めた条件は未検証"
+ },
+ {
+  "topic": "B",
+  "slide_title": "設計レビューに持ち帰る 6 つの問い",
+  "slide_no": 54,
+  "part": 2,
+  "section": "Part 2 題材 B：置換と更新の演習",
+  "refs": {
+   "spec": "results/b/summary.md「除去実験」「正常な操作」「ガイドの記述との照合」",
+   "inst": "ガイド Part 7「設計レビューで問うこと：契約と変更」、Part 15「同：入れ替える前・やめる前」"
+  },
+  "key": "CB-01",
+  "question": "検査のモードは、読み直す範囲に合うか",
+  "evidence": "既定（BACKWARD）は v3 を通し、読み直しで v1 の 100 件が読めない・誤る",
+  "caveat": ""
+ },
+ {
+  "topic": "B",
+  "slide_title": "設計レビューに持ち帰る 6 つの問い",
+  "slide_no": 54,
+  "part": 2,
+  "section": "Part 2 題材 B：置換と更新の演習",
+  "refs": {
+   "spec": "results/b/summary.md「除去実験」「正常な操作」「ガイドの記述との照合」",
+   "inst": "ガイド Part 7「設計レビューで問うこと：契約と変更」、Part 15「同：入れ替える前・やめる前」"
+  },
+  "key": "CB-02",
+  "question": "検査を通って誤る変更を、別に見ているか",
+  "evidence": "Protocol Buffers の 3 件は、FULL_TRANSITIVE でも通った",
+  "caveat": ""
+ },
+ {
+  "topic": "B",
+  "slide_title": "設計レビューに持ち帰る 6 つの問い",
+  "slide_no": 54,
+  "part": 2,
+  "section": "Part 2 題材 B：置換と更新の演習",
+  "refs": {
+   "spec": "results/b/summary.md「除去実験」「正常な操作」「ガイドの記述との照合」",
+   "inst": "ガイド Part 7「設計レビューで問うこと：契約と変更」、Part 15「同：入れ替える前・やめる前」"
+  },
+  "key": "CB-03",
+  "question": "DDL に lock_timeout と再試行があるか",
+  "evidence": "無いと、長いトランザクションの後ろで読み書きが約 5.5 秒止まった",
+  "caveat": ""
+ },
+ {
+  "topic": "B",
+  "slide_title": "設計レビューに持ち帰る 6 つの問い",
+  "slide_no": 54,
+  "part": 2,
+  "section": "Part 2 題材 B：置換と更新の演習",
+  "refs": {
+   "spec": "results/b/summary.md「除去実験」「正常な操作」「ガイドの記述との照合」",
+   "inst": "ガイド Part 7「設計レビューで問うこと：契約と変更」、Part 15「同：入れ替える前・やめる前」"
+  },
+  "key": "CB-04",
+  "question": "差し替える前に、新旧を照合しているか",
+  "evidence": "照合なしは、欠陥のある受け手へ 5/5 試行で切り替わった",
+  "caveat": ""
+ },
+ {
+  "topic": "B",
+  "slide_title": "設計レビューに持ち帰る 6 つの問い",
+  "slide_no": 54,
+  "part": 2,
+  "section": "Part 2 題材 B：置換と更新の演習",
+  "refs": {
+   "spec": "results/b/summary.md「除去実験」「正常な操作」「ガイドの記述との照合」",
+   "inst": "ガイド Part 7「設計レビューで問うこと：契約と変更」、Part 15「同：入れ替える前・やめる前」"
+  },
+  "key": "CB-05",
+  "question": "作り直しの前提を確かめたか",
+  "evidence": "保持の範囲、位置つきのスナップショット、削除の印の期限",
+  "caveat": ""
+ },
+ {
+  "topic": "B",
+  "slide_title": "設計レビューに持ち帰る 6 つの問い",
+  "slide_no": 54,
+  "part": 2,
+  "section": "Part 2 題材 B：置換と更新の演習",
+  "refs": {
+   "spec": "results/b/summary.md「除去実験」「正常な操作」「ガイドの記述との照合」",
+   "inst": "ガイド Part 7「設計レビューで問うこと：契約と変更」、Part 15「同：入れ替える前・やめる前」"
+  },
+  "key": "CB-06",
+  "question": "移行で、二重書き込みに頼っていないか",
+  "evidence": "シーケンス・遮断・逆向きの複製を外すと、失敗か欠落が出た",
+  "caveat": ""
+ },
+ {
+  "topic": "C",
+  "slide_title": "設計レビューに持ち帰る問い：ログ・分析の基盤",
+  "slide_no": 76,
+  "part": 3,
+  "section": "Part 3 題材 C：ログ・分析の費用と性能",
+  "refs": {
+   "spec": "results/c/summary.md の各節（C-1〜C-6）。数字は各スライドと同じ",
+   "inst": "ガイド Part 5「設計レビューで問うこと：ストレージと索引」、Part 13「同：7 つの基盤に 1 問ずつ」"
+  },
+  "key": "CC-01",
+  "question": "分析を分ける前に、問い合わせの形と同時に走る本数を測ったか",
+  "evidence": "集計 1 本では検索の p95 は 1.5 倍を超えず、4 本の M・L で超えた。境目は未検証",
+  "caveat": ""
+ },
+ {
+  "topic": "C",
+  "slide_title": "設計レビューに持ち帰る問い：ログ・分析の基盤",
+  "slide_no": 76,
+  "part": 3,
+  "section": "Part 3 題材 C：ログ・分析の費用と性能",
+  "refs": {
+   "spec": "results/c/summary.md の各節（C-1〜C-6）。数字は各スライドと同じ",
+   "inst": "ガイド Part 5「設計レビューで問うこと：ストレージと索引」、Part 13「同：7 つの基盤に 1 問ずつ」"
+  },
+  "key": "CC-02",
+  "question": "上流のスキーマが揺れたとき、止める・保留・埋める・通すのどれかを決めたか",
+  "evidence": "既定の動きは、7 ケースのうち 4 ケースで製品ごとに違った",
+  "caveat": ""
+ },
+ {
+  "topic": "C",
+  "slide_title": "設計レビューに持ち帰る問い：ログ・分析の基盤",
+  "slide_no": 76,
+  "part": 3,
+  "section": "Part 3 題材 C：ログ・分析の費用と性能",
+  "refs": {
+   "spec": "results/c/summary.md の各節（C-1〜C-6）。数字は各スライドと同じ",
+   "inst": "ガイド Part 5「設計レビューで問うこと：ストレージと索引」、Part 13「同：7 つの基盤に 1 問ずつ」"
+  },
+  "key": "CC-03",
+  "question": "エラーなしで変わる値を、照合で見つけられるか",
+  "evidence": "黙って変わった 31 実行。合計が合った 4 実行も、平均は違った",
+  "caveat": ""
+ },
+ {
+  "topic": "C",
+  "slide_title": "設計レビューに持ち帰る問い：ログ・分析の基盤",
+  "slide_no": 76,
+  "part": 3,
+  "section": "Part 3 題材 C：ログ・分析の費用と性能",
+  "refs": {
+   "spec": "results/c/summary.md の各節（C-1〜C-6）。数字は各スライドと同じ",
+   "inst": "ガイド Part 5「設計レビューで問うこと：ストレージと索引」、Part 13「同：7 つの基盤に 1 問ずつ」"
+  },
+  "key": "CC-04",
+  "question": "保持は、パーティションの単位で落とせるか",
+  "evidence": "PostgreSQL の DELETE と ClickHouse の軽量な削除は、直後に容量が減らなかった",
+  "caveat": ""
+ },
+ {
+  "topic": "C",
+  "slide_title": "設計レビューに持ち帰る問い：ログ・分析の基盤",
+  "slide_no": 76,
+  "part": 3,
+  "section": "Part 3 題材 C：ログ・分析の費用と性能",
+  "refs": {
+   "spec": "results/c/summary.md の各節（C-1〜C-6）。数字は各スライドと同じ",
+   "inst": "ガイド Part 5「設計レビューで問うこと：ストレージと索引」、Part 13「同：7 つの基盤に 1 問ずつ」"
+  },
+  "key": "CC-05",
+  "question": "バッチは範囲の置き換えで流し直せるか。範囲は「今」に頼っていないか",
+  "evidence": "UPSERT は余分 100 行、now() の範囲は重複 15000 行",
+  "caveat": ""
+ },
+ {
+  "topic": "C",
+  "slide_title": "設計レビューに持ち帰る問い：ログ・分析の基盤",
+  "slide_no": 76,
+  "part": 3,
+  "section": "Part 3 題材 C：ログ・分析の費用と性能",
+  "refs": {
+   "spec": "results/c/summary.md の各節（C-1〜C-6）。数字は各スライドと同じ",
+   "inst": "ガイド Part 5「設計レビューで問うこと：ストレージと索引」、Part 13「同：7 つの基盤に 1 問ずつ」"
+  },
+  "key": "CC-06",
+  "question": "索引は、実行計画と自分の負荷で確かめたか",
+  "evidence": "2 回で判定が変わった索引が 1 組、計画に現れない索引があった",
+  "caveat": ""
+ },
+ {
+  "topic": "C",
+  "slide_title": "設計レビューに持ち帰る問い：ログ・分析の基盤",
+  "slide_no": 76,
+  "part": 3,
+  "section": "Part 3 題材 C：ログ・分析の費用と性能",
+  "refs": {
+   "spec": "results/c/summary.md の各節（C-1〜C-6）。数字は各スライドと同じ",
+   "inst": "ガイド Part 5「設計レビューで問うこと：ストレージと索引」、Part 13「同：7 つの基盤に 1 問ずつ」"
+  },
+  "key": "CC-07",
+  "question": "テレメトリを失う場面と、読む側の設定を確かめたか",
+  "evidence": "読む側が既定のままだと、強制終了で 820 件を失った",
+  "caveat": ""
+ },
+ {
+  "topic": "D",
+  "slide_title": "レビューでは、水準の名前でなく防ぐ異常と費用を問う",
+  "slide_no": 93,
+  "part": 4,
+  "section": "Part 4 題材 D：整合性の異常の再現",
+  "refs": {
+   "spec": "results/d/summary.md 各節（D-2〜D-7、除去実験）",
+   "inst": "ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「同：正しさの水準」"
+  },
+  "key": "CD-01",
+  "question": "読んで書き戻す処理は無いか。その製品の既定の水準は何か",
+  "evidence": "PostgreSQL の Read Committed と MySQL の既定の Repeatable Read で、ロストアップデートがエラーなしに起きた",
+  "caveat": ""
+ },
+ {
+  "topic": "D",
+  "slide_title": "レビューでは、水準の名前でなく防ぐ異常と費用を問う",
+  "slide_no": 93,
+  "part": 4,
+  "section": "Part 4 題材 D：整合性の異常の再現",
+  "refs": {
+   "spec": "results/d/summary.md 各節（D-2〜D-7、除去実験）",
+   "inst": "ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「同：正しさの水準」"
+  },
+  "key": "CD-02",
+  "question": "強い水準を使う箇所に、再試行はあるか",
+  "evidence": "再試行しない Serializable は、正常な要求を失敗させた（在庫：1 回目 261 件・2 回目 267 件）",
+  "caveat": ""
+ },
+ {
+  "topic": "D",
+  "slide_title": "レビューでは、水準の名前でなく防ぐ異常と費用を問う",
+  "slide_no": 93,
+  "part": 4,
+  "section": "Part 4 題材 D：整合性の異常の再現",
+  "refs": {
+   "spec": "results/d/summary.md 各節（D-2〜D-7、除去実験）",
+   "inst": "ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「同：正しさの水準」"
+  },
+  "key": "CD-03",
+  "question": "不変条件が、複数の行にまたがっていないか",
+  "evidence": "ライトスキューは Repeatable Read でも起きた。Serializable＋再試行か、前提の行のロックで 0 件（各 15 試行）",
+  "caveat": ""
+ },
+ {
+  "topic": "D",
+  "slide_title": "レビューでは、水準の名前でなく防ぐ異常と費用を問う",
+  "slide_no": 93,
+  "part": 4,
+  "section": "Part 4 題材 D：整合性の異常の再現",
+  "refs": {
+   "spec": "results/d/summary.md 各節（D-2〜D-7、除去実験）",
+   "inst": "ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「同：正しさの水準」"
+  },
+  "key": "CD-04",
+  "question": "応答済みの書き込みを失ってよいか。synchronous_standby_names は空でないか",
+  "evidence": "空なら on でも、経路が切れた後に応答された 600 件（3 試行の合計）を、昇格で失った",
+  "caveat": ""
+ },
+ {
+  "topic": "D",
+  "slide_title": "レビューでは、水準の名前でなく防ぐ異常と費用を問う",
+  "slide_no": 93,
+  "part": 4,
+  "section": "Part 4 題材 D：整合性の異常の再現",
+  "refs": {
+   "spec": "results/d/summary.md 各節（D-2〜D-7、除去実験）",
+   "inst": "ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「同：正しさの水準」"
+  },
+  "key": "CD-05",
+  "question": "同期先が止まったとき、書き込みが止まることを受け入れるか",
+  "evidence": "12/12 試行で、観測の時間（15・60 秒）の間は返らなかった。ANY 1 で 2 台を名指しすると、1 台の停止では続いた（3 試行）",
+  "caveat": ""
+ },
+ {
+  "topic": "D",
+  "slide_title": "レビューでは、水準の名前でなく防ぐ異常と費用を問う",
+  "slide_no": 93,
+  "part": 4,
+  "section": "Part 4 題材 D：整合性の異常の再現",
+  "refs": {
+   "spec": "results/d/summary.md 各節（D-2〜D-7、除去実験）",
+   "inst": "ガイド Part 8「設計レビューで問うこと：複製と分割」、Part 9「同：正しさの水準」"
+  },
+  "key": "CD-06",
+  "question": "昇格の前に、旧プライマリを遮断する取り決めはあるか",
+  "evidence": "非同期・遮断なしで、旧プライマリが 300 件に応答。同じ ID で中身が違う行 204 件",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-01",
+  "question": "DB と別のシステムの両方に書く箇所はあるか。照合はあるか",
+  "evidence": "二重書き込みは、書き手の強制終了で、DB にはコミット済みなのに索引に届かないイベントが 1 回目 14・2 回目 16 件（呼び出し元には応答が返っていない）",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-02",
+  "question": "受け手は冪等か",
+  "evidence": "届いた重複 1 回目 1551・2 回目 1746 回に対し、状態に 2 回効いた数は 0（B・BE の 85 実行）",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-03",
+  "question": "CDC のスロットに上限と監視はあるか。失われた後の手順は",
+  "evidence": "上限 64MB でスロットは lost になり、1600 件が届かなかった（2 試行の合計）。上限なしでは WAL が増え続けた",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-04",
+  "question": "互換性検査は、すべての版と比べているか",
+  "evidence": "既定（直前の版だけ）は 3 版とも通し、v3 の受け手は v1 のデータ 100 件を読めないか、誤って読んだ",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-05",
+  "question": "DDL に lock_timeout と再試行を付けているか",
+  "evidence": "長いトランザクションの後ろで、読み書きが 5510 ms 止まった。lock_timeout 200 ms＋再試行では失敗した要求 0",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-06",
+  "question": "取り込みは、スキーマが揺れたときの動きを決めているか",
+  "evidence": "既定のままの型つきの取り込みは、7 ケース中 4 ケースで、製品ごとに結果が違った",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-07",
+  "question": "読んで書き戻す箇所を、何で守るか。40001 を再試行するか",
+  "evidence": "MySQL の Repeatable Read は 1 回目 2449・2 回目 2417 件を、エラーなしで失った。再試行なしの Serializable は正常な要求が失敗した",
+  "caveat": ""
+ },
+ {
+  "topic": "まとめ",
+  "slide_title": "設計レビューに持ち帰る 8 つの問い",
+  "slide_no": 105,
+  "part": 5,
+  "section": "Part 5 まとめ",
+  "refs": {
+   "spec": "各 summary「ガイドの記述との照合」と各実験の表（Part 1〜4 の該当スライド）",
+   "inst": "ガイド Part 17「設計レビューで問うこと」の、ステップ 4〜8 の問い"
+  },
+  "key": "CS-08",
+  "question": "同期スタンバイを名指ししているか。止まったときの手順は",
+  "evidence": "名前が空だと、on でも、経路が切れた後に応答された 600 件（3 試行の合計）を昇格で失った。名指しすると、スタンバイの停止で、観測の時間の間はコミットが返らなかった（12/12 試行）",
+  "caveat": ""
+ }
+]

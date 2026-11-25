@@ -1,0 +1,152 @@
+[
+ {
+  "slide_title": "設計レビューで問うこと：正しさの水準",
+  "slide_no": 136,
+  "part": 9,
+  "section": "Part 9 正しさの水準を決める",
+  "tag": "ステップ 7",
+  "stages": [
+   6
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）",
+   "inst": "Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）",
+   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303"
+  },
+  "lead": "答えが製品の文書か実測で返ってくるかを見る。「ACID だから大丈夫」は答えになっていない",
+  "kind": "table",
+  "question": "この DB の既定の分離レベルは何か。その名前が防ぐ異常を、文書か実測で言えるか",
+  "why": "既定も、名前の中身も、製品ごとに違う",
+  "sign": "「Repeatable Read だから更新は消えない」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "設計レビューで問うこと：正しさの水準",
+  "slide_no": 136,
+  "part": 9,
+  "section": "Part 9 正しさの水準を決める",
+  "tag": "ステップ 7",
+  "stages": [
+   6
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）",
+   "inst": "Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）",
+   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303"
+  },
+  "lead": "答えが製品の文書か実測で返ってくるかを見る。「ACID だから大丈夫」は答えになっていない",
+  "kind": "table",
+  "question": "守りたい不変条件を、処理ごとに 1 文で書けるか",
+  "why": "分離レベルは不変条件に対して選ぶ",
+  "sign": "不変条件がコードの if 文にしか無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "設計レビューで問うこと：正しさの水準",
+  "slide_no": 136,
+  "part": 9,
+  "section": "Part 9 正しさの水準を決める",
+  "tag": "ステップ 7",
+  "stages": [
+   6
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）",
+   "inst": "Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）",
+   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303"
+  },
+  "lead": "答えが製品の文書か実測で返ってくるかを見る。「ACID だから大丈夫」は答えになっていない",
+  "kind": "table",
+  "question": "トランザクションの範囲は、1 つの業務操作の全体を囲んでいるか",
+  "why": "範囲が別々なら、分離レベルを上げても防げない",
+  "sign": "1 回の API 呼び出しに自動コミットの文が複数ある",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "設計レビューで問うこと：正しさの水準",
+  "slide_no": 136,
+  "part": 9,
+  "section": "Part 9 正しさの水準を決める",
+  "tag": "ステップ 7",
+  "stages": [
+   6
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）",
+   "inst": "Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）",
+   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303"
+  },
+  "lead": "答えが製品の文書か実測で返ってくるかを見る。「ACID だから大丈夫」は答えになっていない",
+  "kind": "table",
+  "question": "読んで、判断して、書く処理はどこにあるか。1 文の更新か制約に直せるか",
+  "why": "ロストアップデートとライトスキューに共通する形",
+  "sign": "ORM で読み込み、属性を変えて保存、が標準の書き方",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "設計レビューで問うこと：正しさの水準",
+  "slide_no": 136,
+  "part": 9,
+  "section": "Part 9 正しさの水準を決める",
+  "tag": "ステップ 7",
+  "stages": [
+   6
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）",
+   "inst": "Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）",
+   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303"
+  },
+  "lead": "答えが製品の文書か実測で返ってくるかを見る。「ACID だから大丈夫」は答えになっていない",
+  "kind": "table",
+  "question": "40001 の再試行は、どこに、何回、どんな間隔で実装されているか",
+  "why": "SSI と楽観的な DB は、失敗を返すことが前提",
+  "sign": "再試行が無い。再試行の範囲に外部呼び出しがある",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "設計レビューで問うこと：正しさの水準",
+  "slide_no": 136,
+  "part": 9,
+  "section": "Part 9 正しさの水準を決める",
+  "tag": "ステップ 7",
+  "stages": [
+   6
+  ],
+  "refs": {
+   "spec": "PostgreSQL 18 文書 13.4・13.5／ACIDRain（SIGMOD 2017）",
+   "inst": "Hermitage README／Jepsen「MySQL 8.0.34」（2023-12-19）",
+   "book": "DDIA 2e 8.2 節 p.283、8.3 節 p.302–303"
+  },
+  "lead": "答えが製品の文書か実測で返ってくるかを見る。「ACID だから大丈夫」は答えになっていない",
+  "kind": "table",
+  "question": "残高・在庫・クーポンの API に、並行に呼ぶ試験があるか",
+  "why": "同時実行が少ないと表に出ない。外からは作れる",
+  "sign": "負荷試験が正常系だけ",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ }
+]

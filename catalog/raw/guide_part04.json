@@ -1,0 +1,177 @@
+[
+ {
+  "slide_title": "設計レビューで問うこと：データモデル",
+  "slide_no": 55,
+  "part": 4,
+  "section": "Part 4 データモデルを選ぶ",
+  "tag": "ステップ 3",
+  "stages": [
+   2
+  ],
+  "refs": {
+   "book": "DDIA 2e 3 章 p.71・77〜79・88・101",
+   "spec": "PostgreSQL 18 文書 8.14.2（2026-11 確認）",
+   "inst": "Azure Architecture Center「Event Sourcing」ほか"
+  },
+  "lead": "製品名より先に、主な問い合わせと関係の形を書いてもらう",
+  "kind": "table",
+  "question": "主な問い合わせを 3〜5 個書けるか。関係は一対多か、多対多か",
+  "why": "モデルは、関係の形と問い合わせの形で決まる",
+  "sign": "問い合わせを書かずに、製品名から決めている",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 1
+ },
+ {
+  "slide_title": "設計レビューで問うこと：データモデル",
+  "slide_no": 55,
+  "part": 4,
+  "section": "Part 4 データモデルを選ぶ",
+  "tag": "ステップ 3",
+  "stages": [
+   2
+  ],
+  "refs": {
+   "book": "DDIA 2e 3 章 p.71・77〜79・88・101",
+   "spec": "PostgreSQL 18 文書 8.14.2（2026-11 確認）",
+   "inst": "Azure Architecture Center「Event Sourcing」ほか"
+  },
+  "lead": "製品名より先に、主な問い合わせと関係の形を書いてもらう",
+  "kind": "table",
+  "question": "入れ子の項目を、外から直接参照する必要はないか",
+  "why": "ドキュメントは、入れ子の項目を ID で直接指せない",
+  "sign": "文書の中の配列の「何番目」を、別の所が持っている",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 2
+ },
+ {
+  "slide_title": "設計レビューで問うこと：データモデル",
+  "slide_no": 55,
+  "part": 4,
+  "section": "Part 4 データモデルを選ぶ",
+  "tag": "ステップ 3",
+  "stages": [
+   2
+  ],
+  "refs": {
+   "book": "DDIA 2e 3 章 p.71・77〜79・88・101",
+   "spec": "PostgreSQL 18 文書 8.14.2（2026-11 確認）",
+   "inst": "Azure Architecture Center「Event Sourcing」ほか"
+  },
+  "lead": "製品名より先に、主な問い合わせと関係の形を書いてもらう",
+  "kind": "table",
+  "question": "複製した値は、どれが正で、いつ、どう更新されるか",
+  "why": "非正規化は導出データ。更新する仕組みが要る",
+  "sign": "同じ値が複数の場所にあり、更新の経路を説明できない",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 3
+ },
+ {
+  "slide_title": "設計レビューで問うこと：データモデル",
+  "slide_no": 55,
+  "part": 4,
+  "section": "Part 4 データモデルを選ぶ",
+  "tag": "ステップ 3",
+  "stages": [
+   2
+  ],
+  "refs": {
+   "book": "DDIA 2e 3 章 p.71・77〜79・88・101",
+   "spec": "PostgreSQL 18 文書 8.14.2（2026-11 確認）",
+   "inst": "Azure Architecture Center「Event Sourcing」ほか"
+  },
+  "lead": "製品名より先に、主な問い合わせと関係の形を書いてもらう",
+  "kind": "table",
+  "question": "jsonb の文書は、独立に更新される部分を含んでいないか",
+  "why": "PostgreSQL では、更新は行全体のロックになる",
+  "sign": "追記し続ける配列。複数の書き手が同じ文書を更新",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 4
+ },
+ {
+  "slide_title": "設計レビューで問うこと：データモデル",
+  "slide_no": 55,
+  "part": 4,
+  "section": "Part 4 データモデルを選ぶ",
+  "tag": "ステップ 3",
+  "stages": [
+   2
+  ],
+  "refs": {
+   "book": "DDIA 2e 3 章 p.71・77〜79・88・101",
+   "spec": "PostgreSQL 18 文書 8.14.2（2026-11 確認）",
+   "inst": "Azure Architecture Center「Event Sourcing」ほか"
+  },
+  "lead": "製品名より先に、主な問い合わせと関係の形を書いてもらう",
+  "kind": "table",
+  "question": "多段の問い合わせは、何段たどるか。段数は決まっているか",
+  "why": "段数が決まらないと、SQL では再帰が要る",
+  "sign": "「関係が多いから」でグラフ DB を足す",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 5
+ },
+ {
+  "slide_title": "設計レビューで問うこと：データモデル",
+  "slide_no": 55,
+  "part": 4,
+  "section": "Part 4 データモデルを選ぶ",
+  "tag": "ステップ 3",
+  "stages": [
+   2
+  ],
+  "refs": {
+   "book": "DDIA 2e 3 章 p.71・77〜79・88・101",
+   "spec": "PostgreSQL 18 文書 8.14.2（2026-11 確認）",
+   "inst": "Azure Architecture Center「Event Sourcing」ほか"
+  },
+  "lead": "製品名より先に、主な問い合わせと関係の形を書いてもらう",
+  "kind": "table",
+  "question": "イベントソーシングと CQRS は、どの範囲に、何のために使うか",
+  "why": "イベントソーシングは入るのも出るのも高くつく。CQRS も複雑さを増す",
+  "sign": "全サービスの標準にしている。イベントの版の方針が無い",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 6
+ },
+ {
+  "slide_title": "設計レビューで問うこと：データモデル",
+  "slide_no": 55,
+  "part": 4,
+  "section": "Part 4 データモデルを選ぶ",
+  "tag": "ステップ 3",
+  "stages": [
+   2
+  ],
+  "refs": {
+   "book": "DDIA 2e 3 章 p.71・77〜79・88・101",
+   "spec": "PostgreSQL 18 文書 8.14.2（2026-11 確認）",
+   "inst": "Azure Architecture Center「Event Sourcing」ほか"
+  },
+  "lead": "製品名より先に、主な問い合わせと関係の形を書いてもらう",
+  "kind": "table",
+  "question": "形式を変えるとき、何を、どの順に変えるか",
+  "why": "モデルの選択は、契約と移行に残る",
+  "sign": "「スキーマレスだから変更は自由」",
+  "context": "",
+  "hint": "",
+  "header": "問い｜なぜ問うか｜危ない兆候",
+  "short_of": "",
+  "seq": 7
+ }
+]

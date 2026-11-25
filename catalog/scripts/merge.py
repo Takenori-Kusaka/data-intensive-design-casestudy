@@ -1,94 +1,176 @@
 # -*- coding: utf-8 -*-
-"""Merge raw/g1_standards.json, raw/g2_idps.json, raw/g3_platforms.json into catalog.json with stable IDs.
-Adds the organisation's own claims (ORG rows, defined by this case study) and fills IdP support for standard
-rows from raw/g2_support.json where the standards agent left 不明.
+"""Merge catalog/raw/guide_partNN.json and catalog/raw/casestudy.json into catalog/catalog.json:
+one row per question, with a stable ID (RQ-P<Part>-<order on the slides>, RQ-C<topic>-<order> for questions
+that only the case study has). Same question = same row (rules in SCHEMA.md 「まとめ方」):
+  1. Part 0 and Part 17 quote the questions of Parts 1-16 word for word -> added as further sources.
+  2. Part 14's overview table gives a short form of the eight per-type questions -> added as a further source.
+  3. A case-study take-home question that asks about the same decision as a guide question -> joined to that
+     row by hand (catalog/raw/casestudy_map.json); the rest become rows of their own.
+Then the hand-written definition fields (catalog/decisions/*.json, object "def") are attached.
   python catalog/scripts/merge.py"""
+import glob
 import json
 import os
+import re
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CAT = os.path.dirname(HERE)
 RAW = os.path.join(CAT, 'raw')
-CATS = ['識別子', '発行者・宛先', '時刻・寿命', 'トークン種別・メタ', '認証の強さ・セッション', '権限・認可', '組織・テナント', '委任・行為者',
-        'クライアント・ワークロード', '鍵・送信者制約', '監査・相関・イベント', '同意・目的・取引', 'プロフィール・連絡先', '本人確認・保証',
-        '端末・ネットワーク・場所', '開示・暗号・検証補助', 'CI・ワークロード属性', 'その他']
-KINDS = ['標準（IETF RFC）', '標準（OpenID Foundation 最終版）', '草案（IETF・OIDF）', 'IANA 登録（その他の標準化団体）', '公的機関・研究',
-         'ベンダー独自', 'プラットフォーム独自', '業界の属性語彙', '本ケーススタディで定義']
-IDPS = ['Entra', 'Keycloak', 'Auth0', 'Okta', 'Cognito']
+sys.path.insert(0, HERE)
+import links  # noqa: E402
 
-NS = 'https://claims.example.com/'
-ORG = [
-    ('ORG-01', 'tenant_id', '組織・テナント', '主体が今回の操作で属するテナントの不変 ID。テナント名・表示名ではない。', 'string', '単一', 'G-tenant'),
-    ('ORG-02', 'user_id', '識別子', '組織内の利用者の不変 ID（IdP をまたいで同じ人を指す）。メールやログイン名ではない。', 'string', '単一', 'G-user-id'),
-    ('ORG-03', 'roles', '権限・認可', '組織の語彙で正規化した粗いロール。オブジェクトごとの許可は表さない。', 'array of string', '配列', 'G-roles'),
-    ('ORG-04', 'department', '組織・テナント', '所属部門の ID。異動で変わるため、重要な操作では都度引き直す。', 'string', '単一', 'G-department'),
-    ('ORG-05', 'employee_id', '識別子', '社員番号。数値に見えても文字列で運ぶ（JavaScript の精度の問題を避ける）。', 'string', '単一', 'G-employee-id'),
-    ('ORG-06', 'idp', '監査・相関・イベント', '入口で受け取った元の IdP の種類（entra / keycloak / auth0 / okta / cognito）。監査と正規化の追跡用。', 'string', '単一', 'G-idp'),
-    ('ORG-07', 'v', 'トークン種別・メタ', '名前空間オブジェクトの版。受け手は知っている版だけを読む。', 'string', '単一', 'G-schema-version'),
-    ('ORG-08', 'authorization_details[type=https://claims.example.com/rar/payment]', '同意・目的・取引', '人が承認した支払いの内容（金額・通貨・相手先・対象）。RFC 9396 の type として定義。', 'object', '配列', 'G-authz-details'),
-    ('ORG-09', 'task_id', '監査・相関・イベント', 'エージェントのタスクの ID。タスク単位の短命トークンと監査ログの相関に使う。', 'string', '単一', 'G-task'),
-    ('ORG-11', 'sid', '認証の強さ・セッション', '入口が IdP のセッション ID（sid）を写したもの。経理・管理などの重要な操作の前に、セッションが生きているかを照合するためだけに使う。', 'string', '単一', 'G-sid'),
-    ('ORG-10', 'approval_id', '同意・目的・取引', '人の承認の記録の ID。承認の内容は ORG-08 と照合する。', 'string', '単一', 'G-approval'),
-]
+STEP_BY_TAG = {'ステップ 1': '1 要件', 'ステップ 2': '2 所有', 'ステップ 3': '3 モデル', 'ステップ 4': '4 流れ', 'ステップ 5': '5 契約',
+               'ステップ 6': '6 複製', 'ステップ 7': '7 正しさ', 'ステップ 8': '8 導出', 'ステップ 9': '9 基盤', '基礎': '基礎',
+               '置換と更新': '置換と更新', '責任': '責任', '考え方': '全体', 'まとめ': '全体', '導入': '全体'}
+TARGET_BY_CTX = {'データ': 'データ基盤', 'ETL': 'ETL 基盤', 'ログ': 'ログ基盤', '認証': '認証基盤', 'AI': 'AI 基盤', '分析': '分析基盤', 'セキュリティ': 'セキュリティ基盤'}
+KIND_LABEL = [('spec', '仕様・文書'), ('inst', '指針・報告'), ('book', '書籍')]
 
 
-def org_rows():
-    out = []
-    for oid, name, cat, purpose, vt, mult, sg in ORG:
-        full = name if name.startswith('authorization_details') else NS + '.' + name
-        out.append(dict(id=oid, name=full, category=cat, purpose=purpose, source_kind='本ケーススタディで定義',
-                        source='本ケーススタディ（DECISION_POLICY.md）。名前空間の作り方は RFC 7519 §4.2（衝突しない名前）', url='https://github.com/Takenori-Kusaka/jwt-claims-casestudy',
-                        value_type=vt, token='内部 AT（入口で発行）', support={k: 'フック・式で可' for k in IDPS}, is_custom='独自（どの標準にもない）',
-                        notes='書き手は入口のトークン発行サービスだけ。IdP の独自クレームから入口で写す。', verified=True, status='本ケーススタディで定義',
-                        change_controller='自組織（ID 基盤チーム）', writer='発行者（権威ある情報源）' if oid != 'ORG-04' else '発行者（取得元から転記）',
-                        mutability='再割り当てなし' if oid in ('ORG-01', 'ORG-02', 'ORG-05') else '随時変わる',
-                        freshness='発行時点で固定（寿命内は古いまま）', authz_use='iss・aud などと組で可' if oid in ('ORG-01', 'ORG-03', 'ORG-08') else '補助のみ',
-                        pii='仮名の識別子' if oid in ('ORG-02', 'ORG-05', 'ORG-11') else '非該当', log_policy='ハッシュ・マスク' if oid in ('ORG-02', 'ORG-05', 'ORG-11') else '平文で可',
-                        multiplicity=mult, limit='roles は 20 件まで（本ケーススタディの規則）' if oid == 'ORG-03' else '記載なし', comparison='大小区別の完全一致',
-                        uniqueness='全体で一意' if oid in ('ORG-01', 'ORG-02', 'ORG-05', 'ORG-09', 'ORG-10') else 'なし', vocabulary='自由な文字列' if oid != 'ORG-03' else '発行者ごと（組織の語彙）',
-                        synonym_group=sg, checked_on='2026-11-17', _src='org'))
-    return out
+def norm(s):
+    return re.sub(r'[\s　]+', '', s or '')
+
+
+def source_of(r):
+    return dict(part=r['part'], slide_title=r['slide_title'], slide_no=r['slide_no'], context=r.get('context', ''))
+
+
+def load_guide():
+    recs = []
+    for p in sorted(glob.glob(os.path.join(RAW, 'guide_part*.json'))):
+        recs += json.load(open(p, encoding='utf-8'))
+    return recs
 
 
 def main():
-    rows = []
-    for f in ('g1_standards', 'g2_idps', 'g3_platforms'):
-        for r in json.load(open(os.path.join(RAW, f + '.json'), encoding='utf-8')):
-            r['_src'] = f
-            rows.append(r)
-    sup = json.load(open(os.path.join(RAW, 'g2_support.json'), encoding='utf-8'))
-    filled = 0
-    for r in rows:
-        tok = r.get('token') or ''
-        if r['_src'] == 'g1_standards' and r['name'] in sup and any(t in tok for t in ('ID', 'AT', '両方')) and not any(t in tok for t in ('その他', 'DPoP', 'SET', 'ログアウト', 'Txn')):
-            s = sup[r['name']]
-            for k in IDPS:
-                if r['support'].get(k, '不明') == '不明' and s.get(k) and s.get(k) != '不明':
-                    r['support'][k] = s[k]
-                    filled += 1
-            if s.get('note'):
-                r['support_note'] = s['note']
-    # vendor-specific rows: the other IdPs are not applicable (the row defines that vendor's own claim)
-    VEN = {'Entra': ('Entra', 'Microsoft'), 'Keycloak': ('Keycloak',), 'Auth0': ('Auth0',), 'Okta': ('Okta',), 'Cognito': ('Cognito',)}
-    for r in rows:
-        if r['source_kind'] == 'ベンダー独自':
-            own = [k for k, keys in VEN.items() if any(x in r['source'] for x in keys)]
-            if len(own) == 1:
-                for k in IDPS:
-                    if k != own[0] and r['support'].get(k, '不明') == '不明':
-                        r['support'][k] = '対象外（他社の独自クレーム）'
-    ALIAS = {'G-auth_time': 'G-auth-time', 'G-authorization-details': 'G-authz-details'}
-    for r in rows:
-        r['synonym_group'] = ALIAS.get(r.get('synonym_group'), r.get('synonym_group'))
-    ci = {c: i for i, c in enumerate(CATS)}
-    ki = {k: i for i, k in enumerate(KINDS)}
-    rows.sort(key=lambda r: (ci.get(r['category'], 99), r.get('synonym_group') or '', ki.get(r['source_kind'], 99), r['name']))
-    for i, r in enumerate(rows, 1):
-        r['id'] = 'CLM-%04d' % i
-    import header_rows
-    allrows = rows + header_rows.rows() + org_rows()
-    json.dump(allrows, open(os.path.join(CAT, 'catalog.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    print(len(rows), 'rows +', len(ORG), 'ORG rows; support filled from g2_support:', filled)
+    recs = load_guide()
+    rows, by_text, log = [], {}, []
+
+    def new_row(r):
+        row = dict(key='', part=r['part'], question=r['question'], why=r['why'], sign=r['sign'], context=r.get('context', ''), hint=r.get('hint', ''),
+                   tag=r['tag'], section=r['section'], refs=r['refs'], lead=r.get('lead', ''), header=r.get('header', ''),
+                   sources=[source_of(r)], first_question='', p17_property=[], p17_moment='', origin='ガイドの問い', casestudy=[])
+        rows.append(row)
+        by_text.setdefault(norm(r['question']), row)
+        return row
+
+    # pass 1: Parts 1-16, own questions (short forms wait)
+    shorts = []
+    for r in recs:
+        if 1 <= r['part'] <= 16:
+            if r.get('short_of'):
+                shorts.append(r)
+                continue
+            hit = by_text.get(norm(r['question']))
+            if hit:
+                hit['sources'].append(source_of(r))
+                log.append(('same text inside Parts 1-16', r['slide_title'], r['question']))
+            else:
+                new_row(r)
+    # pass 2: Part 14's short forms -> the per-type row with the same circled number
+    for r in shorts:
+        num = r['context'][:1]
+        hit = [x for x in rows if x['sources'][0]['slide_title'] == r['short_of'] and x['context'][:1] == num]
+        if len(hit) != 1:
+            raise SystemExit('short form has no home row: ' + r['question'])
+        hit[0]['sources'].append(dict(source_of(r), short_form=r['question']))
+        log.append(('short form', r['slide_title'], r['question']))
+    # pass 3: Part 17, then Part 0 (both quote; what is left is Part 17's own)
+    for r in [x for x in recs if x['part'] == 17] + [x for x in recs if x['part'] == 0]:
+        hit = by_text.get(norm(r['question']))
+        if hit is None:
+            hit = new_row(r) if r['part'] == 17 else None
+            if hit is None:
+                raise SystemExit('Part 0 question without a Part 17 row: ' + r['question'])
+            continue
+        hit['sources'].append(source_of(r))
+        log.append(('quoted', r['slide_title'], r['question']))
+        if 'まず問う' in r.get('header', ''):
+            hit['first_question'] = r['slide_title']
+        if r['slide_title'].startswith('4 つの性質'):
+            hit['p17_property'].append(r['context'])
+        if r['slide_title'].startswith('基盤は、作る前'):
+            hit['p17_moment'] = r['context']
+        if r.get('hint') and not hit.get('hint'):
+            hit['hint'] = r['hint']
+    # keys: Part and order of first appearance
+    count = {}
+    for row in rows:
+        count[row['part']] = count.get(row['part'], 0) + 1
+        row['key'] = 'P%02d-%02d' % (row['part'], count[row['part']])
+    by_key = {r['key']: r for r in rows}
+
+    # case-study take-home questions
+    cs = json.load(open(os.path.join(RAW, 'casestudy.json'), encoding='utf-8'))
+    cmap = json.load(open(os.path.join(RAW, 'casestudy_map.json'), encoding='utf-8'))
+    cs_new = {}
+    for c in cs:
+        m = cmap.get(c['key'])
+        if not m:
+            raise SystemExit('casestudy_map.json has no entry for ' + c['key'])
+        note = dict(key=c['key'], topic=c['topic'], part=c['part'], slide_title=c['slide_title'], slide_no=c['slide_no'], question=c['question'],
+                    evidence=c['evidence'], caveat=c['caveat'], why_same=m.get('why', ''))
+        if m['same_as'] == 'new':
+            row = dict(key=c['key'], part=None, question=c['question'], why='', sign='', context='', hint='', tag='題材 ' + c['topic'], section=c['section'],
+                       refs={}, lead='', header='', sources=[], first_question='', p17_property=[], p17_moment='', origin='ケーススタディから持ち帰る問い',
+                       casestudy=[note])
+            rows.append(row)
+            cs_new[c['key']] = row
+            by_key[c['key']] = row
+        else:
+            tgt = by_key.get(m['same_as'])
+            if tgt is None:
+                raise SystemExit('%s points at an unknown row %s' % (c['key'], m['same_as']))
+            tgt['casestudy'].append(note)
+            if tgt['origin'] == 'ガイドの問い':
+                tgt['origin'] = '両方（ガイドの問い＋ケーススタディから持ち帰る問い）'
+
+    # hand-written definition fields
+    defs = {}
+    for p in sorted(glob.glob(os.path.join(CAT, 'decisions', '*.json'))):
+        if os.path.basename(p) == 'validation.json':
+            continue
+        for k, v in json.load(open(p, encoding='utf-8')).items():
+            if k in defs:
+                raise SystemExit('decided twice: ' + k)
+            defs[k] = v
+    out = []
+    for n, row in enumerate(rows, 1):
+        d = (defs.get(row['key']) or {}).get('def') or {}
+        tag = row['tag']
+        step = d.get('step') or STEP_BY_TAG.get(tag) or ''
+        if row['part'] == 17 and row['context'][:1].isdigit():
+            step = row['context']            # the nine step questions carry their own step
+        target = d.get('target') or TARGET_BY_CTX.get(row['context']) or ('共通基盤全般' if row['part'] in (13, 14) else 'サービス全般')
+        refs = dict(row['refs'] or {})
+        book_note = ''
+        if refs.get('book') and '『' not in refs['book'] and 'DDIA' not in refs['book']:
+            book_note = refs.pop('book')      # the line explains the guide's own structure and names no book
+        kinds = [lab for k, lab in KIND_LABEL if refs.get(k)]
+        cs_only = row['part'] is None
+        if cs_only:
+            # the reason comes from the case-study slide (its evidence column); only the warning sign is written here
+            row['why'] = row['casestudy'][0]['evidence']
+        supplied = [x for x in ('why', 'sign') if not row[x]]
+        why = row['why'] or d.get('why', '')
+        sign = row['sign'] or d.get('sign', '')
+        if cs_only:
+            kinds = ['ケーススタディの実測']
+        elif supplied or not kinds:
+            kinds.append('本ガイドの考え')
+        out.append(dict(
+            no=n, id='RQ-' + row['key'], key=row['key'], part=row['part'], step=step, target=target, question=row['question'], why=why, good=d.get('good', ''),
+            sign=sign, when=d.get('when', ''), first_question=row['first_question'], properties=d.get('properties', ''),
+            basis_kind='／'.join(kinds), basis='／'.join(['%s：%s' % (lab, refs[k]) for k, lab in KIND_LABEL if refs.get(k)] + (['本ガイドの考え：' + book_note] if book_note else [])),
+            book=refs.get('book', ''), sources=row['sources'], supplied=supplied, guide_hint=row['hint'], guide_context=row['context'],
+            p17_property=row['p17_property'], p17_moment=row['p17_moment'], casestudy=row['casestudy'], origin=row['origin'],
+            note=d.get('note', ''), checked_on=links.CHECKED_ON))
+    json.dump(out, open(os.path.join(CAT, 'catalog.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    json.dump(log, open(os.path.join(RAW, 'merge_log.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    guide_rows = [r for r in out if r['part'] is not None]
+    print('guide question records', len(recs), '-> rows', len(guide_rows), '(joined', len(recs) - len(guide_rows), ')')
+    print('case-study take-home questions', len(cs), '-> joined to guide rows', len(cs) - len(cs_new), ', rows of their own', len(cs_new))
+    print('rows', len(out), '; with definition fields', sum(1 for r in out if r['good']))
 
 
 if __name__ == '__main__':

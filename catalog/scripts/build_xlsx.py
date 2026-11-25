@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Build catalog/jwt-claims-catalog.xlsx from catalog/catalog.json and catalog/decisions/part*.json.
+"""Build catalog/data-intensive-design-review.xlsx from catalog.json, decisions/*.json and raw/reconcile.json.
+Run validate.py first; this script refuses to build while validation reports problems.
   python catalog/scripts/build_xlsx.py"""
 import collections
-import re
-import sys
-import glob
+import datetime
 import json
+import math
 import os
+import sys
+import unicodedata
 
 from openpyxl import Workbook
 from openpyxl.formatting.rule import FormulaRule
@@ -17,377 +19,241 @@ from openpyxl.worksheet.datavalidation import DataValidation
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import links  # noqa: E402
-import fix_blanks  # noqa: E402
-CAT = os.path.dirname(HERE)
-OUT = os.path.join(CAT, 'jwt-claims-catalog.xlsx')
-FONT = 'Meiryo'
-IDPS = [('Entra', 'Entra ID'), ('Keycloak', 'Keycloak'), ('Auth0', 'Auth0'), ('Okta', 'Okta'), ('Cognito', 'Cognito')]
-JUDGE = ['必須（共通基準）', '採用', '条件付き採用', '不採用・代替あり', '不採用・不要', '不採用・禁止', '対象外']
-CASES = [('A', 'ケース A：マルチテナント SaaS'), ('B', 'ケース B：社内業務システム'), ('C', 'ケース C：AI エージェントの委任')]
-CASE_COLS = [('judgement', '判定'), ('condition', '条件'), ('alt', '代替・関連クレーム（ID）'), ('use_or_loss', '用途／失うこと'), ('revisit', '見直し条件'), ('checks', '検証 ID')]
-JFILL = {'必須（共通基準）': '1F6F4A', '採用': '3B8458', '条件付き採用': 'D18A0B', '不採用・代替あり': '4E6A86', '不採用・不要': '8A949C', '不採用・禁止': 'C2413B', '対象外': 'C9CED2'}
+import view as V  # noqa: E402
 
-HEAD_FILL = PatternFill('solid', fgColor='13324A')
-SUB_FILL = PatternFill('solid', fgColor='EDF2F4')
-CASE_FILL = {'A': PatternFill('solid', fgColor='0B6E78'), 'B': PatternFill('solid', fgColor='4E6A86'), 'C': PatternFill('solid', fgColor='7A5BA8')}
+OUT = os.path.join(V.CAT, 'data-intensive-design-review.xlsx')
+FONT = 'Meiryo'
+MAIN = '一覧'
+GROUP_FILL = {'定義': '13324A', '根拠': '4E6A86', '実測': '0B6E78', '架空の宅配注文サービスでの扱い': '7A5BA8', '記入欄（自分のシステム）': 'B7791F', '備考と確認': '5F6B76'}
+ENTRY_FILL = PatternFill('solid', fgColor='FFF7DB')
+JFILL = {'共通の基準に含めた': '1F6F4A', '題材の重点に含めた': '3B8458', '実験で比べた': '4E6A86', '見送った': 'D18A0B', '測っていない': '8A949C', '対象外': 'C9CED2'}
 THIN = Side(style='thin', color='D3DCDF')
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 
 
-def f(bold=False, color='17202B', size=10, italic=False):
-    return Font(name=FONT, bold=bold, color=color, size=size, italic=italic)
+def f(bold=False, color='17202B', size=10):
+    return Font(name=FONT, bold=bold, color=color, size=size)
 
 
-def load():
-    rows = json.load(open(os.path.join(CAT, 'catalog.json'), encoding='utf-8'))
-    dec = {}
-    for p in sorted(glob.glob(os.path.join(CAT, 'decisions', 'part*.json'))):
-        for d in json.load(open(p, encoding='utf-8')):
-            dec[d['id']] = d
-    import sys
-    sys.path.insert(0, HERE)
-    import header_rows
-    for d in header_rows.decisions():
-        dec.setdefault(d['id'], d)
-    return rows, dec
+def width_of(text):
+    return sum(2 if unicodedata.east_asian_width(ch) in 'WFA' else 1 for ch in str(text))
 
 
-def main_columns():
-    cols = [('no', 'No', 6), ('id', 'ID', 11), ('category', '分類', 14), ('name', 'クレーム名', 30), ('purpose', '意味（表すこと／表さないこと）', 46),
-            ('value_type', '値の型', 18), ('multiplicity', '値の数', 10), ('token', '載るトークン', 16), ('source_kind', '出典の種別', 18),
-            ('source', '出典（節）', 30), ('url', '出典 URL', 30), ('book', '書籍の該当箇所', 34), ('status', '状態', 14), ('change_controller', '変更管理者', 16)]
-    cols += [('sup_' + k, 'IdP での扱い：' + lab, 13) for k, lab in IDPS]
-    cols += [('writer', '値を書ける主体', 18), ('mutability', '可変性', 14), ('freshness', '鮮度', 18), ('authz_use', '認可に使ってよいか', 16),
-             ('pii', '個人情報の区分', 16), ('log_policy', 'ログ方針', 12), ('limit', '上限と超過時の挙動', 22), ('comparison', '比較規則', 14),
-             ('uniqueness', '一意の範囲', 12), ('vocabulary', '値の語彙', 16), ('synonym_group', '同義グループ', 16), ('guide_part', 'ガイドの該当 Part', 12)]
-    for c, _ in CASES:
-        cols += [(c + '.' + k, lab, {'judgement': 15, 'condition': 22, 'alt': 16, 'use_or_loss': 44, 'revisit': 26, 'checks': 10}[k]) for k, lab in CASE_COLS]
-    cols += [('notes', '備考', 44), ('checked_on', '確認日', 11), ('verified', '一次資料で確認', 10)]
-    return cols
+def head(ws, row, col, text, fill='13324A'):
+    c = ws.cell(row=row, column=col, value=text)
+    c.font = f(True, 'FFFFFF')
+    c.fill = PatternFill('solid', fgColor=fill)
+    c.alignment = Alignment(wrap_text=True, vertical='center')
+    c.border = BORDER
+    return c
 
 
-ADOPTED = ('必須（共通基準）', '採用', '条件付き採用')
-
-
-def case_value(x, k):
-    j = x.get('judgement', '')
-    if k == 'alt':
-        if x.get('alt'):
-            return '、'.join(x['alt'])
-        if j in ADOPTED:
-            return '—（このクレーム自体を使う）'
-        if x.get('related'):
-            return '、'.join(x['related']) + '（同じ同義グループで採用しているクレーム）'
-        return 'なし（同じ同義グループで採用しているクレームはない）'
-    if k == 'checks':
-        return '、'.join(x.get('checks') or []) or x.get('checks_note') or (
-            '未検証（ケーススタディの実験で直接扱っていない）' if j in ADOPTED else '—（対象外のため検証なし）' if j == '対象外' else '—（採用しないため検証なし）')
-    if k == 'condition' and not x.get('condition'):
-        return fix_blanks.COND.get(j, '')
-    v = x.get(k, '')
-    return '、'.join(v) if isinstance(v, list) else v
-
-
-def value(r, d, key, no):
-    if key == 'no':
-        return no
-    if key.startswith('sup_'):
-        return (r.get('support') or {}).get(key[4:], '不明')
-    if key == 'book':
-        return links.book_refs(r)[0] or '対応づけなし（参考書籍 4 冊の対応表に該当なし）'
-    if key == 'guide_part':
-        return (d or {}).get('guide_part', '')
-    if '.' in key and key[0] in 'ABC' and key[1] == '.':
-        c, k = key.split('.', 1)
-        return case_value((d or {}).get(c) or {}, k)
-    v = r.get(key, '')
-    if isinstance(v, bool):
-        return 'はい' if v else 'いいえ'
-    if isinstance(v, (list, dict)):
-        return json.dumps(v, ensure_ascii=False)
-    return v
-
-
-def sheet_main(wb, rows, dec):
-    ws = wb.create_sheet('クレーム一覧')
-    cols = main_columns()
-    # row 1: group headers, row 2: column headers
-    groups = [(1, 14, 'クレームの定義と出典'), (15, 19, 'IdP での扱い（既定でサポートされるか）'), (20, 31, '性質（判断に使う情報）')]
-    start = 32
-    for c, lab in CASES:
-        groups.append((start, start + 5, lab))
-        start += 6
-    groups.append((start, start + 2, '備考と確認'))
-    for a, b, lab in groups:
-        ws.merge_cells(start_row=1, start_column=a, end_row=1, end_column=b)
-        cell = ws.cell(row=1, column=a, value=lab)
-        fill = HEAD_FILL
-        for c, l2 in CASES:
-            if lab == l2:
-                fill = CASE_FILL[c]
-        for col in range(a, b + 1):
-            ws.cell(row=1, column=col).fill = fill
-        cell.font = f(True, 'FFFFFF', 11)
-        cell.alignment = Alignment(horizontal='center', vertical='center')
-    for i, (key, lab, w) in enumerate(cols, 1):
-        cell = ws.cell(row=2, column=i, value=lab)
-        cell.font = f(True, 'FFFFFF')
-        cell.fill = HEAD_FILL if not (key[:2] in ('A.', 'B.', 'C.')) else CASE_FILL[key[0]]
-        cell.alignment = Alignment(wrap_text=True, vertical='center')
-        cell.border = BORDER
-        ws.column_dimensions[get_column_letter(i)].width = w
-    rowno = {r['id']: n + 2 for n, r in enumerate(rows, 1)}
-    for n, r in enumerate(rows, 1):
-        d = dec.get(r['id'])
-        for i, (key, lab, w) in enumerate(cols, 1):
-            cell = ws.cell(row=n + 2, column=i, value=value(r, d, key, n))
-            cell.font = f()
+def sheet_main(wb, v, table):
+    ws = wb.create_sheet(MAIN)
+    cols = V.COLUMNS
+    start = 1
+    for group, n in [(g, len(list(1 for c in cols if c[3] == g))) for g in dict.fromkeys(c[3] for c in cols)]:
+        ws.merge_cells(start_row=1, start_column=start, end_row=1, end_column=start + n - 1)
+        for col in range(start, start + n):
+            ws.cell(row=1, column=col).fill = PatternFill('solid', fgColor=GROUP_FILL[group])
+        c = ws.cell(row=1, column=start, value=group)
+        c.font = f(True, 'FFFFFF', 11)
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        start += n
+    for i, (key, label, w, group) in enumerate(cols, 1):
+        head(ws, 2, i, label, GROUP_FILL[group])
+        L = get_column_letter(i)
+        ws.column_dimensions[L].width = w
+        if group in ('根拠', '実測'):
+            ws.column_dimensions[L].outlineLevel = 1    # collapsible with the outline buttons; shown by default
+    for n, (c, link) in enumerate(table, 3):
+        lines = 1
+        for i, (key, label, w, group) in enumerate(cols, 1):
+            val = c[key]
+            cell = ws.cell(row=n, column=i, value=val if val != '' else None)
+            cell.font = f(bold=key in ('id', 'question'))
             cell.alignment = Alignment(wrap_text=True, vertical='top')
             cell.border = BORDER
-            link = None
-            if key in ('url', 'source'):
-                link = links.source_link(r)
-            elif key == 'book':
-                link = links.book_refs(r)[1] or None
-            elif key == 'guide_part' and cell.value:
-                link = links.guide_link(str(cell.value))
-            elif key.endswith('.checks') and cell.value:
-                link = links.RESULTS
-            elif key.endswith('.alt') and cell.value:
-                mm = re.match(r'(CLM-\d{4}|ORG-\d{2}|HDR-\d{2})', str(cell.value))
-                first = mm.group(1) if mm else ''
-                if first in rowno:
-                    link = "#'クレーム一覧'!D%d" % rowno[first]
-            if key == 'name':
-                cell.font = f(bold=True)
-            if link and str(link).startswith(('http', '#')):
-                cell.hyperlink = link
-                cell.font = f(color='0B6E78', bold=(key == 'name'))
-    last = len(rows) + 2
-    ws.freeze_panes = 'E3'
+            if key in V.ENTRY:
+                cell.fill = ENTRY_FILL
+            if link.get(key):
+                cell.hyperlink = link[key]
+                cell.font = f(color='0B6E78')
+            lines = max(lines, math.ceil(width_of(val) / max(1.0, (w - 1.5) * 1.05)))
+        ws.row_dimensions[n].height = min(409, max(30, lines * 14.5 + 6))
+    last = len(table) + 2
+    ws.freeze_panes = 'F3'
     ws.auto_filter.ref = 'A2:%s%d' % (get_column_letter(len(cols)), last)
-    ws.row_dimensions[2].height = 42
-    # judgement colours and validation
-    dv = DataValidation(type='list', formula1='=入力規則!$A$2:$A$%d' % (len(JUDGE) + 1), allow_blank=True)
-    ws.add_data_validation(dv)
-    for ci, (key, lab, w) in enumerate(cols, 1):
-        if key.endswith('.judgement'):
-            L = get_column_letter(ci)
-            dv.add('%s3:%s%d' % (L, L, last))
-            for j, col in JFILL.items():
-                ws.conditional_formatting.add('%s3:%s%d' % (L, L, last), FormulaRule(formula=['%s3="%s"' % (L, j)], fill=PatternFill('solid', fgColor=col), font=Font(name=FONT, color='FFFFFF' if j not in ('対象外',) else '17202B', bold=True)))
-    # grey italic for drafts and unverified rows
-    st = get_column_letter([k for k, _, _ in cols].index('status') + 1)
-    vf = get_column_letter(len(cols))
-    ws.conditional_formatting.add('A3:%s%d' % (get_column_letter(len(cols)), last), FormulaRule(formula=['OR(ISNUMBER(SEARCH("草案",$%s3)),$%s3="いいえ")' % (st, vf)], font=Font(name=FONT, color='6B7883', italic=True)))
-    return ws, cols
-
-
-def sheet_long(wb, rows, dec):
-    ws = wb.create_sheet('判定（縦長）')
-    head = ['ID', 'クレーム名', '出典の種別', 'ケース', '判定', '条件', '代替・関連クレーム（ID）', '用途／失うこと', '見直し条件', '検証 ID']
-    widths = [11, 30, 18, 8, 15, 24, 18, 50, 30, 10]
-    for i, (h, w) in enumerate(zip(head, widths), 1):
-        c = ws.cell(row=1, column=i, value=h)
-        c.font = f(True, 'FFFFFF'); c.fill = HEAD_FILL; c.border = BORDER
-        ws.column_dimensions[get_column_letter(i)].width = w
-    n = 2
-    for r in rows:
-        d = dec.get(r['id']) or {}
-        for c, _ in CASES:
-            x = d.get(c) or {}
-            vals = [r['id'], r['name'], r['source_kind'], c, x.get('judgement', ''), case_value(x, 'condition'), case_value(x, 'alt'),
-                    case_value(x, 'use_or_loss'), case_value(x, 'revisit'), case_value(x, 'checks')]
-            for i, v in enumerate(vals, 1):
-                cell = ws.cell(row=n, column=i, value=v)
-                cell.font = f(); cell.alignment = Alignment(wrap_text=True, vertical='top'); cell.border = BORDER
-            n += 1
-    ws.freeze_panes = 'C2'
-    ws.auto_filter.ref = 'A1:J%d' % (n - 1)
-    for j, col in JFILL.items():
-        ws.conditional_formatting.add('E2:E%d' % (n - 1), FormulaRule(formula=['E2="%s"' % j], fill=PatternFill('solid', fgColor=col), font=Font(name=FONT, color='FFFFFF' if j != '対象外' else '17202B', bold=True)))
-
-
-def sheet_groups(wb, rows, dec):
-    ws = wb.create_sheet('同義グループ')
-    g = collections.OrderedDict()
-    for r in rows:
-        g.setdefault(r.get('synonym_group') or '（なし）', []).append(r)
-    head = ['同義グループ', '行数', '代表のクレーム名', '含む ID', '含むクレーム名'] + ['IdP：' + lab for _, lab in IDPS] + ['A の採用・必須', 'B の採用・必須', 'C の採用・必須']
-    widths = [18, 6, 26, 40, 50, 22, 22, 22, 22, 22, 22, 22, 22]
-    for i, (h, w) in enumerate(zip(head, widths), 1):
-        c = ws.cell(row=1, column=i, value=h)
-        c.font = f(True, 'FFFFFF'); c.fill = HEAD_FILL; c.border = BORDER
-        ws.column_dimensions[get_column_letter(i)].width = w
-    n = 2
-    order = {k: i for i, k in enumerate(['標準（IETF RFC）', '標準（OpenID Foundation 最終版）', '本ケーススタディで定義', '草案（IETF・OIDF）'])}
-    for key, rs in sorted(g.items()):
-        rep = sorted(rs, key=lambda r: order.get(r['source_kind'], 9))[0]
-        sup = []
-        for k, _ in IDPS:
-            vals = collections.Counter((r.get('support') or {}).get(k, '不明') for r in rs)
-            best = [v for v in ['既定', '設定で追加', '独自の名前で', 'フック・式で可'] if any(x.startswith(v) for x in vals)]
-            sup.append(best[0] if best else ('不可・未対応' if '不可・未対応' in vals else '不明'))
-        adopted = []
-        for c, _ in CASES:
-            ids = [r['id'] for r in rs if ((dec.get(r['id']) or {}).get(c) or {}).get('judgement') in ('必須（共通基準）', '採用', '条件付き採用')]
-            adopted.append('、'.join(ids))
-        vals = [key, len(rs), rep['name'], '、'.join(r['id'] for r in rs), '、'.join(sorted(set(r['name'] for r in rs)))] + sup + adopted
-        for i, v in enumerate(vals, 1):
-            cell = ws.cell(row=n, column=i, value=v)
-            cell.font = f(); cell.alignment = Alignment(wrap_text=True, vertical='top'); cell.border = BORDER
-        n += 1
-    ws.freeze_panes = 'B2'
-    ws.auto_filter.ref = 'A1:%s%d' % (get_column_letter(len(head)), n - 1)
-
-
-def sheet_sources(wb, rows):
-    ws = wb.create_sheet('出典')
-    src = collections.OrderedDict()
-    for r in rows:
-        k = (r['source_kind'], (r.get('url') or '').split('#')[0])
-        src.setdefault(k, []).append(r)
-    head = ['出典の種別', '出典 URL', '行数', '状態（代表）', '変更管理者（代表）', '確認日']
-    widths = [22, 70, 6, 16, 22, 11]
-    for i, (h, w) in enumerate(zip(head, widths), 1):
-        c = ws.cell(row=1, column=i, value=h)
-        c.font = f(True, 'FFFFFF'); c.fill = HEAD_FILL; c.border = BORDER
-        ws.column_dimensions[get_column_letter(i)].width = w
-    n = 2
-    for (kind, url), rs in sorted(src.items()):
-        vals = [kind, url, len(rs), collections.Counter(r.get('status', '') for r in rs).most_common(1)[0][0],
-                collections.Counter(r.get('change_controller', '') for r in rs).most_common(1)[0][0], max(r.get('checked_on', '') for r in rs)]
-        for i, v in enumerate(vals, 1):
-            cell = ws.cell(row=n, column=i, value=v)
-            cell.font = f(); cell.alignment = Alignment(wrap_text=True, vertical='top'); cell.border = BORDER
-            if i == 2 and str(v).startswith('http'):
-                cell.hyperlink = v; cell.font = f(color='0B6E78')
-        n += 1
-    ws.auto_filter.ref = 'A1:F%d' % (n - 1)
-
-
-def sheet_summary(wb, rows, cols):
-    ws = wb.create_sheet('集計')
-    main = "'クレーム一覧'"
-    last = len(rows) + 2
-    keys = [k for k, _, _ in cols]
+    ws.row_dimensions[1].height = 22
+    ws.row_dimensions[2].height = 44
+    keys = [c[0] for c in cols]
     L = lambda k: get_column_letter(keys.index(k) + 1)
-    ws['A1'] = '集計（数式。クレーム一覧を絞り込んでも全体の件数を数える）'
+    dv = DataValidation(type='list', formula1='=入力規則!$A$2:$A$%d' % (len(V.MY_JUDGES) + 1), allow_blank=True)
+    ws.add_data_validation(dv)
+    dv.add('%s3:%s%d' % (L('my_judge'), L('my_judge'), last))
+    J = L('judge')
+    for j, col in JFILL.items():
+        ws.conditional_formatting.add('%s3:%s%d' % (J, J, last), FormulaRule(formula=['%s3="%s"' % (J, j)], fill=PatternFill('solid', fgColor=col),
+                                      font=Font(name=FONT, color='17202B' if j == '対象外' else 'FFFFFF', bold=True)))
+    M = L('my_judge')
+    ws.conditional_formatting.add('%s3:%s%d' % (M, M, last), FormulaRule(formula=['%s3="要対応"' % M], fill=PatternFill('solid', fgColor='C2413B'), font=Font(name=FONT, color='FFFFFF', bold=True)))
+    ws.sheet_view.zoomScale = 90
+    return L, last
+
+
+def sheet_summary(wb, L, last, table):
+    ws = wb.create_sheet('集計')
+    ws['A1'] = '集計（数式。「一覧」を絞り込んでも、全体の行数を数える）'
     ws['A1'].font = f(True, size=12)
-    ws['A3'] = '判定'; ws['B3'] = 'ケース A'; ws['C3'] = 'ケース B'; ws['D3'] = 'ケース C'
-    for i, j in enumerate(JUDGE, 4):
-        ws.cell(row=i, column=1, value=j)
-        for k, (c, _) in enumerate(CASES, 2):
-            col = L(c + '.judgement')
-            ws.cell(row=i, column=k, value='=COUNTIF(%s!$%s$3:$%s$%d,$A%d)' % (main, col, col, last, i))
-    tot = 4 + len(JUDGE)
-    ws.cell(row=tot, column=1, value='合計')
-    for k in range(2, 5):
-        Lk = get_column_letter(k)
-        ws.cell(row=tot, column=k, value='=SUM(%s4:%s%d)' % (Lk, Lk, tot - 1))
-    r0 = tot + 2
-    ws.cell(row=r0, column=1, value='出典の種別'); ws.cell(row=r0, column=2, value='行数')
-    kinds = sorted(set(r['source_kind'] for r in rows))
-    for i, kd in enumerate(kinds, r0 + 1):
-        ws.cell(row=i, column=1, value=kd)
-        ws.cell(row=i, column=2, value='=COUNTIF(%s!$%s$3:$%s$%d,$A%d)' % (main, L('source_kind'), L('source_kind'), last, i))
-    r1 = r0 + len(kinds) + 2
-    ws.cell(row=r1, column=1, value='IdP での扱い');
-    vals = ['既定', '設定で追加', '独自の名前で', 'フック・式で可', '不可・未対応', '対象外', '不明']
-    for k, (key, lab) in enumerate(IDPS, 2):
-        ws.cell(row=r1, column=k, value=lab)
-    for i, v in enumerate(vals, r1 + 1):
-        ws.cell(row=i, column=1, value=v)
-        for k, (key, lab) in enumerate(IDPS, 2):
-            col = L('sup_' + key)
-            ws.cell(row=i, column=k, value='=COUNTIF(%s!$%s$3:$%s$%d,$A%d&"*")' % (main, col, col, last, i))
-    r2 = r1 + len(vals) + 2
-    ws.cell(row=r2, column=1, value='分類'); ws.cell(row=r2, column=2, value='行数')
-    cats = list(dict.fromkeys(r['category'] for r in rows))
-    for i, cg in enumerate(cats, r2 + 1):
-        ws.cell(row=i, column=1, value=cg)
-        ws.cell(row=i, column=2, value='=COUNTIF(%s!$%s$3:$%s$%d,$A%d)' % (main, L('category'), L('category'), last, i))
-    for row in ws.iter_rows():
-        for c in row:
-            if c.font is None or not c.font.bold:
-                c.font = f(bold=c.row in (3, r0, r1, r2))
-    ws.column_dimensions['A'].width = 30
-    for k in 'BCDEF':
-        ws.column_dimensions[k].width = 14
+    rng = lambda k: "'%s'!$%s$3:$%s$%d" % (MAIN, L(k), L(k), last)
+    row = 3
+    ws.cell(row=row, column=1, value='行の数').font = f(True)
+    ws.cell(row=row, column=2, value='=COUNTA(%s)' % rng('id')).font = f(True)
+    row += 2
+
+    def block(title, key, values, row):
+        head(ws, row, 1, title)
+        head(ws, row, 2, '行数')
+        a = row + 1
+        for i, val in enumerate(values, a):
+            ws.cell(row=i, column=1, value=val).font = f()
+            ws.cell(row=i, column=2, value='=COUNTIF(%s,$A%d)' % (rng(key), i)).font = f()
+        end = a + len(values)
+        ws.cell(row=end, column=1, value='合計').font = f(True)
+        ws.cell(row=end, column=2, value='=SUM(B%d:B%d)' % (a, end - 1)).font = f(True)
+        return end + 2
+
+    seen = lambda k, order=None: [x for x in (order or [])if any(c[k] == x for c, _ in table)] + sorted(set(c[k] for c, _ in table) - set(order or []))
+    row = block('ステップ', 'step', seen('step', V.STEPS), row)
+    row = block('対象', 'target', seen('target', V.TARGETS), row)
+    row = block('実測の判定（区分）', 'verdict_class', seen('verdict_class', [V.NO_MEAS, V.MIXED]), row)
+    row = block('架空の宅配注文サービスでの扱い', 'judge', V.JUDGES, row)
+    row = block('出どころの種別', 'origin', V.ORIGINS, row)
+    head(ws, row, 1, '記入欄の進み具合（自分のシステム）')
+    head(ws, row, 2, '行数')
+    for i, val in enumerate(V.MY_JUDGES, row + 1):
+        ws.cell(row=i, column=1, value=val).font = f()
+        ws.cell(row=i, column=2, value='=COUNTIF(%s,$A%d)' % (rng('my_judge'), i)).font = f()
+    i = row + 1 + len(V.MY_JUDGES)
+    ws.cell(row=i, column=1, value='未記入').font = f()
+    ws.cell(row=i, column=2, value='=COUNTBLANK(%s)' % rng('my_judge')).font = f()
+    ws.column_dimensions['A'].width = 52
+    ws.column_dimensions['B'].width = 10
+    return i
+
+
+def sheet_reconcile(wb, v):
+    ws = wb.create_sheet('照合の行')
+    used = collections.defaultdict(list)
+    for r in v.rows:
+        for k in ((v.dec.get(r['key']) or {}).get('meas') or {}).get('links') or []:
+            used[k].append(r['id'])
+    heads = [('照合の行', 9), ('題材', 26), ('ガイドのスライドの題', 40), ('ガイドの記述', 60), ('判定（summary のまま）', 40), ('結びつけた問い（ID）', 30), ('結果のファイル', 28)]
+    for i, (h, w) in enumerate(heads, 1):
+        head(ws, 1, i, h)
+        ws.column_dimensions[get_column_letter(i)].width = w
+    for n, r in enumerate(v.rec.values(), 2):
+        t = r['topic']
+        vals = [r['key'], '題材 %s：%s' % (t, links.TOPIC_NAME[t]), r['slide'], r['cells'][1], V.verdict_text(r['verdict']),
+                '、'.join(used[r['key']]) or 'なし（スライドの事実の照合で、どの問いにも結びつけていない）', links.summary_path(t)]
+        lines = 1
+        for i, val in enumerate(vals, 1):
+            c = ws.cell(row=n, column=i, value=val)
+            c.font = f()
+            c.alignment = Alignment(wrap_text=True, vertical='top')
+            c.border = BORDER
+            lines = max(lines, math.ceil(width_of(val) / max(1.0, (heads[i - 1][1] - 1.5) * 1.05)))
+        ws.cell(row=n, column=7).hyperlink = links.summary_link(t, links.RECONCILE)
+        ws.cell(row=n, column=7).font = f(color='0B6E78')
+        ws.row_dimensions[n].height = min(409, max(18, lines * 14.5 + 4))
+    ws.freeze_panes = 'B2'
+    ws.auto_filter.ref = 'A1:G%d' % (len(v.rec) + 1)
 
 
 def sheet_lists(wb):
     ws = wb.create_sheet('入力規則')
-    lists = {'判定': JUDGE, 'IdP での扱い': ['既定', '設定で追加', '独自の名前で', 'フック・式で可', '不可・未対応', '対象外（他社の独自クレーム）', '不明'],
-             '値を書ける主体': ['発行者（権威ある情報源）', '発行者（取得元から転記）', '本人が編集できる', '呼び出し元・クライアントの申告', '発行者が派生', '不明'],
-             '可変性': ['不変', '再割り当てなし', '改名・変更あり', '随時変わる', '不明'], '鮮度': ['発行時点で固定（寿命内は古いまま）', '発行ごとに再計算', '都度照会が必要', '該当なし'],
-             '認可に使ってよいか': ['単独で可', 'iss・aud などと組で可', '補助のみ', '不可（表示・監査用）'], '個人情報の区分': ['非該当', '仮名の識別子', '直接識別できる個人情報', '機微な個人情報'],
-             'ログ方針': ['平文で可', 'ハッシュ・マスク', '記録しない'], '状態': ['最終', '草案（版番号）', '非推奨', '廃止', 'ベンダー提供中', 'プレビュー', '本ケーススタディで定義']}
+    lists = collections.OrderedDict([('記入欄の判定', V.MY_JUDGES), ('ステップ', V.STEPS), ('対象', V.TARGETS), ('いつ問うか', V.WHEN), ('4 つの性質', V.PROPS),
+                                     ('根拠の種別', V.BASIS_KINDS), ('扱いの判定', V.JUDGES), ('出どころの種別', V.ORIGINS)])
     for i, (k, vs) in enumerate(lists.items(), 1):
-        c = ws.cell(row=1, column=i, value=k); c.font = f(True, 'FFFFFF'); c.fill = HEAD_FILL
-        ws.column_dimensions[get_column_letter(i)].width = 26
-        for j, v in enumerate(vs, 2):
-            ws.cell(row=j, column=i, value=v).font = f()
+        head(ws, 1, i, k)
+        ws.column_dimensions[get_column_letter(i)].width = 30
+        for j, val in enumerate(vs, 2):
+            ws.cell(row=j, column=i, value=val).font = f()
 
 
-def sheet_readme(wb, rows, dec):
+def sheet_readme(wb, v, table):
     ws = wb.active
-    ws.title = '読み方'
-    ws.column_dimensions['A'].width = 24
-    ws.column_dimensions['B'].width = 120
+    ws.title = '使い方'
+    ws.column_dimensions['A'].width = 26
+    ws.column_dimensions['B'].width = 130
+    n_rows = len(table)
+    n_guide = sum(1 for r in v.rows if r['part'] is not None)
+    n_meas = sum(1 for c, _ in table if c['verdict_class'] != V.NO_MEAS)
     lines = [
-        ('JWT クレーム一覧（付録）', ''),
-        ('この表は何か', 'JWT のクレームを、定義した規格・出典ごとに 1 行ずつ集めた一覧。ガイド「JWT クレーム設計ガイド」とケーススタディの付録。3 つのケース（A マルチテナント SaaS、B 社内業務システム、C AI エージェントの委任）ごとに採否と理由を付けた。'),
-        ('行の単位', '同じ名前・同じ意味のクレームでも、定義した出典が違えば別の行にした（例：RFC 9068 の groups、Entra ID の groups、Cognito の cognito:groups）。行数はクレームの数ではない。概念の数は「同義グループ」のシートで数える。'),
-        ('用語', '列名と値では「クレーム」を使う。「属性」は、SCIM・eduPerson・inetOrgPerson・NIST のように、クレームの元になるディレクトリの属性を指すときだけ使う。'),
-        ('判定の値', '必須（共通基準）／採用／条件付き採用／不採用・代替あり／不採用・不要／不採用・禁止／対象外。不採用は禁止ではない（「不要」と「禁止」を分けた）。'),
-        ('理由の書き方', '採用・条件付き採用は「どういう場合に使うか」、不採用は「それで何ができなくなるか」を書いた。不採用・代替ありは、代わりに使うクレームの ID を「代替・関連クレーム（ID）」に書いた。不採用・不要／禁止／対象外の行には、同じ概念（同義グループ）でそのケースが採用しているクレームを「（同じ同義グループで採用しているクレーム）」として示し、無ければ「なし」と書いた。採用・必須の行は「—（このクレーム自体を使う）」。「条件」は条件付き採用だけが具体的な条件で、ほかは「常に」か「該当なし」。「見直し条件」は全行に書いた（採用・必須は判断を変える条件、対象外はそのクレームが関係してくる範囲の変化）。「検証 ID」が無い行は、未検証か検証しない理由を書いた。空欄のセルは無い。'),
-        ('IdP での扱い', '既定＝設定なしで出る／設定で追加＝任意クレーム・マッパー・スコープで出す／独自の名前で＝同じ概念を別の名前で出す（備考に名前）／フック・式で可＝Actions・フック・式・マッパーを自分で書けば出せる／不可・未対応／対象外＝他社の独自クレームの行なので該当しない／不明＝文書で確認できなかった。'),
-        ('注意 1', 'IdP で「既定」でも、認可に使ってよいとは限らない。「認可に使ってよいか」「値を書ける主体」「可変性」を必ず見る。'),
-        ('注意 2', '標準のクレームでも、IdP 間で意味や形が同じとは限らない（例：groups を名前で返すか ID で返すか、sub が利用者かログイン名か）。'),
-        ('注意 3', '個人情報のクレームの「採用」は、アクセストークンに載せてよいという意味ではない。「載るトークン」と「個人情報の区分」と条件を並べて読む。'),
-        ('注意 4', '判定は、このケーススタディの前提（判定の方針：DECISION_POLICY.md）での結論で、2026-11-17 時点のもの。草案の行と、一次資料で確認できなかった行は灰色の斜体で表示する。'),
-        ('筆者の判断', '「個人情報の区分」「ログ方針」「認可に使ってよいか」など、出典に書かれていないことが多い列は、出典の記述をもとに作成者が付けた。'),
-        ('出典とリンク', 'RFC・OpenID の仕様・IETF の草案・IANA の登録簿・各社の公式文書・公的機関の文書。「出典（節）」と「出典 URL」から原典に飛べる（RFC は該当の節へ）。「書籍の該当箇所」は日本語の書籍の章・節と印刷ページで、出版社の書籍のページへリンクする。「代替・関連クレーム（ID）」は表の中の該当行へ、「検証 ID」はケーススタディの結果へ、「ガイドの該当 Part」はガイドの Web スライドへリンクする。'),
-        ('関連', 'ガイド：https://github.com/Takenori-Kusaka/jwt-claims-guide ／ ケーススタディ：https://github.com/Takenori-Kusaka/jwt-claims-casestudy'),
-        ('件数', '%d 行（うち本ケーススタディで定義した組織の独自クレーム %d 行）、同義グループ %d。判定の件数は「集計」のシート。' % (
-            len(rows), sum(1 for r in rows if r['source_kind'] == '本ケーススタディで定義'), len(set(r.get('synonym_group') for r in rows)))),
-        ('ライセンス', 'CC BY 4.0。本表は生成AI（Claude）を使って作成し、作成者が確認して公開している。'),
+        ('設計レビューの問いの一覧', ''),
+        ('この表は何か', 'ガイド「%s」と、そのケーススタディ（4 つの題材を実機で 2 回測った）に書いてある、設計レビューで問うことを、1 行 1 問で並べた表。新任のテックリーダーが、設計レビューの場で使う。' % links.GUIDE_TITLE),
+        ('行の数', '%d 行（ガイドの問い %d 行、ケーススタディだけにある問い %d 行）。実測と結びついた行は %d 行。件数は「集計」のシートが数式で数える。' % (n_rows, n_guide, n_rows - n_guide, n_meas)),
+        ('行にしたもの', 'ガイドのスライドに問いの形で書いてあるものだけ：各 Part の「設計レビューで問うこと」の表、分ける理由・まとめる理由の問い（Part 3）、サーガの 3 つの軸の問い（Part 11）、照合と系譜の 4 つの道具が答える問い（Part 12）、基盤を作る前の問いと 4 つの問い（Part 13）、Part 17 の 9 つのステップの問い・ADR に足す 3 項目・トレードオフの問い。ケーススタディの「設計レビューに持ち帰る問い」。各 Part の扉の「答えられるようになる問い」は、読者が学ぶ問いなので入れていない。ステップ × 基盤の掛け合わせで行を作ることはしていない。'),
+        ('まとめ方', '同じ文言の問い（Part 17 と Part 0 は、各 Part の問いを文言のまま引いている）は 1 行にまとめ、出どころを全部書いた。ケーススタディの持ち帰る問いは、ガイドの問いと同じ決定を問うものはその行にまとめ（備考に理由）、無いものだけ別の行にした。'),
+        ('使い方 1', '「一覧」を、ステップか対象で絞り込む。初めてなら「まず問う問いか」を「はい」で絞る（Part 17 がステップごとに最初に問うと選んだ問い）。'),
+        ('使い方 2', '問いを読み上げ、返ってきた答えを「危ない兆候」「よい答えの例」と比べる。なぜ問うのかを聞かれたら「なぜ問うか」と根拠の列を見せる。'),
+        ('使い方 3', '黄色の列（記入欄）に、自分のシステムでの現状の答え、判定（問題なし・要対応・対象外）、担当、期限を書く。記入欄は空のまま配っている。進み具合は「集計」の最後の表に出る。'),
+        ('列の説明：定義', 'ID は安定（RQ-P＜Part＞-＜スライドでの順＞。ケーススタディだけの問いは RQ-C＜題材＞-＜順＞）。「よい答えの例」は、ガイドのその Part の記述を、この表の作成時に 1〜2 文にまとめたもの（スライドの文そのものではない）。「いつ問うか」と「4 つの性質のどれに効くか」も、Part 17 が挙げた問いを除いて、この表の作成時に付けた。'),
+        ('列の説明：根拠', '「根拠」は、問いが載っているスライドの根拠の行（仕様・文書／指針・報告／書籍）を写したもので、問い 1 つずつの出典ではない。「書籍」は書名・章節・印刷ページだけで、本文は引用していない。スライドの表に「なぜ問うか」「危ない兆候」の欄が無く、この表で補った行は、根拠の種別に「本ガイドの考え」が入り、備考に補ったことを書いた。'),
+        ('列の説明：実測', '「実測の判定（照合の表のまま）」は、ケーススタディの results/＜題材＞/summary.md の「ガイドの記述との照合」の行の判定を、そのまま写したもの（行の番号つき）。「区分」は、その判定のかっこの前の語。結びつけた行の判定が 2 種類以上あれば「複数の判定（右の列）」。結びつく行が無ければ「実測なし（未検証）」。数字は summary から写し、2 回の実行で違えば「1 回目 a・2 回目 b」と並べた。'),
+        ('列の説明：扱い', 'ケーススタディの架空の宅配注文サービスで、その問いをどう扱ったか。共通の基準に含めた（B1〜B6、題材 C の構成 B）／題材の重点に含めた（E）／実験で比べた（基準・重点には入れていない）／見送った／測っていない／対象外。理由は、入れたものは外したときに再び壊れた数（除去実験）、見送ったものは失うもの。'),
+        ('限界 1', '実測は 1 台（WSL2 の Docker）の上の小さな規模で、数字は同じ環境の中の相対比較。「0 件」は、この手順と試行の数で起きなかったという意味で、起きないことの証明ではない。'),
+        ('限界 2', '「扱い」の判定は、架空のサービスに対するもので、自分のシステムへの推奨ではない。認証・AI・セキュリティの各基盤、クラウドのマネージド製品、法に関わる点は実機で確かめていない。'),
+        ('限界 3', '問いは、ガイドとケーススタディに書いてあるものだけ。設計レビューで問うべきことを網羅した表ではない。法律に関わる行は助言ではない。'),
+        ('照合の行', '「照合の行」のシートは、4 つの summary の照合の表の全 %d 行と、それぞれを結びつけた問いの ID。どの問いにも結びつけていない行もある（スライドの事実の確認で、問いに当たらないもの）。' % len(v.rec)),
+        ('ガイド', links.GUIDE_REPO + ' ／ Web 版 ' + links.GUIDE_WEB),
+        ('ケーススタディ', links.CASE_REPO),
+        ('確認日', '%s（ガイドのスライドと、ケーススタディの summary を、この日の版で読み直した）' % links.CHECKED_ON),
+        ('ライセンスと作り方', 'CC BY 4.0。本表は生成AI（Claude）を使って作成し、作成者が確認して公開している。作り方は catalog/README.md。'),
     ]
     for i, (a, b) in enumerate(lines, 1):
-        ca = ws.cell(row=i, column=1, value=a); cb = ws.cell(row=i, column=2, value=b)
-        ca.font = f(True, size=14 if i == 1 else 10); cb.font = f()
-        cb.alignment = Alignment(wrap_text=True, vertical='top'); ca.alignment = Alignment(vertical='top')
+        ca = ws.cell(row=i, column=1, value=a)
+        cb = ws.cell(row=i, column=2, value=b or None)
+        ca.font = f(True, size=14 if i == 1 else 10)
+        cb.font = f()
+        cb.alignment = Alignment(wrap_text=True, vertical='top')
+        ca.alignment = Alignment(vertical='top')
+        ws.row_dimensions[i].height = max(18, math.ceil(width_of(b) / 250.0) * 16 + 4)
+        if b.startswith('http'):
+            cb.hyperlink = b.split(' ')[0]
+            cb.font = f(color='0B6E78')
     leg = len(lines) + 2
-    ws.cell(row=leg, column=1, value='判定の色').font = f(True)
+    ws.cell(row=leg, column=1, value='扱いの判定の色').font = f(True)
     for i, (j, col) in enumerate(JFILL.items(), leg + 1):
         c = ws.cell(row=i, column=1, value=j)
-        c.fill = PatternFill('solid', fgColor=col); c.font = Font(name=FONT, bold=True, color='FFFFFF' if j != '対象外' else '17202B')
-
-
-def sheet_history(wb):
-    ws = wb.create_sheet('変更履歴')
-    for i, h in enumerate(['日付', '内容'], 1):
-        c = ws.cell(row=1, column=i, value=h); c.font = f(True, 'FFFFFF'); c.fill = HEAD_FILL
-    ws.cell(row=2, column=1, value='2026-11-17').font = f()
-    ws.cell(row=2, column=2, value='初版。IANA の JWT クレーム登録簿の全件、標準の仕様、5 つの IdP、プラットフォーム・業界の属性語彙を収録し、3 ケースの判定を付けた。列の設計は別の担当のレビュー（catalog/reviews）を反映。').font = f()
-    ws.column_dimensions['A'].width = 12
-    ws.column_dimensions['B'].width = 120
+        c.fill = PatternFill('solid', fgColor=col)
+        c.font = Font(name=FONT, bold=True, color='17202B' if j == '対象外' else 'FFFFFF')
+    c = ws.cell(row=leg + len(JFILL) + 1, column=1, value='記入欄')
+    c.fill = ENTRY_FILL
+    c.font = f(True)
 
 
 def main():
-    rows, dec = load()
+    val = os.path.join(V.CAT, 'decisions', 'validation.json')
+    if not os.path.exists(val) or json.load(open(val, encoding='utf-8'))['summary']['problems']:
+        raise SystemExit('run validate.py first and fix what it reports')
+    v = V.View()
+    table = [v.cells(r) for r in v.rows]
     wb = Workbook()
-    sheet_readme(wb, rows, dec)
-    ws, cols = sheet_main(wb, rows, dec)
-    sheet_long(wb, rows, dec)
-    sheet_groups(wb, rows, dec)
-    sheet_sources(wb, rows)
-    sheet_summary(wb, rows, cols)
+    sheet_readme(wb, v, table)
+    L, last = sheet_main(wb, v, table)
+    sheet_summary(wb, L, last, table)
+    sheet_reconcile(wb, v)
     sheet_lists(wb)
-    sheet_history(wb)
+    p = wb.properties                      # no personal data in the workbook properties
+    p.creator = ''
+    p.lastModifiedBy = ''
+    p.title = '設計レビューの問いの一覧'
+    stamp = datetime.datetime.strptime(links.CHECKED_ON, '%Y-%m-%d')
+    p.created = stamp
+    p.modified = stamp
     wb.save(OUT)
-    print('wrote', OUT, len(rows), 'rows,', len(dec), 'decided')
+    print('wrote', os.path.basename(OUT), len(table), 'rows,', len(V.COLUMNS), 'columns')
 
 
 if __name__ == '__main__':
